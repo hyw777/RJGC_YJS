@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sgrej.mapper.ReviewMapper">
+
+    <insert id="addReview">
+        INSERT INTO `reviews`
+            (`user_id`, `business_id`, `stars`, `useful`, `funny`, `cool`, `text`, `date`) VALUES
+        (#{userId}, #{bid}, #{stars}, 0, 0, 0, #{text},#{date})
+    </insert>
+    <update id="changeReview">
+        update `reviews`
+        <set>
+          <if test="useful == 1">useful = useful+1,</if>
+            <if test="funny == 1"> funny = funny +1,</if>
+            <if test="cool == 1">cool = cool +1,</if>
+        </set>
+        where review_id = #{reviewId}
+    </update>
+
+    <select id="getAll" resultType="com.sgrej.domain.pojo.Review">
+        select review_id,user_id,business_id,stars,useful,funny,cool,text,date,rid from reviews
+        <where>
+           <if test="begin != null">
+               and date &gt;= #{begin}
+           </if>
+            <if test="end != null">
+               and date &lt;= #{end}
+            </if>
+        </where>
+        order by date desc
+    </select>
+</mapper>

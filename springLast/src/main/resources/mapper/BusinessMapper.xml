@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sgrej.mapper.BusinessMapper">
+
+    <select id="pageQuery" resultType="com.sgrej.domain.vo.BusinessVO">
+        select business_id,name,address,stars,review_count,is_open,categories,bid
+        from business
+        <where>
+            <if test="businessName != null and businessName != ''">
+               and name like concat('%',#{businessName},'%')
+            </if>
+            <if test="type != null and type != ''">
+               and categories like concat('%',#{type},'%')
+            </if>
+            <if test=" 1 == 1">
+                and is_open != -1
+            </if>
+        </where>
+        order by stars desc,review_count desc
+    </select>
+
+
+    <update id="changeInfo">
+        UPDATE `business`
+        <set>
+
+            <if test="name != null">`name` = #{name},</if>
+
+            <if test="address != null">`address` = #{address},</if>
+
+            <if test="city != null">`city` = #{city},</if>
+
+            <if test="state != null">`state` = #{state},</if>
+
+            <if test="reviewCount == 1">`review_count` = `review_count` + 1,</if>
+
+            <if test="categories != null">`categories` = #{categories},</if>
+
+            <if test="hours != null">`hours` = #{hours},</if>
+
+            <if test="goodForKids != null">`good_for_kids` = #{goodForKids},</if>
+
+            <if test="businessAcceptsCreditcards != null">`business_accepts_creditcards` = #{businessAcceptsCreditcards},</if>
+
+        </set>
+
+        WHERE `business_id` = #{businessId}
+    </update>
+
+    <select id="getNearBy" resultType="com.sgrej.domain.vo.BusinessVO">
+        select business_id,name,address,stars,review_count,is_open,categories,bid
+        from business
+        <where>
+            <if test="city != null and city != ''">
+                and city like concat('%',#{city},'%')
+            </if>
+            <if test="1 == 1">
+                and is_open != -1
+            </if>
+        </where>
+        order by stars desc,review_count desc
+    </select>
+
+
+    <insert id="register" keyProperty="businessId" useGeneratedKeys="true">
+        INSERT INTO business
+        (`name`, `address`, `city`, `state`, `stars`, `review_count`, `is_open`, `categories`, `hours`, `bid`, `good_for_kids`, `business_accepts_creditcards`)
+        VALUES
+        (#{name}, #{address}, #{city}, #{state}, #{stars}, #{reviewCount}, #{isOpen}, #{categories}, #{hours}, #{bid}, #{goodForKids}, #{businessAcceptsCreditcards})
+
+    </insert>
+
+
+</mapper>

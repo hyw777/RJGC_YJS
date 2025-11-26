@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/niche_ reviews?characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: hyw499
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      port: 6379
+      password: 1234
+      database: 0
+      host: hadoop102
+
+
+mybatis-plus:
+    mapper-locations: classpath*:/mapper/**/*.xml
+    configuration:
+        map-underscore-to-camel-case: true
+
+
+server:
+  port: 8080
+
+# 发送邮件配置
+mail:
+  # 发件人地址
+  user: 3104038045@qq.com
+  # 发件人授权码
+  password: gyspzdqoxzwideia
+
+
+
+

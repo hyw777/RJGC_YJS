@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sgrej.mapper.UserMapper">
+      <insert id="register" useGeneratedKeys="true" keyProperty="userId">
+          INSERT INTO `user` ( `uid`,`name`, `password`, `age`, `gender`, `city`, `email`, `review_count`,  `cool`, `useful`, `elite`, `yelping_since`, `funny`,`friends`) VALUES
+                                                    (#{uid},#{name}, #{password},#{age}, #{gender}, #{city}, #{email}, 0, 0, 0, null, #{yelpingSince}, 0,null);
+
+      </insert>
+    <update id="editUser">
+        UPDATE user
+        <set>
+            <if test="name != null and name.trim() != ''">
+                name = #{name},
+            </if>
+            <if test="password != null and password.trim() != ''">
+                password = #{password},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="gender != null and gender.trim() != ''">
+                gender = #{gender},
+            </if>
+            <if test="city != null and city.trim() != ''">
+                city = #{city},
+            </if>
+            <if test="email != null and email.trim() != ''">
+                email = #{email},
+            </if>
+            <if test="reviewCount == 1">
+                review_count = review_count+1,
+            </if>
+            <if test="useful == 1">
+                useful = useful+1,
+            </if>
+            <if test="funny == 1">
+                funny = funny +1,
+            </if>
+            <if test="cool == 1">
+                cool = cool +1,
+            </if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="findFriend" resultType="com.sgrej.domain.pojo.User">
+        select uid,user_id,name,password,email,gender,age,city,review_count,cool,useful,elite,yelping_since,funny,friends from user
+        <where>
+            <if test="userName != null and userName.trim() != '' ">
+             and name like concat('%',#{userName},'%')
+            </if>
+            <if test="email != null and email.trim() != ''">
+            and  email = #{email}
+            </if>
+            <if test="(email == null || email.trim() == '') and (userName == null || userName.trim() == '') ">
+            and user_id > 0 and user_id &lt; 2000000
+            </if>
+        </where>
+        order by yelping_since desc
+    </select>
+
+    <select id="findFriend2" resultType="com.sgrej.domain.pojo.User">
+        select uid,user_id,name,password,email,gender,age,city,review_count,cool,useful,elite,yelping_since,funny,friends from user
+        <where>
+            <if test="userName != null and userName.trim() != '' ">
+                and name like concat('%',#{userName},'%')
+            </if>
+            <if test="email != null and email.trim() != ''">
+                and  email = #{email}
+            </if>
+             AND user_id NOT IN (#{friendsId})
+        </where>
+    </select>
+
+</mapper>

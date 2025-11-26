@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sgrej.mapper.LastMessageMapper">
+
+    <update id="update">
+        update last_message set receive_id = #{receiveId},send_id = #{sendId},context = #{context},time = now()
+        where
+            (receive_id = #{receiveId} AND send_id = #{sendId})
+           OR
+            (receive_id = #{sendId} AND send_id = #{receiveId})
+    </update>
+
+
+    <insert id="add">
+        insert into last_message(send_id,receive_id,context,time)
+        values
+        (#{sendId},#{receiveId},#{context},now())
+    </insert>
+
+
+    <select id="getRecords" resultType="com.sgrej.domain.pojo.LastMessage">
+        select send_id,receive_id,time,context from last_message
+        where
+        receive_id = #{userId}
+        or
+        send_id = #{userId}
+    </select>
+
+
+</mapper>
