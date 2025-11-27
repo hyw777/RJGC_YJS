@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <NewIndexView></NewIndexView>
-    <NewIndexTop></NewIndexTop>
+    <!-- <NewIndexTop></NewIndexTop> -->
     <new-index-activity v-if="authStore.token"></new-index-activity>
     <new-index-categories></new-index-categories>
   </div>
