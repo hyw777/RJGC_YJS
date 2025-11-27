@@ -41,6 +41,7 @@ export function useSearch() {
     async function getResult(page,businessName) {
         search.value.page = page
         search.value.businessName = businessName
+        console.log(search.value)
         search.value.pageSize = 6
         try {
             let res = await axios.post('/api/business/search',search.value)

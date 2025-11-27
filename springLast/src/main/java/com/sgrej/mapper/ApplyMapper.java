@@ -20,7 +20,7 @@ public interface ApplyMapper {
     @Select("select count(id) from application where recipient_id = #{userId}")
     int getUnPass(int userId);
 
-    @Select("select id,applicant_id,recipient_id,reason,time,name from application where recipient_id = #{userId}")
+    @Select("select id,applicant_id,recipient_id,reason,time from application where recipient_id = #{userId}")
     List<Apply> getInfo(int userId);
 
     @Delete("delete from application where recipient_id = #{userId} and applicant_id = #{applicantId}")

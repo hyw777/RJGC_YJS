@@ -100,7 +100,6 @@
 
 // 使用 ref 创建一个响应式集合来存储已隐藏的 reviewId
 // 从 localStorage 获取已隐藏的 reviewId
-import {log} from "echarts/types/src/util/log";
 
 const storedHiddenIds = localStorage.getItem('hiddenReviewIds');
 const hiddenReviewIds = ref(storedHiddenIds ? new Set(JSON.parse(storedHiddenIds)) : new Set<number>());
