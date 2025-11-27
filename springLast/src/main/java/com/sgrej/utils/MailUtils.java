@@ -30,41 +30,44 @@ public final class MailUtils {
             final Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.host", "smtp.qq.com");
+            // 关键：启用SSL加密
+            props.put("mail.smtp.ssl.enable", "true");
+            // SSL端口（QQ邮箱固定为465）
+            props.put("mail.smtp.port", "465");
+            // 可选：设置SSLSocketFactory类（避免部分环境兼容问题）
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.port", "465");
+            props.put("mail.smtp.socketFactory.fallback", "false");
 
-            // 发件人的账号
+            // 发件人的账号和密码（保持不变）
             props.put("mail.user", USER);
-            //发件人的密码
             props.put("mail.password", PASSWORD);
 
-            // 构建授权信息，用于进行SMTP进行身份验证
+            // 构建授权信息（保持不变）
             Authenticator authenticator = new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    // 用户名、密码
                     String userName = props.getProperty("mail.user");
                     String password = props.getProperty("mail.password");
                     return new PasswordAuthentication(userName, password);
                 }
             };
-            // 使用环境属性和授权信息，创建邮件会话
+
+            // 创建邮件会话（保持不变）
             Session mailSession = Session.getInstance(props, authenticator);
-            // 创建邮件消息
+            mailSession.setDebug(true); // 可选：开启调试模式，打印SMTP交互日志
             MimeMessage message = new MimeMessage(mailSession);
-            // 设置发件人
+
+            // 设置发件人、收件人、标题、内容（保持不变）
             String username = props.getProperty("mail.user");
             InternetAddress form = new InternetAddress(username);
             message.setFrom(form);
-
-            // 设置收件人
             InternetAddress toAddress = new InternetAddress(to);
             message.setRecipient(Message.RecipientType.TO, toAddress);
-
-            // 设置邮件标题
             message.setSubject(title);
-
-            // 设置邮件的内容体
             message.setContent(text, "text/html;charset=UTF-8");
-            // 发送邮件
+
+            // 发送邮件（保持不变）
             Transport.send(message);
             return true;
         }catch (Exception e){

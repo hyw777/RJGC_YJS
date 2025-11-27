@@ -12,8 +12,8 @@ import java.util.List;
 @Mapper
 public interface ApplyMapper {
 
-    @Insert("INSERT INTO application(applicant_id, recipient_id, time, reason,name) " +
-            "VALUES (#{applicantId}, #{recipientId}, #{time, jdbcType=TIMESTAMP}, #{reason},#{name}) ")
+    @Insert("INSERT INTO application(applicant_id, recipient_id, time, reason) " +
+            "VALUES (#{applicantId}, #{recipientId}, #{time, jdbcType=TIMESTAMP}, #{reason}) ")
     void add(ApplicationDTO applicationDTO);
 
 
