@@ -10,7 +10,7 @@
             <div class="ai-sub">基于您的搜索为您智能推荐相似商家或体验</div>
           </div>
           <div class="ai-action">
-            <el-button size="small" type="primary" @click="fetchAIRecommendations" :loading="aiLoading">生成推荐</el-button>
+            <el-button size="small" type="primary" @click="fetchAIRecommendationsWrapper" :loading="aiLoading">生成推荐</el-button>
           </div>
         </div>
         <div class="ai-body" v-if="aiRecommendations.length">
@@ -59,7 +59,6 @@
 import NewIndexView from "@/components/new-index/NewIndexView.vue";
 import {useSearch} from "@/hooks/UseSearch";
 import {useRoute} from "vue-router";
-import axios from 'axios';
 import {computed, onMounted, ref, toRefs, watch} from "vue";
 import {UseSearchStore} from "@/stores/UseSearchStore";
 
@@ -72,7 +71,8 @@ const filePath  =(file) => {
 
 let searchStore = UseSearchStore();
 let route = useRoute()
-let {search,getResult} = toRefs(useSearch())
+// get fetchAIRecommendations and ai state from hook
+let {search,getResult, fetchAIRecommendations, aiLoading, aiRecommendations} = useSearch()
 
 function  handleCurrentChange(val){
   getResult.value(val,route.query.info)
@@ -80,30 +80,12 @@ function  handleCurrentChange(val){
 
 let result = computed(()=>searchStore.result)
 
-// AI recommend state
-const aiLoading = ref(false)
-const aiRecommendations = ref<string[]>([])
-
-async function fetchAIRecommendations() {
+// expose a thin wrapper so the page triggers the hook function using current route.query.info
+async function fetchAIRecommendationsWrapper() {
   const query = (route.query.info as string) || '';
-  if (!query) {
-    aiRecommendations.value = []
-    return
-  }
-  aiLoading.value = true
-  try {
-    const resp = await axios.post('/api/ai/recommend', { query })
-    const data = resp.data && (resp.data.data ?? resp.data)
-    if (Array.isArray(data)) aiRecommendations.value = data
-    else if (typeof data === 'string') aiRecommendations.value = data.split(/\r?\n/).filter(Boolean)
-    else aiRecommendations.value = []
-  } catch (e) {
-    console.error('AI recommend error', e)
-    aiRecommendations.value = []
-  } finally {
-    aiLoading.value = false
-  }
+  await fetchAIRecommendations(query)
 }
+
 
 
 

@@ -86,5 +86,37 @@ export function useSearch() {
         }
     }
 
-    return {search,result,getResult,info,useSearch,getCategoriesResult,search2}
+        // AI recommend state and function
+        const aiLoading = ref(false)
+        const aiRecommendations = ref<string[]>([])
+
+        async function fetchAIRecommendations(query?: string) {
+            const q = query ?? info.value ?? ''
+            if (!q) {
+                aiRecommendations.value = []
+                return
+            }
+            aiLoading.value = true
+            try {
+                // Spring @RequestParam expects request parameters (form data or query string),
+                // so send as application/x-www-form-urlencoded so the controller can read `text`.
+                const params = new URLSearchParams()
+                params.append('text', q)
+                const resp = await axios.post('/api/business/AIRecommend', params, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                })
+                const data = resp.data && (resp.data.data ?? resp.data)
+                console.log('fetchAIRecommendations', resp)
+                if (Array.isArray(data)) aiRecommendations.value = data
+                else if (typeof data === 'string') aiRecommendations.value = data.split(/\r?\n/).filter(Boolean)
+                else aiRecommendations.value = []
+            } catch (e) {
+                console.error('AI recommend error', e)
+                aiRecommendations.value = []
+            } finally {
+                aiLoading.value = false
+            }
+        }
+
+    return {search,result,getResult,info,useSearch,getCategoriesResult,search2, aiLoading, aiRecommendations, fetchAIRecommendations}
 }

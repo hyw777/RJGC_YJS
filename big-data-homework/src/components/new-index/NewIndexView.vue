@@ -370,6 +370,11 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- Background Image Description -->
+    <div class="background-description" v-show="view['background-image'] && view['background-image']">
+      {{ backgroundImage[imageIndex].description }}
+    </div>
     </div>
   </div>
 </template>
@@ -454,18 +459,22 @@ let backgroundImage = ref([
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/4.jpg",
     key: 1,
+    description: "探索城市中的美味佳肴"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/3.jpg",
     key: 2,
+    description: "感受都市夜晚的璀璨灯火"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/1.jpg",
     key: 3,
+    description: "拥抱大自然的宁静美景"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/2.jpg",
     key: 4,
+    description: "体验现代城市的繁华生活"
   },
 ]);
 let imageIndex = ref(0);
@@ -844,5 +853,20 @@ async function submitUpload() {
   max-width: 100%;
   max-height: 300px;
   border-radius: 6px;
+}
+
+.background-description {
+  position: absolute;
+  top: 50%;
+  left: 200px;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
 }
 </style>
