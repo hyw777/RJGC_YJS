@@ -9,7 +9,7 @@ DB_CONFIG = {
     "port": 3306,
     "user": "root",
     "password": "hyw499",
-    "database": "food_rec",
+    "database": "niche_ reviews",
     "charset": "utf8mb4"
 }
 
@@ -25,7 +25,7 @@ def connect_mysql():
         print("✅ 数据库连接成功！")
         
         # 预查询所有已导入的餐饮商户business_id，存入集合（O(1)查询效率）
-        cursor.execute("SELECT business_id FROM business;")
+        cursor.execute("SELECT bid FROM business;")
         valid_business_ids = {row[0] for row in cursor.fetchall()}
         print(f"✅ 已加载{len(valid_business_ids)}个有效餐饮商户ID")
         
@@ -56,7 +56,7 @@ def process_review_data():
                         skip_count += 1
                         continue  # 跳过非餐饮商户的评论
 
-
+                    rid = data.get("review_id")
                     user_id = data.get("user_id") or "Unknown"
                     stars = data.get("stars") or 0.0
                     useful = data.get("useful") or 0
@@ -74,7 +74,7 @@ def process_review_data():
                             date = None
 
                     batch_data.append((
-                        user_id, business_id, stars,
+                        rid, user_id, business_id, stars,
                         useful, funny, cool, text, date
                     ))
 
@@ -118,9 +118,9 @@ def process_review_data():
 
 def batch_insert_review(cursor, batch_data):
     insert_sql = """
-    INSERT INTO `review` (
-        user_id, business_id, stars, useful, funny, cool, text, date
-    ) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s);
+    INSERT INTO `reviews` (
+        rid,user_id, business_id, stars, useful, funny, cool, text, date
+    ) VALUES ( %s,%s, %s, %s, %s, %s, %s, %s, %s);
     """
     try:
         cursor.executemany(insert_sql, batch_data)

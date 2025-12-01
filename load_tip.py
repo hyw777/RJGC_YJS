@@ -9,7 +9,7 @@ DB_CONFIG = {
     "port": 3306,
     "user": "root",
     "password": "hyw499",
-    "database": "food_rec",
+    "database": "niche_ reviews",
     "charset": "utf8mb4"
 }
 
@@ -25,7 +25,7 @@ def connect_mysql():
         print("✅ 数据库连接成功！")
         
         # 预查询所有已导入的餐饮商户ID，存入集合（快速查询）
-        cursor.execute("SELECT business_id FROM business;")
+        cursor.execute("SELECT bid FROM business;")
         valid_business_ids = {row[0] for row in cursor.fetchall()}
         print(f"✅ 已加载{len(valid_business_ids)}个有效餐饮商户ID")
         
