@@ -370,11 +370,11 @@
         </div>
       </template>
     </el-dialog>
-    
-    <!-- Background Image Description -->
-    <div class="background-description" v-show="view['background-image'] && view['background-image']">
+     <!-- Background Image Description -->
+    <!-- <div class="background-description" v-show="view['background-image']">
       {{ backgroundImage[imageIndex].description }}
-    </div>
+    </div> -->
+   
     </div>
   </div>
 </template>

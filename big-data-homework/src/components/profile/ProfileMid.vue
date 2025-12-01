@@ -1,5 +1,6 @@
 <template>
   <div class="mid">
+  
     <div class="display">
       <div class="nav-box">
         <div class="nav-top">
@@ -67,6 +68,7 @@ import {Coordinate, User} from "@element-plus/icons-vue";
 import UseUserInfo from "@/hooks/UseUserInfo";
 import UseUserEdit from "@/hooks/UseUserEdit";
 import {UseButtonStore} from "@/stores/UseButtonStore"
+import NewIndexView from "@/components/new-index/NewIndexView.vue";
 import {router} from "@/router";
 
 // 使用编辑hook

@@ -1,6 +1,7 @@
 <template>
   <div class="search">
     <NewIndexView
+        :show-background-description="false"
         style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
     <div class="display">
       <div class="ai-recommend">
@@ -14,7 +15,9 @@
           </div>
         </div>
         <div class="ai-body" v-if="aiRecommendations.length">
-          <div class="ai-item" v-for="(item, idx) in aiRecommendations" :key="idx">{{ item }}</div>
+          <div class="ai-content" v-for="(item, idx) in aiRecommendations" :key="idx">
+            <div v-html="renderMarkdown(item)"></div>
+          </div>
         </div>
         <div class="ai-empty" v-else>点击“生成推荐”根据当前搜索内容获取智能推荐</div>
       </div>
@@ -58,9 +61,11 @@
 <script setup lang="ts">
 import NewIndexView from "@/components/new-index/NewIndexView.vue";
 import {useSearch} from "@/hooks/UseSearch";
+import { useAuthStore } from "@/stores/UseAuthStore";
 import {useRoute} from "vue-router";
 import {computed, onMounted, ref, toRefs, watch} from "vue";
 import {UseSearchStore} from "@/stores/UseSearchStore";
+import { marked } from 'marked';
 
 const filePath  =(file) => {
   if(file == null){
@@ -83,12 +88,123 @@ let result = computed(()=>searchStore.result)
 // expose a thin wrapper so the page triggers the hook function using current route.query.info
 async function fetchAIRecommendationsWrapper() {
   const query = (route.query.info as string) || '';
-  await fetchAIRecommendations(query)
+  const APIkey = 'sk-jsppmnzualuadnsjwnneaqsupkcpjfoungipzaahqygoqhqw'
+  try {
+    // set loading
+    if (aiLoading && typeof aiLoading === 'object') aiLoading.value = true;
+    const url = 'https://api.siliconflow.cn/v1/chat/completions';
+    const body = {
+      model: 'deepseek-ai/DeepSeek-V2.5',
+      messages: [
+        { role: 'user', content: `基于我的搜索内容："${query}"，请推荐相似的商家或体验，并简要说明推荐理由。` }
+      ],
+      // request streaming if the API supports it (service-dependent)
+      stream: true
+    };
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    headers.Authorization = `Bearer ${APIkey}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      // non-2xx — try to parse JSON error then throw
+      const errText = await response.text();
+      throw new Error(`AI API error: ${response.status} ${errText}`);
+    }
+
+    // If the server sends a streaming response, read it progressively
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (reader) {
+      // accumulate only the `content` fields (delta.content or final message.content)
+      let accumulatedContent = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+
+        // split into lines (SSE often sends lines like: data: {...})
+        const lines = chunk.split(/\r?\n/);
+        for (let rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
+          // remove SSE prefix if present
+          const payload = line.startsWith('data:') ? line.replace(/^data:\s*/i, '') : line;
+          if (payload === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(payload);
+            // prefer incremental delta content, fallback to message content or result
+            const delta = parsed?.choices?.[0]?.delta;
+            const contentPart = delta?.content ?? parsed?.choices?.[0]?.message?.content ?? parsed?.result;
+            if (contentPart != null) {
+              accumulatedContent += String(contentPart);
+              if (aiRecommendations && typeof aiRecommendations === 'object') {
+                aiRecommendations.value = [toMarkdown(accumulatedContent)];
+              }
+            }
+          } catch (e) {
+            // not a JSON payload; ignore non-JSON fragments
+          }
+        }
+      }
+
+      // final: if the stream itself produced a large JSON blob as text, try to extract content
+      let finalContent = accumulatedContent;
+      try {
+        const maybe = JSON.parse(accumulatedContent);
+        finalContent = maybe?.choices?.[0]?.message?.content ?? maybe?.result ?? accumulatedContent;
+      } catch (e) {
+        // keep accumulatedContent
+      }
+
+      if (aiRecommendations && typeof aiRecommendations === 'object') aiRecommendations.value = [toMarkdown(finalContent)];
+    } else {
+      // fallback: non-streaming response
+      const data = await response.json();
+      const content = data?.choices?.[0]?.message?.content ?? data?.result ?? JSON.stringify(data);
+      const md = toMarkdown(Array.isArray(content) ? content.join('\n\n') : String(content));
+      if (aiRecommendations && typeof aiRecommendations === 'object') aiRecommendations.value = [md];
+    }
+  } catch (err) {
+    console.error('AI recommend error:', err);
+    if (aiRecommendations && typeof aiRecommendations === 'object') aiRecommendations.value = [];
+  } finally {
+    if (aiLoading && typeof aiLoading === 'object') aiLoading.value = false;
+  }
 }
 
+// simple helper to convert plain text into a Markdown block — adjust as needed
+function toMarkdown(text: string) {
+  if (!text) return '';
+  const trimmed = text.trim();
+  
+  // Check if text already contains markdown-like formatting
+  if (/^(#|\-|>|```|\d+\.)/m.test(trimmed)) {
+    // If it's already markdown, ensure it has a title if missing
+    if (/^### 推荐结果/.test(trimmed)) {
+      return trimmed;
+    } else {
+      return `### 推荐结果\n\n${trimmed}`;
+    }
+  }
 
+  // For plain text, convert to markdown
+  const asParagraphs = trimmed.split(/\n{2,}/).map(p => p.trim()).filter(Boolean).join('\n\n');
+  return `### 推荐结果\n\n${asParagraphs}`;
+}
 
-
+function renderMarkdown(markdownText: string) {
+  if (!markdownText) return '';
+  return marked(markdownText);
+}
 
 </script>
 
