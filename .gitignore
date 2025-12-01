@@ -3,3 +3,6 @@ big-data-homework/node_modules/
 springLast/target/
 *.log
 *.tmp*.bak
+business.json
+review.json
+tip.json
