@@ -69,9 +69,10 @@ public class SecurityConfig {
         http.csrf((authorize) -> authorize.disable());
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/user/login","/user/register",
-                                "/user/sendCode/**","swagger-ui/index.html/**"
-                        ,"/user/register","/business/search","/business/category","/user/findUser","/images/**").permitAll()
+                        .requestMatchers("/user/login","/user/register"
+                                ,"/user/sendCode/**","swagger-ui/index.html/**"
+                        ,"/user/register","/business/search","/business/AIRecommend","/business/category","/user/findUser","/images/**").permitAll()
+//                                .requestMatchers("**").permitAll()
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);

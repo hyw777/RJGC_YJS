@@ -30,6 +30,11 @@ public class BusinessController {
       return ResponseResult.success(businessVO2);
     }
 
+    @PostMapping("/AIRecommend")
+    public ResponseResult AIRecommend(@RequestParam String text){
+        log.info("AI推荐");
+        return ResponseResult.success();
+    }
     /**
      * 修改基本信息
      * @param business

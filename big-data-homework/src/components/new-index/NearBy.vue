@@ -17,7 +17,16 @@
       <div class="info3">
         <span>{{business.categories}}</span>
       </div>
+      <div class="actions">
+      <el-button type="text" class="action-btn" @click.prevent="markUseful(business)">有用 <span class="count">{{ business.__interactions?.useful ?? 0 }}</span></el-button>
+      <el-button type="text" class="action-btn" @click.prevent="markThanks(business)">感谢 <span class="count">{{ business.__interactions?.thanks ?? 0 }}</span></el-button>
+      <el-button type="text" class="action-btn" @click.prevent="markLike(business)">喜欢 <span class="count">{{ business.__interactions?.like ?? 0 }}</span></el-button>
+      <el-button type="text" class="action-btn" @click.prevent="markOhNo(business)">哦不 <span class="count">{{ business.__interactions?.ohno ?? 0 }}</span></el-button>
     </div>
+    </div>
+  
+   
+
   </div>
 </template>
 
@@ -32,11 +41,11 @@ let authStore = useAuthStore()
 let buttonStore = UseButtonStore()
 let {businesses,getNearByBusinesses} = toRefs(useActivity())
 
-const filePath  =(file) => {
-  if(file == null){
+const filePath  = (file: any) => {
+  if (file == null) {
     return ``
   }
-  return  file.includes('http') ? file : `/api/images/${file}`;
+  return file.includes('http') ? file : `/api/images/${file}`;
 }
 
 
@@ -47,6 +56,32 @@ onMounted(()=>{
     getNearByBusinesses.value()
   }
 })
+
+function ensureInteractions(business: any) {
+  if (!business.__interactions) {
+    business.__interactions = { useful: 0, thanks: 0, like: 0, ohno: 0 }
+  }
+}
+
+function markUseful(business: any) {
+  ensureInteractions(business)
+  business.__interactions.useful++
+}
+
+function markThanks(business: any) {
+  ensureInteractions(business)
+  business.__interactions.thanks++
+}
+
+function markLike(business: any) {
+  ensureInteractions(business)
+  business.__interactions.like++
+}
+
+function markOhNo(business: any) {
+  ensureInteractions(business)
+  business.__interactions.ohno++
+}
 </script>
 
 <style scoped>
@@ -110,6 +145,24 @@ onMounted(()=>{
   background-color: #edeff1;
   margin-left: 1.1%;
   margin-right: 5%;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.action-btn {
+  padding: 0;
+  color: #6E7072;
+  font-size: 14px;
+}
+
+.action-btn .count {
+  margin-left: 6px;
+  color: #2D2E2F;
+  font-weight: 600;
 }
 
 </style>
