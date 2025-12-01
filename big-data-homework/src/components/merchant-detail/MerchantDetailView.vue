@@ -13,7 +13,12 @@
         <div class="rate-box">
           <el-rate size="large" v-model="result.stars" disabled/>
          <span style="margin-left: 10px;color: #FFFFFF">{{ result.stars }}</span>
-          <span style="color: #FFFFFF;margin-left: 5px">({{ result.reviewCount }} reviews)</span>
+          <span style="color: #FFFFFF;margin-left: 5px">({{ result.reviewCount }} 评论)</span>
+        </div>
+        <div class="rate-box"> 
+           <el-rate size="large" v-model="result.stars" disabled/>
+         <span style="margin-left: 10px;color: #FFFFFF">{{ result.stars }}</span>
+          <span style="color: #FFFFFF;margin-left: 5px">(AI打分)</span>
         </div>
         <div class="info-bottom">
           <div style="color: #58B4FF">Location</div>
