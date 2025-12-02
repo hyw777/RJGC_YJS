@@ -88,6 +88,7 @@ function reload(category) {
   width: 61.8%;
   height: 578px;
   margin: 48px 0px;
+  padding: 8px 12px;
 }
 
 .title {
@@ -108,8 +109,12 @@ function reload(category) {
   width: 22.3%;
   height: 183px;
   margin: 18px 0px;
-  border: 2px solid rgba(235, 235, 235, 1);
+  border: 1px solid rgba(245, 226, 227, 1);
   cursor: pointer;
+  background: linear-gradient(180deg, #fffaf9 0%, #fff 100%);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.06);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .content-box {
@@ -121,7 +126,26 @@ function reload(category) {
 }
 
 .word-box {
-  color: #2D2E2F;
+  color: #7f1d1d;
   font-size: 16px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.category-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 34px rgba(220, 38, 38, 0.12);
+  border-color: rgba(220,38,38,0.14);
+}
+
+.category-card:active { transform: translateY(-2px) }
+
+.category-card el-icon, .category-card .el-icon {
+  color: #ef4444;
+}
+
+@media (max-width: 980px) {
+  .category-box { width: 95%; }
+  .category-card { width: 48%; margin: 10px 0; }
 }
 </style>

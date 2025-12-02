@@ -371,15 +371,23 @@
       </template>
     </el-dialog>
      <!-- Background Image Description -->
-    <!-- <div class="background-description" v-show="view['background-image']">
+    <div class="background-description" v-show="showBackgroundDescription && backgroundImage[imageIndex].description">
       {{ backgroundImage[imageIndex].description }}
-    </div> -->
+    </div>
    
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// 添加 showBackgroundDescription 属性定义
+const props = defineProps({
+  showBackgroundDescription: {
+    type: Boolean,
+    default: true
+  }
+});
+
 import { computed, onMounted, onUnmounted, ref, toRefs } from "vue";
 // ElMessage 是 Element Plus 提供的全局消息方法，声明用于 TypeScript 校验
 declare const ElMessage: any;

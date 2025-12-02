@@ -1,45 +1,61 @@
 <template>
-  <div class="show-box" v-for="(business,index) in businesses" :key="index">
-    <router-link class="img" :to="{path:'/merchantDetail',query:{id:business.businessId}}">
-      <img :src="filePath(business.image)" >
-    </router-link>
-    <div class="info-box">
-      <div class="info1">
-        <span>{{business.name}}</span>
-      </div>
-      <div class="info2">
-        <el-rate v-model="business.stars" size="large" disabled></el-rate>
-        <div class="rate-box">
-          <div style="margin-right: 1%">{{business.stars}}</div>
-          <span>({{business.reviewCount}} reviews)</span>
+  <div class="nearby-container">
+    <div class="show-box" v-for="(business,index) in businesses" :key="index">
+      <router-link class="img" :to="{path:'/merchantDetail',query:{id:business.businessId}}">
+        <img :src="filePath(business.image)" >
+      </router-link>
+      <div class="info-box">
+        <div class="info1">
+          <span>{{business.name}}</span>
         </div>
+        <div class="info2">
+          <el-rate v-model="business.stars" size="large" disabled></el-rate>
+          <div class="rate-box">
+            <div style="margin-right: 1%">{{business.stars}}</div>
+            <span>({{business.reviewCount}} reviews)</span>
+          </div>
+        </div>
+        <div class="info3">
+          <span>{{business.categories}}</span>
+        </div>
+        <div class="actions">
+        <el-button type="text" class="action-btn" @click.prevent="markUseful(business)">
+          <el-icon><Check /></el-icon>
+          有用 
+          <span class="count">{{ business.__interactions?.useful ?? 0 }}</span>
+        </el-button>
+        <el-button type="text" class="action-btn" @click.prevent="markThanks(business)">
+          <el-icon><Star /></el-icon>
+          感谢 
+          <span class="count">{{ business.__interactions?.thanks ?? 0 }}</span>
+        </el-button>
+        <el-button type="text" class="action-btn" @click.prevent="markLike(business)">
+          <el-icon><Heart /></el-icon>
+          喜欢 
+          <span class="count">{{ business.__interactions?.like ?? 0 }}</span>
+        </el-button>
+        <el-button type="text" class="action-btn" @click.prevent="markOhNo(business)">
+          <el-icon><CircleClose /></el-icon>
+          哦不 
+          <span class="count">{{ business.__interactions?.ohno ?? 0 }}</span>
+        </el-button>
       </div>
-      <div class="info3">
-        <span>{{business.categories}}</span>
       </div>
-      <div class="actions">
-      <el-button type="text" class="action-btn" @click.prevent="markUseful(business)">有用 <span class="count">{{ business.__interactions?.useful ?? 0 }}</span></el-button>
-      <el-button type="text" class="action-btn" @click.prevent="markThanks(business)">感谢 <span class="count">{{ business.__interactions?.thanks ?? 0 }}</span></el-button>
-      <el-button type="text" class="action-btn" @click.prevent="markLike(business)">喜欢 <span class="count">{{ business.__interactions?.like ?? 0 }}</span></el-button>
-      <el-button type="text" class="action-btn" @click.prevent="markOhNo(business)">哦不 <span class="count">{{ business.__interactions?.ohno ?? 0 }}</span></el-button>
     </div>
-    </div>
-  
-   
-
   </div>
 </template>
 
 <script setup lang="ts">
-
-import {onMounted, toRefs} from "vue";
-import {useActivity} from "@/hooks/UseActivity";
-import {useAuthStore} from "@/stores/UseAuthStore";
-import {UseButtonStore} from "@/stores/UseButtonStore";
+import { onMounted, toRefs } from "vue";
+import { useActivity } from "@/hooks/UseActivity";
+import { useAuthStore } from "@/stores/UseAuthStore";
+import { UseButtonStore } from "@/stores/UseButtonStore";
+// 导入图标组件
+import { Check, Star, Heart, CircleClose } from '@element-plus/icons-vue';
 
 let authStore = useAuthStore()
 let buttonStore = UseButtonStore()
-let {businesses,getNearByBusinesses} = toRefs(useActivity())
+let { businesses, getNearByBusinesses } = toRefs(useActivity())
 
 const filePath  = (file: any) => {
   if (file == null) {
@@ -47,8 +63,6 @@ const filePath  = (file: any) => {
   }
   return file.includes('http') ? file : `/api/images/${file}`;
 }
-
-
 
 onMounted(()=>{
   buttonStore.setIndexButton(0)
@@ -85,26 +99,48 @@ function markOhNo(business: any) {
 </script>
 
 <style scoped>
+.nearby-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 24px;
+}
+
 .show-box {
   display: flex;
   flex-direction: row;
-  width: 45%;
-  height: 20%;
-  padding-bottom: 3%;
-  border-bottom: 1px solid rgba(235, 235, 235, 1);
-  margin-bottom: 4%;
-  margin-right: 5%;
+  width: 48%;
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  background: white;
+  box-sizing: border-box;
+}
+
+.show-box:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .img {
   width: 25%;
   height: 140px;
   cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .img img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.img:hover img {
+  transform: scale(1.05);
 }
 
 .info-box {
@@ -119,12 +155,14 @@ function markOhNo(business: any) {
 .info1 {
   color: #2D2E2F;
   font-size: 25px;
-  margin-bottom: 2.3%;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
 .info2 {
   display: flex;
-  margin-bottom: 2%;
+  margin-bottom: 12px;
+  align-items: center;
 }
 
 .info2 span {
@@ -134,29 +172,40 @@ function markOhNo(business: any) {
 .rate-box {
   display: flex;
   align-items: center;
-  margin-left: 3%;
+  margin-left: 12px;
   width: 100%;
+  font-size: 14px;
 }
 
 .info3 span {
   color: #6E7072;
-  font-size: 16px;
-  padding: 0.5%;
-  background-color: #edeff1;
-  margin-left: 1.1%;
-  margin-right: 5%;
+  font-size: 14px;
+  padding: 4px 12px;
+  background-color: #f5f7fa;
+  border-radius: 20px;
+  margin-left: 8px;
+  margin-right: 8px;
 }
 
 .actions {
   display: flex;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #eee;
 }
 
 .action-btn {
-  padding: 0;
+  padding: 6px 12px;
   color: #6E7072;
   font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: #f5f7fa;
+  color: #333;
 }
 
 .action-btn .count {
@@ -165,4 +214,18 @@ function markOhNo(business: any) {
   font-weight: 600;
 }
 
+:deep(.el-rate__icon) {
+  font-size: 18px;
+}
+
+:deep(.el-rate__decimal) {
+  font-size: 18px;
+}
+
+@media (max-width: 900px) {
+  .nearby-container { gap: 16px }
+  .show-box { width: 100%; flex-direction: column }
+  .img { width: 100%; height: 200px }
+  .info-box { width: 100%; margin-left: 0; margin-top: 12px }
+}
 </style>
