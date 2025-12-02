@@ -1,85 +1,133 @@
 <template>
   <div class="container">
-
-  <NewIndexView style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"/>
-  <div class="top">
-   <div class="font">
-     Find Friends
-   </div>
-    <div class="by-email" @click="changeTip(1)">
-      <el-icon style="font-size: 28px; margin-right: 10px"><Message /></el-icon>
-      Search With Email
-    </div>
-    <div class="by-name" @click="changeTip(2)">
-      <el-icon style="font-size: 28px;margin-right: 10px"><User /></el-icon>
-      Search With Name
-    </div>
-    <div class="search-box">
-      <div class="title">Search Friends On Yelp</div>
-      <div style="display: flex;align-items: center;">
-        <input
-            type="text"
-            class="search-input"
-            :placeholder="placeholderText"
-            @keyup.enter="search"
-            v-model="input"
-        />
-        <button  class="search-button" @click="search"><el-icon size="20px" ><Search/></el-icon></button>
+    <NewIndexView :show-background-description="false" style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"/>
+    
+    <div class="content-wrapper">
+      <div class="search-section">
+        <h1 class="page-title">Find Friends</h1>
+        
+        <div class="search-methods">
+          <div 
+            class="method-card" 
+            :class="{ 'active': tip === 'find friend with the current email...' }"
+            @click="changeTip(1)"
+          >
+            <el-icon class="method-icon"><Message /></el-icon>
+            <span class="method-text">Search With Email</span>
+          </div>
+          
+          <div 
+            class="method-card" 
+            :class="{ 'active': tip === 'find friend with name...' }"
+            @click="changeTip(2)"
+          >
+            <el-icon class="method-icon"><User /></el-icon>
+            <span class="method-text">Search With Name</span>
+          </div>
+        </div>
+        
+        <div class="search-box">
+          <div class="search-title">Search Friends On Yelp</div>
+          <div class="search-input-wrapper">
+            <input
+              type="text"
+              class="search-input"
+              :placeholder="placeholderText"
+              @keyup.enter="search"
+              v-model="input"
+            />
+            <button class="search-button" @click="search">
+              <el-icon size="20px"><Search /></el-icon>
+            </button>
+          </div>
+        </div>
       </div>
-
-    </div>
-
-  </div>
-  <div class="middle">
-    <div class="tip2" v-show="!display">
-      <p><el-icon style="font-size: 20px;margin-left: 2px"><Lock /></el-icon>Your information is safe.</p>
-     <p>We don't store your email password. Your address book is used to find friends on Yelp.</p>
-    </div>
-
-    <div class="page-data" v-show="display">
-      <div class="each-data" v-for="(user,index) in pageResult.records" :key="index" >
-          <img src="https://img2.baidu.com/it/u=660058380,2227239641&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=716" style="width: 90px;height: 90px">
-            <p class="name">{{user.name}}</p>
-            <div class="city">{{user.city}}</div>
-            <div class="friends">
-              <el-icon color="#f37325"><User /></el-icon>
-              <div class="number">{{user.friendNumbers}}</div>
-              <div class="detail">friends</div>
+      
+      <div class="results-section">
+        <div class="security-info" v-show="!display">
+          <div class="security-card">
+            <p class="security-text">
+              <el-icon class="security-icon"><Lock /></el-icon>
+              Your information is safe.
+            </p>
+            <p class="security-desc">We don't store your email password. Your address book is used to find friends on Yelp.</p>
+          </div>
+        </div>
+        
+        <div class="results-container" v-show="display">
+          <div class="user-grid">
+            <div 
+              class="user-card" 
+              v-for="(user,index) in pageResult.records" 
+              :key="index"
+            >
+              <div class="user-avatar">
+                <img 
+                  src="https://img2.baidu.com/it/u=660058380,2227239641&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=716" 
+                  :alt="user.name"
+                >
+              </div>
+              
+              <div class="user-info">
+                <h3 class="user-name">{{ user.name }}</h3>
+                <p class="user-city">{{ user.city }}</p>
+                
+                <div class="user-stats">
+                  <div class="stat-item">
+                    <el-icon color="#f37325"><User /></el-icon>
+                    <span class="stat-number">{{ user.friendNumbers }}</span>
+                    <span class="stat-label">friends</span>
+                  </div>
+                  <div class="stat-item">
+                    <el-icon color="#f37325"><Star /></el-icon>
+                    <span class="stat-number">{{ user.reviewCounts }}</span>
+                    <span class="stat-label">reviews</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="add-friend" @click="showAddArea(user.name, user.userId)">
+                <el-icon><Plus /></el-icon>
+              </div>
             </div>
-            <div class="reviews">
-              <el-icon color="#f37325"><Star /></el-icon>
-              <div class="number">{{user.reviewCounts}}</div>
-              <div class="detail">reviews</div>
-            </div>
-
-
-        <div class="add-friend" @click="showAddArea(user.name,user.userId)"><el-icon><Plus /></el-icon></div>
+          </div>
+          
+          <div class="pagination-wrapper">
+            <el-pagination 
+              background 
+              v-model:current-page="findFriendDTO.pageNum" 
+              layout="prev, pager, next" 
+              :page-count="Math.ceil(pageResult.total/findFriendDTO.pageSize)" 
+              @current-change="search"
+            />
+          </div>
+        </div>
       </div>
-
-      <div class="add-box" v-show="display2">
-        <p class="add-box-tip1"> Add a Friend</p>
-        <p class="add-box-tip2">Hi,{{recName}}</p>
-        <textarea
-            class="add-box-applyInfo"
-            v-model="applyInfo"/>
-
-        <button class="add-box-send" @click="send(applicationDTO)">
-          Send
-        </button>
-
-        <button class="add-box-cancel" @click="cancel()">
-          Cancel
-        </button>
-
+    </div>
+    
+    <div class="add-friend-modal" v-show="display2">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Add a Friend</h2>
+        </div>
+        <div class="modal-body">
+          <p class="modal-greeting">Hi, {{ recName }}</p>
+          <textarea
+            class="message-input"
+            v-model="applyInfo"
+            placeholder="Enter your message here..."
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="send(applicationDTO)">
+            Send
+          </button>
+          <button class="btn btn-secondary" @click="cancel()">
+            Cancel
+          </button>
+        </div>
       </div>
-
     </div>
-    <div class="pageBottom">
-      <el-pagination background  v-model:current-page="findFriendDTO.pageNum" layout="prev, pager, next" :page-count=" Math.ceil(pageResult.total/findFriendDTO.pageSize)"    @current-change="search"
-      />
-    </div>
-  </div>
-
   </div>
 </template>
 
@@ -176,195 +224,350 @@ const cancel=()=>{
 </script>
 
 <style scoped>
-.container{
+.container {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 40px;
 }
 
-.top{
-  margin-top: 1%;
-  margin-left: 25%;
-  width:15%;
-  height: 20%;
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.font{
-  font-size: 19px;
-  margin-bottom: 20px;
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24px;
 }
 
-.by-email,.by-name{
+.search-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  margin-bottom: 32px;
+  transition: box-shadow 0.3s ease;
+}
+
+.search-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.search-methods {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.method-card {
   display: flex;
   align-items: center;
-  height: 50px;
-  border: #bfbfbf 1px solid;
-  font-size: 14px;
-}
-.by-name{
-  border-top: none;
+  padding: 16px 24px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  justify-content: center;
 }
 
-.search-box{
-  margin-top: 3%;
-  width: 400px;
-  height: 50px;
+.method-card:hover {
+  border-color: #e00707;
+  background-color: #fff5f5;
+}
+
+.method-card.active {
+  border-color: #e00707;
+  background-color: #fff5f5;
+  font-weight: 600;
+}
+
+.method-icon {
+  font-size: 24px;
+  margin-right: 12px;
+  color: #666;
+}
+
+.method-text {
+  font-size: 16px;
+  color: #333;
+}
+
+.search-box {
   background-color: #ffffff;
-  margin-left: 110%;
-  margin-top: -20%;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
 }
-.title{
+
+.search-title {
   color: #e00707;
-  margin-top: -18%;
-  width: 20vw;
   font-weight: 700;
-}
-.search-input{
-  margin-top: 2%;
-  width: 37vh;
-  height: 33px;
-}
-.search-button{
-  border: none;
-  width: 6vh;
-  height: 37px;
-  background-color: white;
+  margin-bottom: 16px;
+  font-size: 18px;
 }
 
-
-
-.tip2{
-  font-weight: 700;
-  color: #e00707;
-  margin-left: 30%;
-  margin-top: 10%;
-}
-
-.page-data{
-  display: flex;
-  width: 100%;
-  flex-wrap: wrap; /* 允许容器内的项目换行 */
-  position: relative;
-}
-.each-data{
-  margin-right: 70px;
-  width: 29vw;
-  height: 90px;
-  display: flex;
-  margin-bottom: 15px;
-  border-top: 2px solid rgba(198, 193, 193, 0.18);
-  position: relative;
-
-}
-
-
-
-.name{
- margin: 0;
-  margin-left: 8px;
-  font-size: 19px;
-  text-align: left;
-  color: #629fb2;
-  width: 350px;
-}
-
-.city{
-  margin-top: 26px;
-  text-align: left;
-  margin-left:99px;
-  font-size: 15px;
-  position: absolute;
-}
-.friends {
+.search-input-wrapper {
   display: flex;
   align-items: center;
-  font-size: 14px;
-  margin-left: 99px;
-  margin-top: 48px;
-  position: absolute;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
 }
 
-.reviews {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  margin-left: 99px;
-  margin-top: 70px;
-  position: absolute;
-}
-.detail {
-  margin-left: 10px;
-  color: #666666;
+.search-input-wrapper:focus-within {
+  border-color: #e00707;
 }
 
-.add-friend{
-  margin-top: 3vh;
-  color: #0073BB;
-}
-
-.add-box{
-  width: 35vw;
-  height: 40vh;
-  background-color: #ffffff;
-  border: #adabab 2px solid;
-  margin-left: 35%;
-  margin-top: 3%;
-  position:absolute;
-  opacity: 95%;
-}
-
-.add-box-tip1{
-  color: red;
-  font-size: 20px;
-  font-weight: 700;
-  padding-bottom: 20px;
-  border-bottom: #b4b4b4 1px solid;
-  margin-left: 40px;
-}
-
-.add-box-tip2{
-  margin-left: 50px;
-  font-size: 14px;
-}
-
-.add-box-applyInfo{
-  width: 30vw;
-  height: 10vh;
-  margin-left: 50px ;
-  border: #63acdf 2px solid;
-  overflow: auto;
-  display: flex;
-}
-
-.add-box-send{
-  font-size: 15px;
-  margin-left: 3vw;
-  margin-top: 5vh;
-  height: 4vh;
-  width: 3vw;
+.search-input {
+  flex: 1;
+  height: 42px;
+  padding: 0 16px;
   border: none;
-  background-color: red;
+  outline: none;
+  font-size: 16px;
+}
+
+.search-button {
+  border: none;
+  width: 50px;
+  height: 42px;
+  background-color: #f8f8f8;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #e00707;
   color: white;
 }
 
-.add-box-cancel{
-  margin-left: 10px;
-  font-size: 15px;
-  height: 4vh;
-  width: 4vw;
-  border: none;
-  color: #73bcd2;
-  background-color: white;
+.results-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  transition: box-shadow 0.3s ease;
 }
 
+.results-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
 
-.pageBottom{
+.security-info {
+  margin-bottom: 32px;
+}
+
+.security-card {
+  background-color: #fff5f5;
+  border: 1px solid #ffecec;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.security-text {
+  font-weight: 700;
+  color: #e00707;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.security-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.security-desc {
+  color: #666;
+  line-height: 1.5;
+}
+
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.user-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.user-avatar img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 16px;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #629fb2;
+  margin: 0 0 4px 0;
+}
+
+.user-city {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 12px 0;
+}
+
+.user-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.stat-number {
+  margin: 0 4px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.add-friend {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #0073BB;
+  cursor: pointer;
+  font-size: 20px;
+  transition: color 0.3s ease;
+}
+
+.add-friend:hover {
+  color: #e00707;
+}
+
+.pagination-wrapper {
   display: flex;
   justify-content: center;
+  padding-top: 24px;
+  border-top: 1px solid #eee;
+}
+
+.add-friend-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 6%;
-  border-top: #d61515 2px solid;
-  position: absolute;
-  bottom: 10px;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-greeting {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.message-input {
+  width: 100%;
+  height: 120px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.message-input:focus {
+  outline: none;
+  border-color: #e00707;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #e00707;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #c00606;
+}
+
+.btn-secondary {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
 }
 
 

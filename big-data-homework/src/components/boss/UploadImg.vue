@@ -16,19 +16,31 @@
           }"
       >
         <template #trigger>
-          <el-button type="primary">select file</el-button>
+          <el-button type="primary">Select File</el-button>
         </template>
 
-        <el-button style="margin-left: 15px;" class="ml-3" type="success" @click="submitUpload">
-          upload to server
-        </el-button>
+        <div class="upload-controls">
+          <el-button type="success" @click="submitUpload">
+            Upload to Server
+          </el-button>
+        </div>
       </el-upload>
     </div>
     <div class="img-container">
-      <div class="image-wrapper" v-for="(file, index) in fileList" :key="index" file="filepath(file)">
+      <div 
+        class="image-wrapper" 
+        v-for="(file, index) in fileList" 
+        :key="index"
+        v-show="file && filePath(file)"
+      >
         <img :src="filePath(file)" class="img-box">
-        <el-icon size="50" color="#E00707" class="icon" @click="deleteImg(file,baseInfo.bid)">
-          <DeleteFilled/>
+        <el-icon 
+          size="50" 
+          color="#E00707" 
+          class="icon" 
+          @click="deleteImg(file, baseInfo.bid)"
+        >
+          <DeleteFilled />
         </el-icon>
       </div>
     </div>
@@ -54,24 +66,26 @@ const uploadRef = ref<UploadInstance>();
 const fileList = ref([]);
 
 // 处理上传成功的回调
-const handleSuccess = (response) => {
+const handleSuccess = (response: any) => {
   console.log(response.data)
   fileList.value.push(response.data)
 };
 
 
-const filePath  =(file) => {
-
-    return  file.includes('http') ? file : `/api/images/${file}`;
+const filePath  =(file: string | null) => {
+    // 添加空值检查以防止 Cannot read properties of null 错误
+    if (!file || typeof file !== 'string') return '';
+    return file.includes('http') ? file : `/api/images/${file}`;
 }
 
 const submitUpload = () => {
+  
   uploadRef.value!.submit()
 }
 
 let buttonStore = UseButtonStore();
 
-async function deleteImg(fileName, businessId) {
+async function deleteImg(fileName: string, businessId: string) {
   console.log(fileName + ' ' + businessId);
   let formData = new FormData()
   formData.append('fileName', fileName)
@@ -106,87 +120,98 @@ onMounted(async () => {
 <style scoped>
 .upload-demo {
   margin-top: 20px;
+  width: 100%;
 }
 
 .uploadImg {
   display: flex;
   flex-direction: column;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .title {
-  display: flex;
-  font-size: 40px;
-  font-weight: 600;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .top-box {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 30px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+  width: 100%;
 }
 
-.button {
+.upload-controls {
   display: flex;
-  justify-content: center;
   align-items: center;
-  width: 30%;
-  height: 70px;
-  background-color: #e00707;
-  border-radius: 30px;
-  margin-top: 30px;
-  cursor: pointer;
-}
-
-
-.button-name {
-  font-size: 30px;
-  color: #FFFFFF;
-  margin-left: 10px;
+  gap: 15px;
+  margin-top: 20px;
 }
 
 .img-container {
   margin-top: 30px;
-  display: flex;
-  justify-content: start;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 30px;
   width: 90%;
   margin-left: 7%;
 }
 
 .image-wrapper {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .img-box {
-  display: flex;
-  position: relative;
-  width: 230px;
+  width: 100%;
   height: 230px;
-  margin-bottom: 30px;
-  margin-right: 30px;
-  transition: filter 0.7s ease; /* 添加滤镜过渡效果 */
+  object-fit: cover;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .img-box:hover {
-  filter: brightness(0.8); /* 调整亮度，使图片变暗 */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .icon {
-  display: none;
   position: absolute;
-  left: 34%;
-  top: 35%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
   cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .icon:hover {
+  background-color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
 }
 
 .image-wrapper:hover .icon {
-  display: block;
-}
-
-.image-wrapper:hover .img-box {
-  filter: brightness(0.8); /* 调整亮度，使图片变暗 */
+  opacity: 1;
+  transform: scale(1);
 }
 </style>
