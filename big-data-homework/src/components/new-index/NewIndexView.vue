@@ -372,7 +372,13 @@
     </el-dialog>
      <!-- Background Image Description -->
     <div class="background-description" v-show="showBackgroundDescription && backgroundImage[imageIndex].description">
-      {{ backgroundImage[imageIndex].description }}
+      <div class="desc-text">{{ backgroundImage[imageIndex].description }}</div>
+      <div class="desc-actions">
+        <el-button class="detail-btn" type="primary" @click="goToDetails">
+          <el-icon><Search /></el-icon>
+          查看详情
+        </el-button>
+      </div>
     </div>
    
     </div>
@@ -436,6 +442,19 @@ function reload() {
     query: { info: info.value },
   });
   getResult.value(1, info.value);
+}
+
+function goToDetails() {
+  // Use the current background description as the search query and navigate to Search
+  const desc = backgroundImage.value[imageIndex.value]?.description || '';
+  console.log("Searching for:", desc);
+  router.push({ name: 'Search', query: { info: desc } });
+  // trigger the search result load
+  try {
+    getResult.value(1, desc);
+  } catch (e) {
+    // safe no-op if getResult is not available
+  }
 }
 
 let { merchantVisible, merchantForm, submitMerchan } = toRefs(useMerchant());
@@ -876,5 +895,24 @@ async function submitUpload() {
   padding: 10px 20px;
   border-radius: 10px;
   backdrop-filter: blur(5px);
+}
+
+.background-description .desc-text {
+  max-width: 680px;
+  word-wrap: break-word;
+}
+
+.background-description .desc-actions {
+  margin-top: 12px;
+}
+
+.background-description .detail-btn {
+  background-color: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+.background-description .detail-btn :deep(.el-icon) {
+  margin-right: 8px;
 }
 </style>

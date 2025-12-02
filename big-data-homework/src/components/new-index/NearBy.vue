@@ -30,7 +30,7 @@
           <span class="count">{{ business.__interactions?.thanks ?? 0 }}</span>
         </el-button>
         <el-button type="text" class="action-btn" @click.prevent="markLike(business)">
-          <el-icon><Heart /></el-icon>
+          <el-icon><Collection /></el-icon>
           喜欢 
           <span class="count">{{ business.__interactions?.like ?? 0 }}</span>
         </el-button>
@@ -51,7 +51,7 @@ import { useActivity } from "@/hooks/UseActivity";
 import { useAuthStore } from "@/stores/UseAuthStore";
 import { UseButtonStore } from "@/stores/UseButtonStore";
 // 导入图标组件
-import { Check, Star, Heart, CircleClose } from '@element-plus/icons-vue';
+import { Check, Star, Collection, CircleClose } from '@element-plus/icons-vue';
 
 let authStore = useAuthStore()
 let buttonStore = UseButtonStore()
@@ -104,13 +104,18 @@ function markOhNo(business: any) {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 24px;
+  /* make the visible area wider and centered */
+  width: 100%;
+  max-width: 2000px; /* increase max width */
+  margin: 0 auto;
+  padding: 0 20px; /* small side padding */
 }
 
 .show-box {
   display: flex;
   flex-direction: row;
-  width: 48%;
-  padding: 16px;
+  width: calc(50% - 12px); /* two per row with gap */
+  padding: 18px;
   border: 1px solid #eee;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -125,7 +130,10 @@ function markOhNo(business: any) {
 }
 
 .img {
-  width: 25%;
+  /* fixed image column width, keep proportions via flex */
+  flex: 0 0 140px; /* fixed column so image doesn't get squashed */
+  min-width: 140px;
+  width: 140px;
   height: 140px;
   cursor: pointer;
   border-radius: 8px;
@@ -147,9 +155,10 @@ function markOhNo(business: any) {
   display: flex;
   flex-direction: column;
   justify-content: start;
-  width: 75%;
+  flex: 1 1 auto;
   height: 100%;
-  margin-left: 4%;
+  margin-left: 16px;
+  min-width: 0; /* allow children to shrink for ellipsis */
 }
 
 .info1 {
@@ -157,6 +166,14 @@ function markOhNo(business: any) {
   font-size: 25px;
   margin-bottom: 12px;
   font-weight: 600;
+}
+
+.info1 span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .info2 {
@@ -177,14 +194,27 @@ function markOhNo(business: any) {
   font-size: 14px;
 }
 
+.info3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
 .info3 span {
   color: #6E7072;
   font-size: 14px;
-  padding: 4px 12px;
+  padding: 6px 10px;
   background-color: #f5f7fa;
   border-radius: 20px;
-  margin-left: 8px;
-  margin-right: 8px;
+  /* allow the badge text to wrap within available space */
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3;
+  vertical-align: middle;
 }
 
 .actions {
@@ -196,7 +226,7 @@ function markOhNo(business: any) {
 }
 
 .action-btn {
-  padding: 6px 12px;
+  padding: 4px 4px;
   color: #6E7072;
   font-size: 14px;
   border-radius: 6px;
