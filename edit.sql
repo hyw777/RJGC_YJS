@@ -25,3 +25,12 @@ CREATE TABLE `tips` (
     `compliment_count` INT DEFAULT 0,       -- 点赞数
     UNIQUE KEY `unique_tip` (`user_id`, `business_id`, `text`(200)) -- 避免重复贴士
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table photos;
+
+CREATE TABLE `photo` (
+    `photo_id` VARCHAR(50) PRIMARY KEY,  -- Yelp原生图片ID
+    `business_id` VARCHAR(50) NOT NULL,  -- 关联business表的bid（Yelp商户ID）
+    `caption` TEXT NULL,                 -- 图片描述
+    `label` VARCHAR(100) NULL         -- 图片标签（如food、inside等）
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

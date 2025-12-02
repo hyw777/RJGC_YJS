@@ -27,7 +27,7 @@ public interface BusinessMapper {
     Page<BusinessVO> pageQuery(BusinessPageQueryDTO businessPageQueryDTO);
 
     //查找商户详细信息
-    @Select("select business_id,name,address,city,state,stars,review_count,is_open,categories,hours,bid,good_for_kids,business_accepts_creditcards from business where business_id = #{businessId}")
+    @Select("SELECT business_id, name, address, city, state, postal_code, latitude, longitude, stars, review_count, is_open, categories, attributes, hours, created_at, updated_at, bid FROM business WHERE business_id = #{businessId}")
     Business selectDetailById(int bId);
 
 

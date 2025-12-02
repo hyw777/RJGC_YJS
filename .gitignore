@@ -1,9 +1,11 @@
 springLast/.idea/
 big-data-homework/node_modules/
 springLast/target/
+springLast/src/main/resources/application.yml
 *.log
 *.tmp*.bak
 business.json
 review.json
 tip.json
 user.json
+photoData/
