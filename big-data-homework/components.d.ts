@@ -38,11 +38,8 @@ declare module 'vue' {
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElRate: typeof import('element-plus/es')['ElRate']
     ElRow: typeof import('element-plus/es')['ElRow']
-<<<<<<< HEAD
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSpinner: typeof import('element-plus/es')['ElSpinner']
-=======
->>>>>>> 4855f1fc9d2b3b1de9830fb768d8b508774b05ac
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
