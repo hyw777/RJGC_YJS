@@ -17,7 +17,7 @@
             <if test="password != null and password.trim() != ''">
                 password = #{password},
             </if>
-            <if test="age != null">
+            <if test="age != null and age!=0">
                 age = #{age},
             </if>
             <if test="gender != null and gender.trim() != ''">

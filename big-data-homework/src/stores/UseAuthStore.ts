@@ -8,6 +8,7 @@ export const useAuthStore = defineStore({
         email: '',
         password: '',
         isRemember: false,
+        userName: null
     }),
     actions: {
         setToken(token) {
@@ -21,6 +22,12 @@ export const useAuthStore = defineStore({
         },
         clearUserType() {
             this.userType = null;
+        },
+        setUserName(userName) {
+            this.userName = userName;
+        },
+        clearUserName() {
+            this.userName = null;
         },
         setEmail(email) {
             this.email = email;

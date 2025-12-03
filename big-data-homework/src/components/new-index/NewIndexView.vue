@@ -306,7 +306,15 @@
                 style="margin-left: 15px"
                 @click.stop="select"
               >
-                <el-avatar class="el-avatar" :size="44" :src="circleUrl" />
+                <!-- 替换 el-avatar 为文字头像 -->
+                <div
+                  class="avatar-text"
+                  v-if="authStore.userName"
+                >
+                
+                  {{ getInitials(authStore.userName) }}
+                </div>
+                <div class="avatar-text" v-else>?</div>
                 <div
                   class="avatar-select"
                   v-show="isSelected == true"
@@ -348,36 +356,41 @@
         </div>
       </div>
       <div class="nav-2"></div>
-<<<<<<< HEAD
-=======
-    
-    <!-- Upload Dialog -->
-    <el-dialog v-model="uploadVisible" title="上传图片" width="640">
-      <div class="upload-body">
-        <input type="file" accept="image/*" @change="onFileChange" />
-        <div class="preview" v-if="previewUrl">
-          <img :src="previewUrl" alt="preview" />
+
+      <!-- Upload Dialog -->
+      <el-dialog v-model="uploadVisible" title="上传图片" width="640">
+        <div class="upload-body">
+          <input type="file" accept="image/*" @change="onFileChange" />
+          <div class="preview" v-if="previewUrl">
+            <img :src="previewUrl" alt="preview" />
+          </div>
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="uploadVisible = false">取消</el-button>
+            <el-button type="primary" color="#E00707" @click="submitUpload"
+              >上传</el-button
+            >
+          </div>
+        </template>
+      </el-dialog>
+      <!-- Background Image Description -->
+      <div
+        class="background-description"
+        v-show="
+          showBackgroundDescription && backgroundImage[imageIndex].description
+        "
+      >
+        <div class="desc-text">
+          {{ backgroundImage[imageIndex].description }}
+        </div>
+        <div class="desc-actions">
+          <el-button class="detail-btn" type="primary" @click="goToDetails">
+            <el-icon><Search /></el-icon>
+            查看详情
+          </el-button>
         </div>
       </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="uploadVisible = false">取消</el-button>
-          <el-button type="primary" color="#E00707" @click="submitUpload">上传</el-button>
-        </div>
-      </template>
-    </el-dialog>
-     <!-- Background Image Description -->
-    <div class="background-description" v-show="showBackgroundDescription && backgroundImage[imageIndex].description">
-      <div class="desc-text">{{ backgroundImage[imageIndex].description }}</div>
-      <div class="desc-actions">
-        <el-button class="detail-btn" type="primary" @click="goToDetails">
-          <el-icon><Search /></el-icon>
-          查看详情
-        </el-button>
-      </div>
-    </div>
-   
->>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
     </div>
   </div>
 </template>
@@ -433,9 +446,9 @@ function reload() {
 
 function goToDetails() {
   // Use the current background description as the search query and navigate to Search
-  const desc = backgroundImage.value[imageIndex.value]?.description || '';
+  const desc = backgroundImage.value[imageIndex.value]?.description || "";
   console.log("Searching for:", desc);
-  router.push({ name: 'Search', query: { info: desc } });
+  router.push({ name: "Search", query: { info: desc } });
   // trigger the search result load
   try {
     getResult.value(1, desc);
@@ -573,9 +586,32 @@ function searchTop10ToSearch(searchContent) {
   });
   getResult.value(1, searchContent);
 }
+
+function getInitials(name: string) {
+  if (!name) return "?";
+  const firstChar = name.trim().charAt(0).toUpperCase();
+  return firstChar || "?";
+}
 </script>
 
 <style scoped>
+/* 添加新的头像样式 */
+.avatar-text {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .mail-line {
   display: flex;
   justify-content: space-between;
@@ -795,8 +831,6 @@ function searchTop10ToSearch(searchContent) {
 .item {
   color: #e00707;
 }
-<<<<<<< HEAD
-=======
 
 .camera {
   height: 48px;
@@ -846,13 +880,12 @@ function searchTop10ToSearch(searchContent) {
 }
 
 .background-description .detail-btn {
-  background-color: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.18);
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
 
 .background-description .detail-btn :deep(.el-icon) {
   margin-right: 8px;
 }
->>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
 </style>

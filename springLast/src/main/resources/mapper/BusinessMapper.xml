@@ -40,10 +40,6 @@
 
             <if test="hours != null">`hours` = #{hours},</if>
 
-            <if test="goodForKids != null">`good_for_kids` = #{goodForKids},</if>
-
-            <if test="businessAcceptsCreditcards != null">`business_accepts_creditcards` = #{businessAcceptsCreditcards},</if>
-
         </set>
 
         WHERE `business_id` = #{businessId}

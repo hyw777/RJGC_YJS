@@ -74,7 +74,7 @@ def import_filtered_users():
                     elite = data.get("elite")  # 格式如"2019,2020"
                     yelping_since = data.get("yelping_since")  # 格式如"2010-01-01"
                     funny = data.get("funny") or 0
-                    friends = ",".join(data.get("friends", []))  # 列表转字符串
+                    friends = data.get("friends")
 
                     batch_data.append((
                         uid, name, password, email, gender, age, city,

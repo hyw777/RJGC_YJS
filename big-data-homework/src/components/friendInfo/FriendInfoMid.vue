@@ -4,7 +4,10 @@
       <div class="nav-box">
         <div class="nav-top">
           <div class="content-box">
-            <el-avatar class="el-avatar" :size="120" :src="avatar"/>
+            <!-- 将头像替换为首字母 -->
+            <div class="avatar-placeholder">
+              <div class="avatar-initials">{{ getInitials(friendInfo.userVO.name) }}</div>
+            </div>
             <h2 class="name">{{ friendInfo.userVO.name }}</h2>
             <p class="text">{{ friendInfo.userVO.city }}</p>
             <div class="item-box">
@@ -52,31 +55,32 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, onUnmounted, ref, toRefs} from "vue";
-import {Coordinate, User} from "@element-plus/icons-vue";
+import {computed, onMounted, ref} from "vue";
+import {Coordinate, User, PriceTag, CollectionTag, Message} from "@element-plus/icons-vue";
 import {UseButtonStore} from "@/stores/UseButtonStore"
 import UseFriendInfo from "@/hooks/UseFriendInfo";
-import {router} from "@/router";
 
 // 获取用户id
-let props = defineProps(['userId'])
-let userId = computed(() => props.userId)
+const props = defineProps(['userId'])
+const userId = computed(() => props.userId)
 
 // 使用朋友信息hook
-let {friendInfo,getFriendInfo} = toRefs(UseFriendInfo())
+const {friendInfo,getFriendInfo} = UseFriendInfo()
 
-// 用户默认头像
-let avatar = ref('https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/OIP-C.jpg')
-
-// 按钮
-let buttonStore = UseButtonStore()
-let showButton = computed(()=>buttonStore.button)
-function switchButton(num:number){
-  buttonStore.setButton(num)
+// 获取姓名首字母
+const getInitials = (name: string) => {
+  if (!name) return '?';
+  return name.trim().charAt(0).toUpperCase();
 }
 
+// 按钮
+const buttonStore = UseButtonStore()
+const showButton = computed(()=>buttonStore.button)
+
 onMounted(()=>{
-  getFriendInfo.value(userId.value)
+  if (userId.value) {
+    getFriendInfo(userId.value)
+  }
 })
 </script>
 
@@ -86,25 +90,31 @@ onMounted(()=>{
   justify-content: center;
   align-items: center;
   margin-top: 30px;
+  padding: 20px;
 }
 
 .display {
   display: flex;
   justify-content: space-between;
-  width: 71%;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .nav-box {
   display: flex;
   flex-direction: column;
-  width: 23%;
+  width: 280px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .nav-top {
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  border: 1px solid rgba(235, 235, 235, 1);
+  padding: 30px 24px;
+  background: linear-gradient(135deg, #6EE7B7, #3B82F6);
+  color: white;
 }
 
 .content-box {
@@ -114,11 +124,32 @@ onMounted(()=>{
   align-items: center;
 }
 
+/* 首字母头像样式 */
+.avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-initials {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+}
+
 .name {
   font-size: 28px;
   color: #2D2E2F;
-  margin: 0px;
-  margin-top: 10px;
+  margin: 20px 0 5px 0;
+  text-align: center;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .text {
@@ -126,6 +157,7 @@ onMounted(()=>{
   color: #6E7072;
   margin: 0px;
   margin-top: 5px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .item-box {
@@ -150,15 +182,21 @@ onMounted(()=>{
   align-items: center;
   width: 44px;
   height: 44px;
-  background-color: rgba(235, 235, 235, 1);
+  background-color: rgba(255, 255, 255, 0.2);
   border-radius: 25px;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.icon-box:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .nav-bottom {
   display: flex;
   flex-direction: column;
-  height: 319px;
+  background: white;
   padding: 16px 0px 8px 0px;
 }
 
@@ -169,27 +207,79 @@ onMounted(()=>{
   cursor: pointer;
   color: #2D2E2F;
   border-bottom: 1px solid rgba(235, 235, 235, 1);
-  margin-bottom: 20px;
+  margin-bottom: 5px;
+  padding: 0 20px;
+  transition: all 0.3s ease;
+  text-decoration: none;
 }
 
 .nav-bottom-content:hover {
   background-color: rgba(235, 235, 235, 1);
 }
 
-.isActive {
+.nav-bottom-content.isActive {
   background-color: rgba(235, 235, 235, 1);
+  border-left: 4px solid #3B82F6;
 }
 
 .nav-bottom-content-style {
   margin-left: 15px;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .info {
   display: flex;
   flex-direction: column;
-  width: 70%;
-  margin-right: 40px;
+  width: calc(100% - 320px);
+  margin-left: 30px;
   overflow: auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: white;
+  min-height: 600px;
+}
+
+@media (max-width: 992px) {
+  .display {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nav-box {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 30px;
+  }
+  
+  .info {
+    width: 100%;
+    margin-left: 0;
+    max-width: 800px;
+  }
+}
+
+@media (max-width: 576px) {
+  .mid {
+    padding: 10px;
+    margin-top: 15px;
+  }
+  
+  .nav-top {
+    padding: 20px 15px;
+  }
+  
+  .avatar-placeholder {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .avatar-initials {
+    font-size: 40px;
+  }
+  
+  .name {
+    font-size: 24px;
+  }
 }
 </style>

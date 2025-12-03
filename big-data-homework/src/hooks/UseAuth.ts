@@ -26,6 +26,7 @@ export const useAuth = function() {
                 // 将 token 存储在 store 中
                 authStore.setToken(response.data.data.token);
                 authStore.setUserType(response.data.data.userType);
+                authStore.setUserName(response.data.data.userName);
                 authStore.setEmail(form.email);
                 if (check.value === true) {
                     authStore.setIsRemember();

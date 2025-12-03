@@ -78,17 +78,22 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("登陆失败");
 
         //如果认证通过了，使用uuid生成一个jwt,存入ResponseResult返回给前端
-         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
-         String  userId=String.valueOf(loginUser.getUser().getUserId());
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        String  userId=String.valueOf(loginUser.getUser().getUserId());
         String jwt = JwtUtil.createJWT(userId);
         loginUser.setToken(jwt);
         String userType=loginUser.getPermissions().get(0);
+
+        // 获取用户名
+        String userName = loginUser.getUser().getName();
+
         Map map=new HashMap<>();
         map.put("token",jwt);
         map.put("userType",userType);
+        map.put("userName", userName); // 添加用户名到返回数据中
 
         //把完整的用户信息存入redis  uuid作为key
-       redisCache.setCacheObject("login:"+userId,loginUser,5,TimeUnit.HOURS);
+        redisCache.setCacheObject("login:"+userId,loginUser,5,TimeUnit.HOURS);
         return  ResponseResult.success(map);
     }
 

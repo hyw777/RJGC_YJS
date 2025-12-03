@@ -6,17 +6,18 @@
 
     <insert id="addReview">
         INSERT INTO `reviews`
-            (`user_id`, `business_id`, `stars`, `useful`, `funny`, `cool`, `text`, `date`) VALUES
-        (#{userId}, #{bid}, #{stars}, 0, 0, 0, #{text},#{date})
+            (`user_id`, `business_id`, `stars`, `useful`, `funny`, `cool`, `text`, `date`, `rid`) VALUES
+        (#{userId}, #{bid}, #{stars}, 0, 0, 0, #{text},#{date},#{rid})
     </insert>
-    <update id="changeReview">
-        update `reviews`
+
+    <update id="changeReview" parameterType="com.sgrej.domain.dto.ReviewSatisfactionDTO">
+        UPDATE `reviews`
         <set>
-          <if test="useful == 1">useful = useful+1,</if>
-            <if test="funny == 1"> funny = funny +1,</if>
-            <if test="cool == 1">cool = cool +1,</if>
+            useful = useful + #{useful},
+            funny = funny + #{funny},
+            cool = cool + #{cool}
         </set>
-        where review_id = #{reviewId}
+        WHERE review_id = #{reviewId}
     </update>
 
     <select id="getAll" resultType="com.sgrej.domain.pojo.Review">

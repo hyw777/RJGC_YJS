@@ -163,7 +163,7 @@ public class FriendServiceImpl implements FriendService {
                     findfriendVO.setFriendNumbers(friendNumber);
                 }
 
-                findfriendVO.setReviewCounts(user.getReviewCount());
+                findfriendVO.setReviewCount(user.getReviewCount());
                 findFriendVOS.add(findfriendVO);
             }
             return new PageResult(users.getTotal(),findFriendVOS);
@@ -274,15 +274,12 @@ public class FriendServiceImpl implements FriendService {
                 //复制基础属性
                 BeanUtils.copyProperties(friend,findfriendVO);
 
-                //找对应用户的评论总数和朋友总数
+                //找对应用户的朋友总数
                 if(friend.getFriends()!= null) {
-                    int friendNumber = user.getFriends().split(", ").length;
+                    int friendNumber = friend.getFriends().split(", ").length;
                     findfriendVO.setFriendNumbers(friendNumber);
                 }
 
-                //找到评价数量
-                int reviewCount=reviewMapper.getReviewCount(user.getUid());
-                findfriendVO.setReviewCounts(reviewCount);
                 findFriendVOS.add(findfriendVO);
 
 
@@ -433,8 +430,8 @@ public class FriendServiceImpl implements FriendService {
         else {
             List<FindfriendVO> findFriendVOS = new ArrayList<>();
             for (int i = 0; i < friends.length; i++) {
-                User friend = userMapper.getUserByUid(friends[0]);
-
+                User friend = userMapper.getUserByUid(friends[i]);
+                if(friend==null) continue;
 
                 FindfriendVO findfriendVO = new FindfriendVO();
                 //复制基础属性
@@ -446,9 +443,6 @@ public class FriendServiceImpl implements FriendService {
                     findfriendVO.setFriendNumbers(friendNumber);
                 }
 
-                //找到评价数量
-                int reviewCount = reviewMapper.getReviewCount(user.getUid());
-                findfriendVO.setReviewCounts(reviewCount);
                 findFriendVOS.add(findfriendVO);
             }
             friendDetailVO.setFindfriendVOS(findFriendVOS);

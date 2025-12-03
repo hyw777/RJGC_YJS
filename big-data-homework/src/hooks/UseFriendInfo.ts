@@ -2,25 +2,25 @@ import {ref} from "vue";
 import axios from "axios";
 
 export default ()=>{
+    // 设置合理的默认值结构
     let friendInfo = ref({
-        "userVO": {
-            "name": "周爽",
-                "age": 0,
-                "gender": "女",
-                "city": "阮恩杰的心里",
-                "email": "2162063785@qq.com",
-                "reviewCount": 15,
-                "cool": 3,
-                "useful": 3,
-                "elite": "null",
-                "yelpingSince": "2024-05-20T16:00:00.000+00:00",
-                "funny": 4,
-                "reviewsList": null
+        userVO: {
+            name: '',
+            age: 0,
+            gender: '',
+            city: '',
+            email: '',
+            reviewCount: 0,
+            cool: 0,
+            useful: 0,
+            elite: '',
+            yelpingSince: '',
+            funny: 0
         },
-        "reviewsList": [],
-            "collectionVOList": [],
-            "findfriendVOS": []
-    })
+        reviewsList: [],
+        collectionVOList: [],
+        findfriendVOS: []
+    });
 
     function formatDateTime(dateTime) {
         const date = new Date(dateTime);
@@ -36,7 +36,7 @@ export default ()=>{
     function getFriendInfo(userId) {
         axios.get(`/api/friend/details/${userId}`).then(res => {
             friendInfo.value = res.data.data;
-
+            console.log("好友信息：",res);
             // 注册日期格式调整
             friendInfo.value.userVO.yelpingSince = formatDateTime(friendInfo.value.userVO.yelpingSince);
 

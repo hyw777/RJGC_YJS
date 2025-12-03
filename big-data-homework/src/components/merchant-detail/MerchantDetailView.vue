@@ -1,356 +1,383 @@
 <template>
   <div class="merchant-detail">
-    <!-- 商户图片展示区域 - 轮播图 -->
-    <div class="image-gallery">
-      <div class="carousel-container">
-        <!-- 主图轮播区域 -->
-        <div class="main-carousel">
-          <div
-            class="carousel-wrapper"
-            :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
-          >
+    <!-- 加载指示器 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <!-- 使用 el-icon 中的 Loading 组件 -->
+        <el-icon class="is-loading" size="48"><Loading /></el-icon>
+        <p>加载中...</p>
+      </div>
+    </div>
+
+    <div v-else>
+      <!-- 商户图片展示区域 - 轮播图 -->
+      <div class="image-gallery">
+        <div class="carousel-container">
+          <!-- 主图轮播区域 -->
+          <div class="main-carousel">
             <div
-              v-for="(image, index) in result.imageList"
-              :key="index"
-              class="carousel-slide"
+              class="carousel-wrapper"
+              :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
             >
-              <div class="main-image-container">
-                <img
-                  class="main-image"
-                  :src="getImagePath(image)"
-                  :alt="`${result.name} - 图片${index + 1}`"
-                  v-if="image"
-                />
-                <div class="image-placeholder" v-else>
-                  <el-icon size="48"><Picture /></el-icon>
-                  <span>暂无图片</span>
+              <div
+                v-for="(image, index) in result.imageList"
+                :key="index"
+                class="carousel-slide"
+              >
+                <div class="main-image-container">
+                  <img
+                    class="main-image"
+                    :src="getImagePath(image)"
+                    :alt="`${result.name} - 图片${index + 1}`"
+                    v-if="image"
+                  />
+                  <div class="image-placeholder" v-else>
+                    <el-icon size="48"><Picture /></el-icon>
+                    <span>暂无图片</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 左右切换按钮 -->
-        <button
-          class="carousel-btn prev-btn"
-          @click="prevSlide"
-          v-if="result.imageList && result.imageList.length > 1"
-        >
-          <el-icon size="24"><ArrowLeft /></el-icon>
-        </button>
-        <button
-          class="carousel-btn next-btn"
-          @click="nextSlide"
-          v-if="result.imageList && result.imageList.length > 1"
-        >
-          <el-icon size="24"><ArrowRight /></el-icon>
-        </button>
+          <!-- 左右切换按钮 -->
+          <button
+            class="carousel-btn prev-btn"
+            @click="prevSlide"
+            v-if="result.imageList && result.imageList.length > 1"
+          >
+            <el-icon size="24"><ArrowLeft /></el-icon>
+          </button>
+          <button
+            class="carousel-btn next-btn"
+            @click="nextSlide"
+            v-if="result.imageList && result.imageList.length > 1"
+          >
+            <el-icon size="24"><ArrowRight /></el-icon>
+          </button>
 
-        <!-- 指示器 -->
-        <div
-          class="carousel-indicators"
-          v-if="result.imageList && result.imageList.length > 1"
-        >
-          <span
-            v-for="(image, index) in result.imageList"
-            :key="index"
-            :class="['indicator-dot', { active: currentSlide === index }]"
-            @click="goToSlide(index)"
-          ></span>
-        </div>
-      </div>
-
-      <el-button
-        @click="jump"
-        class="view-all-btn"
-        type="primary"
-        plain
-        v-if="result.imageList && result.imageList.length > 0"
-      >
-        查看全部 {{ result.imageList.length }} 张图片
-      </el-button>
-    </div>
-
-    <!-- 商户信息区域 -->
-    <div class="info-section">
-      <div class="info-header">
-        <div class="header-content">
-          <div class="business-header">
-            <h1 class="business-name">{{ result.name }}</h1>
-            <!-- 添加多行弹幕式小贴士 -->
-            <div
-              class="tips-barrage"
-              v-if="result.tipList && result.tipList.length > 0"
-            >
-              <div
-                v-for="(tip, index) in result.tipList"
-                :key="index"
-                class="barrage-item"
-                :style="{
-                  animationDelay: `${index * 2}s`,
-                  top: `${(index % 3) * 30}px`,
-                  zIndex: `${index + 1}`,
-                  opacity: '0.8',
-                }"
-              >
-                <el-icon color="#409eff" size="16"><Lightning /></el-icon>
-                <span class="tip-text">{{ tip.text }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="business-address">
-            <el-icon><Location /></el-icon>
+          <!-- 指示器 -->
+          <div
+            class="carousel-indicators"
+            v-if="result.imageList && result.imageList.length > 1"
+          >
             <span
-              >{{ result.address }}, {{ result.city }}, {{ result.state }}
-              {{ result.postalCode }}</span
-            >
+              v-for="(image, index) in result.imageList"
+              :key="index"
+              :class="['indicator-dot', { active: currentSlide === index }]"
+              @click="goToSlide(index)"
+            ></span>
           </div>
         </div>
+
         <el-button
-          @click="toggleCollect"
-          :type="isCollected ? 'danger' : 'default'"
-          :icon="isCollected ? StarFilled : Star"
-          circle
-          size="large"
-          class="collect-btn"
+          @click="jump"
+          class="view-all-btn"
+          type="primary"
+          plain
+          v-if="result.imageList && result.imageList.length > 0"
         >
+          查看全部 {{ result.imageList.length }} 张图片
         </el-button>
       </div>
 
-      <!-- 评分信息 -->
-      <div class="rating-section">
-        <div class="rating-item">
-          <span class="rating-label">用户评分</span>
-          <el-rate v-model="result.stars" disabled size="small" />
-          <span class="rating-value">{{ result.stars }}</span>
-          <span class="review-count">({{ result.reviewCount }} 条评论)</span>
-        </div>
-
-        <div class="rating-item ai-rating">
-          <span class="rating-label ai-label">AI评分</span>
-          <el-rate v-model="result.stars" disabled size="small" />
-          <span class="rating-value">{{ result.stars }}</span>
-        </div>
-      </div>
-
-      <!-- 基本信息 -->
-      <div class="basic-info">
-        <div class="info-grid">
-          <div class="info-card">
-            <el-icon><OfficeBuilding /></el-icon>
-            <div class="info-content">
-              <span class="label">营业状态</span>
-              <span class="value" :class="{ open: result.isOpen === 1 }">
-                {{ result.isOpen === 1 ? "营业中" : "已打烊" }}
-              </span>
-            </div>
-          </div>
-
-          <div class="info-card">
-            <el-icon><Clock /></el-icon>
-            <div class="info-content">
-              <span class="label">营业时间</span>
-              <span
-                class="value clickable"
-                @click="showBusinessHours = !showBusinessHours"
+      <!-- 商户信息区域 -->
+      <div class="info-section">
+        <div class="info-header">
+          <div class="header-content">
+            <div class="business-header">
+              <h1 class="business-name">{{ result.name }}</h1>
+              <!-- 添加多行弹幕式小贴士 -->
+              <div
+                class="tips-barrage"
+                v-if="result.tipList && result.tipList.length > 0"
               >
-                {{ showBusinessHours ? "收起详细时间" : "点击查看详细时间" }}
-              </span>
-            </div>
-          </div>
-
-          <!-- 在 info-grid 后添加详细营业时间展示 -->
-          <div v-if="showBusinessHours" class="business-hours-detail">
-            <div
-              v-for="(time, day) in formatBusinessHours(result.hours)"
-              :key="day"
-              class="hours-item"
-            >
-              <span class="day">{{ formatDay(day) }}:</span>
-              <span class="time" :class="{ closed: time === '0:0-0:0' }">
-                {{ time === "0:0-0:0" ? "全天" : formatTimeRange(time) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="info-card">
-            <el-icon><Collection /></el-icon>
-            <div class="info-content">
-              <span class="label">分类</span>
-              <span class="value category-tags">
-                <el-tag
-                  v-for="(category, index) in parseCategories(
-                    result.categories
-                  )"
+                <div
+                  v-for="(tip, index) in result.tipList"
                   :key="index"
-                  size="small"
-                  type="info"
-                  class="category-tag"
+                  class="barrage-item"
+                  :style="{
+                    animationDelay: `${index * 2}s`,
+                    top: `${(index % 3) * 30}px`,
+                    zIndex: `${index + 1}`,
+                    opacity: '0.8',
+                  }"
                 >
-                  {{ category }}
-                </el-tag>
-              </span>
+                  <el-icon color="#409eff" size="16"><Lightning /></el-icon>
+                  <span class="tip-text">{{ tip.text }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="business-address">
+              <el-icon><Location /></el-icon>
+              <span
+                >{{ result.address }}, {{ result.city }}, {{ result.state }}
+                {{ result.postalCode }}</span
+              >
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Q&A 和评论区域 -->
-    <div class="content-section">
-      <!-- Q&A 部分 -->
-      <div class="qa-section">
-        <h2 class="section-title">Q&A</h2>
-        <div
-          class="qa-item"
-          v-for="(attr, index) in getImportantAttributes()"
-          :key="index"
-        >
-          <div class="question">
-            <el-icon color="#409eff"><QuestionFilled /></el-icon>
-            <span>{{ formatAttributeName(attr.key) }}</span>
-          </div>
-          <div class="answer">
-            <el-icon :color="getIconColor(attr.value)" size="16">
-              <CircleCheck v-if="attr.value === 'true'" />
-              <CircleClose v-else-if="attr.value === 'false'" />
-              <InfoFilled v-else />
-            </el-icon>
-            <span class="answer-text">{{
-              formatAttributeValue(attr.value)
-            }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分割线 -->
-      <div class="divider-vertical"></div>
-
-      <!-- 评论部分 -->
-      <div class="reviews-section">
-        <div class="reviews-header">
-          <h2 class="section-title">用户评价 ({{ result.reviewCount }})</h2>
-          <el-button @click="switchStatus" type="primary" :icon="EditPen" plain>
-            写评价
+          <el-button
+            @click="toggleCollect"
+            :type="isCollected ? 'danger' : 'default'"
+            :icon="isCollected ? StarFilled : Star"
+            circle
+            size="large"
+            class="collect-btn"
+          >
           </el-button>
         </div>
 
-        <!-- 评价统计 -->
-        <div class="review-stats">
-          <div class="stats-item">
-            <span class="stats-label">总体评分</span>
-            <div class="stats-content">
-              <span class="stats-score">{{ result.stars }}</span>
-              <el-rate v-model="result.stars" disabled size="small" />
+        <!-- 评分信息 -->
+        <div class="rating-section">
+          <div class="rating-item">
+            <span class="rating-label">用户评分</span>
+            <el-rate v-model="result.stars" disabled size="small" />
+            <span class="rating-value">{{ result.stars }}</span>
+            <span class="review-count">({{ result.reviewCount }} 条评论)</span>
+          </div>
+
+          <div class="rating-item ai-rating">
+            <span class="rating-label ai-label">AI评分</span>
+            <el-rate v-model="result.stars" disabled size="small" />
+            <span class="rating-value">{{ result.stars }}</span>
+          </div>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="basic-info">
+          <div class="info-grid">
+            <div class="info-card">
+              <el-icon><OfficeBuilding /></el-icon>
+              <div class="info-content">
+                <span class="label">营业状态</span>
+                <span class="value" :class="{ open: result.isOpen === 1 }">
+                  {{ result.isOpen === 1 ? "营业中" : "已打烊" }}
+                </span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <el-icon><Clock /></el-icon>
+              <div class="info-content">
+                <span class="label">营业时间</span>
+                <span
+                  class="value clickable"
+                  @click="showBusinessHours = !showBusinessHours"
+                >
+                  {{ showBusinessHours ? "收起详细时间" : "点击查看详细时间" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 在 info-grid 后添加详细营业时间展示 -->
+            <div v-if="showBusinessHours" class="business-hours-detail">
+              <div
+                v-for="(time, day) in formatBusinessHours(result.hours)"
+                :key="day"
+                class="hours-item"
+              >
+                <span class="day">{{ formatDay(day) }}:</span>
+                <span class="time" :class="{ closed: time === '0:0-0:0' }">
+                  {{ time === "0:0-0:0" ? "全天" : formatTimeRange(time) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <el-icon><Collection /></el-icon>
+              <div class="info-content">
+                <span class="label">分类</span>
+                <span class="value category-tags">
+                  <el-tag
+                    v-for="(category, index) in parseCategories(
+                      result.categories
+                    )"
+                    :key="index"
+                    size="small"
+                    type="info"
+                    class="category-tag"
+                  >
+                    {{ category }}
+                  </el-tag>
+                </span>
+              </div>
             </div>
           </div>
-          <div class="stats-item">
-            <span class="stats-label">评论总数</span>
-            <span class="stats-value">{{ result.reviewCount }}</span>
-          </div>
         </div>
+      </div>
 
-        <!-- 评价输入区域 -->
-        <div class="review-form" v-if="isDisplayed">
-          <el-rate v-model="request.stars" size="small" class="form-rate" />
-          <el-input
-            v-model="request.text"
-            type="textarea"
-            placeholder="分享您的体验..."
-            :rows="4"
-            class="form-textarea"
-          />
-          <div class="form-actions">
-            <el-button
-              @click="writeReview(result.businessId, result.bid)"
-              type="primary"
-            >
-              提交评价
-            </el-button>
-            <el-button @click="switchStatus">取消</el-button>
-          </div>
-        </div>
-
-        <!-- 评论列表 -->
-        <div class="reviews-list">
+      <!-- Q&A 和评论区域 -->
+      <div class="content-section">
+        <!-- Q&A 部分 -->
+        <div class="qa-section">
+          <h2 class="section-title">Q&A</h2>
           <div
-            class="review-item"
-            v-for="(review, index) in result.reviewVOList"
+            class="qa-item"
+            v-for="(attr, index) in getImportantAttributes()"
             :key="index"
           >
-            <div class="review-header">
-              <div class="user-info">
-                <el-avatar :size="32">{{
-                  review.userName?.charAt(0) || "U"
-                }}</el-avatar>
-                <div class="user-details">
-                  <span class="username">{{ review.userName }}</span>
-                  <span class="review-date">{{ review.date }}</span>
-                </div>
+            <div class="question">
+              <el-icon color="#409eff"><QuestionFilled /></el-icon>
+              <span>{{ formatAttributeName(attr.key) }}</span>
+            </div>
+            <div class="answer">
+              <el-icon :color="getIconColor(attr.value)" size="16">
+                <CircleCheck v-if="attr.value === 'true'" />
+                <CircleClose v-else-if="attr.value === 'false'" />
+                <InfoFilled v-else />
+              </el-icon>
+              <span class="answer-text">{{
+                formatAttributeValue(attr.value)
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分割线 -->
+        <div class="divider-vertical"></div>
+
+        <!-- 评论部分 -->
+        <div class="reviews-section">
+          <div class="reviews-header">
+            <h2 class="section-title">用户评价 ({{ result.reviewCount }})</h2>
+            <el-button
+              @click="switchStatus"
+              type="primary"
+              :icon="EditPen"
+              plain
+            >
+              写评价
+            </el-button>
+          </div>
+
+          <!-- 评价统计 -->
+          <div class="review-stats">
+            <div class="stats-item">
+              <span class="stats-label">总体评分</span>
+              <div class="stats-content">
+                <span class="stats-score">{{ result.stars }}</span>
+                <el-rate v-model="result.stars" disabled size="small" />
               </div>
-              <el-rate
-                v-model="review.stars"
-                disabled
-                size="small"
-                class="review-rating"
-              />
             </div>
-
-            <div class="review-content">
-              {{ review.text }}
+            <div class="stats-item">
+              <span class="stats-label">评论总数</span>
+              <span class="stats-value">{{ result.reviewCount }}</span>
             </div>
+          </div>
 
-            <div class="review-actions">
+          <!-- 评价输入区域 -->
+          <div class="review-form" v-if="isDisplayed">
+            <el-rate
+              v-model="request.stars"
+              size="small"
+              class="form-rate"
+              allow-half
+            />
+            <el-input
+              v-model="request.text"
+              type="textarea"
+              placeholder="分享您的体验..."
+              :rows="4"
+              class="form-textarea"
+              maxlength="500"
+              show-word-limit
+            />
+            <div class="form-actions">
               <el-button
+                @click="writeReview(result.businessId, result.bid)"
                 type="primary"
-                link
-                @click="
-                  useful(
-                    review.reviewId,
-                    review.cool,
-                    review.useful,
-                    review.funny,
-                    index
-                  )
-                "
+                :disabled="!canSubmit"
               >
-                <el-icon><Pointer /></el-icon>
-                <span>有用 {{ review.useful }}</span>
+                提交评价
               </el-button>
+              <el-button @click="switchStatus">取消</el-button>
+            </div>
+          </div>
 
-              <el-button
-                type="warning"
-                link
-                @click="
-                  funny(
-                    review.reviewId,
-                    review.cool,
-                    review.useful,
-                    review.funny,
-                    index
-                  )
-                "
-              >
-                <el-icon><Sunny /></el-icon>
-                <span>有趣 {{ review.funny }}</span>
-              </el-button>
+          <!-- 评论列表 -->
+          <div class="reviews-list">
+            <div
+              class="review-item"
+              v-for="(review, index) in result.reviewVOList"
+              :key="index"
+            >
+              <div class="review-header">
+                <div class="user-info">
+                  <el-avatar :size="32">{{
+                    review.userName?.charAt(0) || "U"
+                  }}</el-avatar>
+                  <div class="user-details">
+                    <span class="username">{{ review.userName }}</span>
+                    <span class="review-date">{{ review.date }}</span>
+                  </div>
+                </div>
+                <el-rate
+                  v-model="review.stars"
+                  disabled
+                  size="small"
+                  class="review-rating"
+                />
+              </div>
 
-              <el-button
-                type="info"
-                link
-                @click="
-                  cool(
-                    review.reviewId,
-                    review.cool,
-                    review.useful,
-                    review.funny,
-                    index
-                  )
-                "
-              >
-                <el-icon><Headset /></el-icon>
-                <span>酷 {{ review.cool }}</span>
-              </el-button>
+              <div class="review-content">
+                {{ review.text }}
+              </div>
+
+              <div class="review-actions">
+                <el-button
+                  type="primary"
+                  link
+                  :disabled="review.userClicked?.useful"
+                  @click="
+                    useful(
+                      review.reviewId,
+                      review.cool,
+                      review.useful,
+                      review.funny,
+                      index
+                    )
+                  "
+                >
+                  <el-icon><Pointer /></el-icon>
+                  <span>有用 {{ review.useful }}</span>
+                </el-button>
+
+                <el-button
+                  type="warning"
+                  link
+                  :disabled="review.userClicked?.funny"
+                  @click="
+                    funny(
+                      review.reviewId,
+                      review.cool,
+                      review.useful,
+                      review.funny,
+                      index
+                    )
+                  "
+                >
+                  <el-icon><Sunny /></el-icon>
+                  <span>有趣 {{ review.funny }}</span>
+                </el-button>
+
+                <el-button
+                  type="info"
+                  link
+                  :disabled="review.userClicked?.cool"
+                  @click="
+                    cool(
+                      review.reviewId,
+                      review.cool,
+                      review.useful,
+                      review.funny,
+                      index
+                    )
+                  "
+                >
+                  <el-icon><Headset /></el-icon>
+                  <span>酷 {{ review.cool }}</span>
+                </el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -360,7 +387,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, toRefs, watch } from "vue";
+import { computed, onMounted, ref, toRefs, watch, onUnmounted } from "vue";
 import { useBusiness } from "@/hooks/UseBusiness";
 import { useRoute } from "vue-router";
 import {
@@ -381,6 +408,7 @@ import {
   ArrowRight,
   OfficeBuilding,
   Lightning,
+  Loading 
 } from "@element-plus/icons-vue";
 import { UseCollectStore } from "@/stores/UseCollectStore";
 import axios from "axios";
@@ -388,7 +416,8 @@ import { router } from "@/router";
 import { UseImageListStore } from "@/stores/UseImageListStore";
 import { useWriteReviews } from "@/hooks/UseWriteReviews";
 import { ElMessage } from "element-plus";
-
+// 评价互动功能
+import { changeReviewSatisfaction } from "@/apis/reviews.js";
 const collectStore = UseCollectStore();
 const { result, getResult } = toRefs(useBusiness());
 const route = useRoute();
@@ -556,40 +585,40 @@ const parseCategories = (categories: string) => {
 
 // 定义重要属性列表
 const importantAttributes = [
-  'WiFi',
-  'Alcohol',
-  'OutdoorSeating',
-  'RestaurantsDelivery',
-  'RestaurantsTakeOut',
-  'BusinessAcceptsCreditCards',
-  'DogsAllowed',
-  'GoodForKids'
+  "WiFi",
+  "Alcohol",
+  "OutdoorSeating",
+  "RestaurantsDelivery",
+  "RestaurantsTakeOut",
+  "BusinessAcceptsCreditCards",
+  "DogsAllowed",
+  "GoodForKids",
 ];
 
 // 获取重要属性的函数
 const getImportantAttributes = () => {
   if (!result.value?.attributes) return [];
-  
+
   try {
     const attrs = JSON.parse(result.value.attributes);
     const resultAttrs = [];
-    
+
     // 遍历重要属性列表
-    importantAttributes.forEach(key => {
+    importantAttributes.forEach((key) => {
       if (attrs.hasOwnProperty(key)) {
         resultAttrs.push({
           key,
-          value: attrs[key]
+          value: attrs[key],
         });
       } else {
         // 如果属性不存在，添加一个默认值为未知的项
         resultAttrs.push({
           key,
-          value: 'unknown'
+          value: "unknown",
         });
       }
     });
-    
+
     return resultAttrs;
   } catch (e) {
     return [];
@@ -598,115 +627,258 @@ const getImportantAttributes = () => {
 
 // 添加颜色映射函数
 const getIconColor = (value: string) => {
-  if (value === 'true') return '#67c23a';
-  if (value === 'false') return '#f56c6c';
-  return '#409eff';
+  if (value === "true") return "#67c23a";
+  if (value === "false") return "#f56c6c";
+  return "#409eff";
 };
 
 const formatAttributeName = (name: string) => {
   const nameMap = {
-    'WiFi': '是否有WiFi',
-    'Alcohol': '是否提供酒精饮品',
-    'OutdoorSeating': '是否有户外座位',
-    'RestaurantsDelivery': '是否提供外卖',
-    'RestaurantsTakeOut': '是否提供外带',
-    'BusinessAcceptsCreditCards': '是否接受信用卡',
-    'GoodForKids': '是否适合儿童',
-    'HasTV': '是否有电视',
-    'NoiseLevel': '噪音等级',
-    'RestaurantsReservations': '是否需要预约',
-    'WheelchairAccessible': '是否无障碍通道',
-    'DogsAllowed': '是否允许宠物入内',
-    'HappyHour': '是否有欢乐时光',
-    'CoatCheck': '是否提供衣帽间',
-    'Smoking': '是否允许吸烟'
+    WiFi: "是否有WiFi",
+    Alcohol: "是否提供酒精饮品",
+    OutdoorSeating: "是否有户外座位",
+    RestaurantsDelivery: "是否提供外卖",
+    RestaurantsTakeOut: "是否提供外带",
+    BusinessAcceptsCreditCards: "是否接受信用卡",
+    GoodForKids: "是否适合儿童",
+    HasTV: "是否有电视",
+    NoiseLevel: "噪音等级",
+    RestaurantsReservations: "是否需要预约",
+    WheelchairAccessible: "是否无障碍通道",
+    DogsAllowed: "是否允许宠物入内",
+    HappyHour: "是否有欢乐时光",
+    CoatCheck: "是否提供衣帽间",
+    Smoking: "是否允许吸烟",
   };
   return nameMap[name] || name;
 };
 
 // 更新格式化函数以处理未知值
 const formatAttributeValue = (value: string) => {
-  if (value === 'true') return '是';
-  if (value === 'false') return '否';
-  if (value === 'none') return '无';
-  if (value === 'unknown') return '未知';
-  
-  if (value === 'average') return '一般';
-  if (value === 'quiet') return '安静';
-  if (value === 'loud') return '吵闹';
-  if (value === 'very_loud') return '非常吵闹';
-  
+  if (value === "true") return "是";
+  if (value === "false") return "否";
+  if (value === "none") return "无";
+  if (value === "unknown") return "未知";
+
+  if (value === "average") return "一般";
+  if (value === "quiet") return "安静";
+  if (value === "loud") return "吵闹";
+  if (value === "very_loud") return "非常吵闹";
+
   // 处理数组类型值
-  if (typeof value === 'object' && value !== null) {
+  if (typeof value === "object" && value !== null) {
     const obj = JSON.parse(value);
     const keys = Object.keys(obj);
     const values = Object.values(obj);
-    
+
     // 过滤出为 true 的项
     const trueKeys = keys.filter((key, index) => values[index] === true);
-    
+
     if (trueKeys.length > 0) {
-      return trueKeys.join('、');
+      return trueKeys.join("、");
     }
-    
-    return '无';
+
+    return "无";
   }
-  
+
   // 处理价格范围
-  if (value.startsWith('PriceRange')) {
+  if (value.startsWith("PriceRange")) {
     const rangeMap = {
-      '1': '¥',
-      '2': '¥¥',
-      '3': '¥¥¥',
-      '4': '¥¥¥¥'
+      "1": "¥",
+      "2": "¥¥",
+      "3": "¥¥¥",
+      "4": "¥¥¥¥",
     };
     return rangeMap[value] || value;
   }
-  
+
   return value;
 };
 
-// 评价互动功能
-function cool(
-  reviewId: number,
-  cool: number,
-  useful: number,
-  funny: number,
-  index: number
-) {
-  // 实现点赞逻辑
-  console.log("Cool clicked for review:", reviewId);
+// 写评论
+// 添加计算属性
+const canSubmit = computed(() => {
+  return (
+    request.value.stars > 0 &&
+    request.value.text &&
+    request.value.text.trim().length > 0
+  );
+});
+// 评论点赞三个函数实现
+async function cool(reviewId, cool, useful, funny, index) {
+  try {
+    const rsDTO = {
+      reviewId,
+      cool: 1,
+      useful: 0,
+      funny: 0,
+    };
+
+    await changeReviewSatisfaction(rsDTO);
+
+    // 更新本地数据
+    if (result.value.reviewVOList && result.value.reviewVOList[index]) {
+      result.value.reviewVOList[index].cool += 1;
+      // 初始化 userClicked 对象（如果不存在）
+      if (!result.value.reviewVOList[index].userClicked) {
+        result.value.reviewVOList[index].userClicked = {
+          cool: false,
+          useful: false,
+          funny: false,
+        };
+      }
+      // 设置对应的状态为已点击
+      result.value.reviewVOList[index].userClicked.cool = true;
+    }
+
+    ElMessage.success("操作成功");
+  } catch (error) {
+    console.error("Failed to update cool count:", error);
+    ElMessage.error("操作失败");
+  }
 }
 
-function useful(
-  reviewId: number,
-  cool: number,
-  useful: number,
-  funny: number,
-  index: number
-) {
-  // 实现有用逻辑
-  console.log("Useful clicked for review:", reviewId);
+async function useful(reviewId, cool, useful, funny, index) {
+  try {
+    const rsDTO = {
+      reviewId,
+      cool: 0,
+      useful: 1,
+      funny: 0,
+    };
+
+    await changeReviewSatisfaction(rsDTO);
+
+    // 更新本地数据
+    if (result.value.reviewVOList && result.value.reviewVOList[index]) {
+      result.value.reviewVOList[index].useful += 1;
+      // 初始化 userClicked 对象（如果不存在）
+      if (!result.value.reviewVOList[index].userClicked) {
+        result.value.reviewVOList[index].userClicked = {
+          cool: false,
+          useful: false,
+          funny: false,
+        };
+      }
+      // 设置对应的状态为已点击
+      result.value.reviewVOList[index].userClicked.useful = true;
+    }
+
+    ElMessage.success("操作成功");
+  } catch (error) {
+    console.error("Failed to update useful count:", error);
+    ElMessage.error("操作失败");
+  }
 }
 
-function funny(
-  reviewId: number,
-  cool: number,
-  useful: number,
-  funny: number,
-  index: number
-) {
-  // 实现有趣逻辑
-  console.log("Funny clicked for review:", reviewId);
+async function funny(reviewId, cool, useful, funny, index) {
+  try {
+    const rsDTO = {
+      reviewId,
+      cool: 0,
+      useful: 0,
+      funny: 1,
+    };
+
+    await changeReviewSatisfaction(rsDTO);
+
+    // 更新本地数据
+    if (result.value.reviewVOList && result.value.reviewVOList[index]) {
+      result.value.reviewVOList[index].funny += 1;
+      // 初始化 userClicked 对象（如果不存在）
+      if (!result.value.reviewVOList[index].userClicked) {
+        result.value.reviewVOList[index].userClicked = {
+          cool: false,
+          useful: false,
+          funny: false,
+        };
+      }
+      // 设置对应的状态为已点击
+      result.value.reviewVOList[index].userClicked.funny = true;
+    }
+
+    ElMessage.success("操作成功");
+  } catch (error) {
+    console.error("Failed to update funny count:", error);
+    ElMessage.error("操作失败");
+  }
 }
+
+
+// 添加 loading 状态
+const loading = ref(true);
 
 onMounted(() => {
   console.log("商户信息：", result.value);
-  getResult.value(route.query.id);
+  
+  // 显示加载状态
+  loading.value = true;
+  
+  getResult.value(route.query.id).finally(() => {
+    // 数据加载完成后隐藏加载状态
+    loading.value = false;
+  });
+  // 添加评论提交事件监听
+  window.addEventListener('reviewSubmitted', handleReviewSubmitted);
 });
+
+onUnmounted(() => {
+  window.removeEventListener('reviewSubmitted', handleReviewSubmitted);
+});
+
+// 监听 reviewSubmitted 事件时也显示加载状态
+const handleReviewSubmitted = () => {
+  loading.value = true;
+  setTimeout(() => {
+    getResult.value(route.query.id).finally(() => {
+      loading.value = false;
+    });
+  }, 1000);
+};
 </script>
 
 <style scoped>
+
+
+/* 添加加载样式 */
+
+/* 添加旋转动画样式 */
+.is-loading {
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.loading-spinner p {
+  margin-top: 16px;
+  color: #606266;
+  font-size: 16px;
+}
+
 .merchant-detail {
   max-width: 1200px;
   margin: 0 auto;
@@ -1363,7 +1535,7 @@ onMounted(() => {
 }
 
 .answer::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -1402,11 +1574,11 @@ onMounted(() => {
   .qa-item {
     margin-bottom: 12px;
   }
-  
+
   .question {
     font-size: 14px;
   }
-  
+
   .answer-text {
     font-size: 13px;
   }

@@ -122,6 +122,7 @@ public class FriendController {
     public ResponseResult details(@PathVariable int userId){
         log.info("好友详情:{}",userId);
         FriendDetailVO friendDetailVO=friendService.getFriendDetail(userId);
+        log.info("好友详情:{}",friendDetailVO);
         return ResponseResult.success(friendDetailVO);
     }
 

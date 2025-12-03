@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
@@ -60,19 +61,29 @@ public class ReviewServiceImpl implements ReviewService {
         //增加评论信息
         reviewDTO.setUserId(uId);
         reviewDTO.setDate(time);
+
+        // 增加该条评论rid
+        String rid = UUID.randomUUID().toString().substring(0,22).replaceAll("-", "");
+        reviewDTO.setRid(rid);
+
+        System.out.println(reviewDTO.toString());
+
         reviewMapper.addReview(reviewDTO);
 
         //在进行评价后，个人的评价总数也应该要加一
         EditUserDTO editUserDTO=new EditUserDTO();
         editUserDTO.setUserId(userId);
         editUserDTO.setReviewCount(1);
+        System.out.println(editUserDTO.toString());
         userMapper.editUser(editUserDTO);
+
 
         //对应商户所获得的总评价数也要加一
         Business business=new Business();
         int businessId= reviewDTO.getBusinessId();
         business.setReviewCount(1);
         business.setBusinessId(businessId);
+        System.out.println(business.toString());
         businessMapper.changeInfo(business);
 
     }

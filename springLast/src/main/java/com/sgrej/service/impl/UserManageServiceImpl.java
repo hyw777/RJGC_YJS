@@ -52,7 +52,7 @@ public class UserManageServiceImpl implements UserManageService {
 
             //找到评价数量
             int reviewCount=reviewMapper.getReviewCount(user.getUid());
-            findfriendVO.setReviewCounts(reviewCount);
+            findfriendVO.setReviewCount(reviewCount);
             findFriendVOS.add(findfriendVO);
 
 

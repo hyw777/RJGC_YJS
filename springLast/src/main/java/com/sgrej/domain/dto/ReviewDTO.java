@@ -27,4 +27,6 @@ public class ReviewDTO {
 
     private Timestamp date;//评价时间
 
+    private String rid;
+
 }

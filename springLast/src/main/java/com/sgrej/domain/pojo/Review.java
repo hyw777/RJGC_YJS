@@ -16,6 +16,7 @@ public class Review implements Serializable {
     /**
      * 评价id
      */
+
     private int reviewId;
 
     private String rid;//用于获取评论信息

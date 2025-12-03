@@ -20,7 +20,6 @@ public class ReviewController {
      */
     @PostMapping("/writeReview")
     public ResponseResult writeReview(@RequestBody ReviewDTO reviewDTO){
-        log.info("对商户进行评价：{}",reviewDTO);
            reviewService.writeReview(reviewDTO);
            return ResponseResult.success("评价成功");
     }
@@ -43,6 +42,7 @@ public class ReviewController {
     @PutMapping("/satisfaction")
     public ResponseResult changeReview(@RequestBody ReviewSatisfactionDTO rsDTO){
         log.info("评价满意度");
+        System.out.println(rsDTO.toString());
         reviewService.changeReview(rsDTO);
         return ResponseResult.success("ok");
     }
