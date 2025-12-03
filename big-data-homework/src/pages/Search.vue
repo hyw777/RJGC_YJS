@@ -26,7 +26,7 @@
         相关商家
       </div>
       <div class="mid">
-        <div class="show-box" v-for="(record,index) in result.records" :key="index">
+        <div class="show-box" v-for="(record,index) in records" :key="index">
           <router-link class="img" :to="{path:'/merchantDetail',query:{id:record.businessId}}">
             <img :src="filePath(record.image)" >
           </router-link>
@@ -47,13 +47,13 @@
           </div>
         </div>
       </div>
-      <el-pagination
-          @current-change="handleCurrentChange"
-          :current-page="search.page"
-          :page-size="search.pageSize"
-          :hide-on-single-page="search.page"
-          :total="result.total"
-          class="page" background layout="prev,pager, next"/>
+          <el-pagination
+            @current-change="handleCurrentChange"
+            :current-page="search.page"
+            :page-size="search.pageSize"
+            :hide-on-single-page="search.page"
+            :total="total"
+            class="page" background layout="prev,pager, next"/>
     </div>
   </div>
 </template>
@@ -67,23 +67,31 @@ import {computed, onMounted, ref, toRefs, watch} from "vue";
 import {UseSearchStore} from "@/stores/UseSearchStore";
 import { marked } from 'marked';
 
-const filePath  =(file) => {
-  if(file == null){
-    return ``
+const filePath = (file: any) => {
+  if (file == null) {
+    console.log('null');
+    return ''
   }
-  return  file.includes('http') ? file : `/api/images/${file}`;
+  // 如果图片链接已经是完整的URL，直接使用；否则拼接静态服务器地址
+  const fullPath = file.includes('http') ? file : `http://localhost:3000/images/${file}.jpg`;
+  return fullPath;
 }
-
 let searchStore = UseSearchStore();
 let route = useRoute()
 // get fetchAIRecommendations and ai state from hook
-let {search,getResult, fetchAIRecommendations, aiLoading, aiRecommendations} = useSearch()
+let {search, getResult, aiLoading, aiRecommendations} = useSearch()
 
 function  handleCurrentChange(val){
-  getResult.value(val,route.query.info)
+  // call the hook function directly
+  getResult(val, route.query.info)
+  console.log("当前页码："+JSON.stringify(result.value))
 }
 
 let result = computed(()=>searchStore.result)
+// safe derived values for template
+import { computed as _computed } from 'vue';
+const records = _computed(() => (result.value && Array.isArray(result.value.records)) ? result.value.records : [])
+const total = _computed(() => (result.value && typeof result.value.total === 'number') ? result.value.total : 0)
 
 // expose a thin wrapper so the page triggers the hook function using current route.query.info
 async function fetchAIRecommendationsWrapper() {

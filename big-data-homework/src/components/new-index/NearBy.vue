@@ -51,11 +51,7 @@ import { useActivity } from "@/hooks/UseActivity";
 import { useAuthStore } from "@/stores/UseAuthStore";
 import { UseButtonStore } from "@/stores/UseButtonStore";
 // 导入图标组件
-<<<<<<< HEAD
-import { Check, Star, HeartFilled , CircleClose } from '@element-plus/icons-vue';
-=======
 import { Check, Star, Collection, CircleClose } from '@element-plus/icons-vue';
->>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
 
 let authStore = useAuthStore()
 let buttonStore = UseButtonStore()

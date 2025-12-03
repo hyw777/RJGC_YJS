@@ -47,15 +47,15 @@ export function useSearch() {
             let res = await axios.post('/api/business/search',search.value)
             let data = res.data.data; // 直接使用 res.data.data
             // 检查 records 和 image 是否存在
-            if (data.records && data.records.image) {
-                let file = data.records.image;
-                if (typeof file === 'string' && file.includes('http')) {
-                    // 如果已经包含 http，则无需更改
-                } else {
-                    // 否则，拼接 URL
-                    data.records.image = `/api/images/${file}`;
-                }
-            }
+            // if (data.records && data.records.image) {
+            //     let file = data.records.image;
+            //     if (typeof file === 'string' && file.includes('http')) {
+            //         // 如果已经包含 http，则无需更改
+            //     } else {
+            //         // 否则，拼接 URL
+            //         data.records.image = `/api/images/${file}`;
+            //     }
+            // }
             searchStore.setResult(data)
         }catch (err){
             console.error(err)
@@ -85,38 +85,20 @@ export function useSearch() {
             console.error(err)
         }
     }
-
+    async function getTop5BusinessWith5Stars() {
+    try {
+        const res = await axios.get('/api/business/top5');
+        return res.data.data;
+    } catch (err) {
+        console.error('获取前5个五星商家失败:', err);
+        return [];
+    }
+}
         // AI recommend state and function
         const aiLoading = ref(false)
         const aiRecommendations = ref<string[]>([])
 
-        async function fetchAIRecommendations(query?: string) {
-            const q = query ?? info.value ?? ''
-            if (!q) {
-                aiRecommendations.value = []
-                return
-            }
-            aiLoading.value = true
-            try {
-                // Spring @RequestParam expects request parameters (form data or query string),
-                // so send as application/x-www-form-urlencoded so the controller can read `text`.
-                const params = new URLSearchParams()
-                params.append('text', q)
-                const resp = await axios.post('/api/business/AIRecommend', params, {
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                })
-                const data = resp.data && (resp.data.data ?? resp.data)
-                console.log('fetchAIRecommendations', resp)
-                if (Array.isArray(data)) aiRecommendations.value = data
-                else if (typeof data === 'string') aiRecommendations.value = data.split(/\r?\n/).filter(Boolean)
-                else aiRecommendations.value = []
-            } catch (e) {
-                console.error('AI recommend error', e)
-                aiRecommendations.value = []
-            } finally {
-                aiLoading.value = false
-            }
-        }
+       
 
-    return {search,result,getResult,info,useSearch,getCategoriesResult,search2, aiLoading, aiRecommendations, fetchAIRecommendations}
+    return {search,result,getResult,info,useSearch,getCategoriesResult,search2, aiLoading, aiRecommendations, getTop5BusinessWith5Stars}
 }

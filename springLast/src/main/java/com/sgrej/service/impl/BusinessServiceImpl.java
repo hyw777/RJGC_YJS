@@ -57,11 +57,20 @@ public class BusinessServiceImpl implements BusinessService {
      * @return
      */
     public PageResult pageQuery(BusinessPageQueryDTO businessPageQueryDTO) {
+        // 如果页码或页面大小未设置，使用默认值
+        if (businessPageQueryDTO.getPage() <= 0) {
+            businessPageQueryDTO.setPage(1);
+        }
+        if (businessPageQueryDTO.getPageSize() <= 0) {
+            businessPageQueryDTO.setPageSize(10);
+        }
+        
         PageHelper.startPage(businessPageQueryDTO.getPage(), businessPageQueryDTO.getPageSize());
 
-        // 将搜索内容存进mysql表
-        businessMapper.saveSearchContent(businessPageQueryDTO.getBusinessName(),Timestamp.valueOf(LocalDateTime.now()));
-
+        // 将搜索内容存进mysql表（仅当搜索词不为空时）
+//        if (businessPageQueryDTO.getBusinessName() != null && !businessPageQueryDTO.getBusinessName().trim().isEmpty()) {
+//            businessMapper.saveSearchContent(businessPageQueryDTO.getBusinessName(),Timestamp.valueOf(LocalDateTime.now()));
+//        }
 
         // 首先从business表中得到商家的基本信息
         Page<BusinessVO> page = businessMapper.pageQuery(businessPageQueryDTO);
@@ -326,5 +335,36 @@ public class BusinessServiceImpl implements BusinessService {
         //将户主-商家信息绑定到表中
        // userRoleMapper.insert(userId,2,-1);
         businessMapper.bindBusiness(userId,businessId);
+    }
+
+    /**
+     * 获取前5个星级为5的商家
+     * @return
+     */
+    @Override
+    public List<BusinessVO1> getTop5BusinessWith5Stars() {
+        // 从数据库查询前5个星级为5的商家，按评论数排序
+        List<BusinessVO> businessVOs = businessMapper.getTop5BusinessWith5Stars();
+        
+        // 找到每个商家对应的图片信息
+        List<BusinessVO1> businessVO1s = new ArrayList<>();
+
+        for (BusinessVO businessVO : businessVOs) {
+            // 得到每个商家的bid
+            String bid = businessVO.getBid();
+
+            // 得到商家对应的第一张图片
+            String imageUrl = photoMapper.selectImage(bid);
+
+            // 创建一个新的BusinessVO1对象
+            BusinessVO1 businessVO1 = new BusinessVO1();
+            BeanUtils.copyProperties(businessVO, businessVO1);
+            businessVO1.setImage(imageUrl);
+
+            // 将包含图片的BusinessVO1对象添加到列表中
+            businessVO1s.add(businessVO1);
+        }
+        
+        return businessVO1s;
     }
 }

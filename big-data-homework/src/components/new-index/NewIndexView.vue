@@ -218,18 +218,24 @@
                 v-for="(item, index) in hotSearchRank"
                 :key="index"
                 class="text item"
-                @click="searchTop10ToSearch(item)"
+                @click="searchTop10ToSearch(item)
+                "
               >
                 {{ index + 1 + " " + item.searchContent }}
               </p>
             </el-card>
           </div>
-
+         <div @click="openUpload" class="camera">
+            <el-icon size="30px" color="white">
+              <Camera />
+            </el-icon>
+          </div>
           <div @click="reload()" class="search">
             <el-icon size="30px" color="white">
               <Search />
             </el-icon>
           </div>
+          
         </div>
         <div class="item">
           <router-link
@@ -348,8 +354,6 @@
         </div>
       </div>
       <div class="nav-2"></div>
-<<<<<<< HEAD
-=======
     
     <!-- Upload Dialog -->
     <el-dialog v-model="uploadVisible" title="上传图片" width="640">
@@ -367,23 +371,33 @@
       </template>
     </el-dialog>
      <!-- Background Image Description -->
-    <div class="background-description" v-show="showBackgroundDescription && backgroundImage[imageIndex].description">
-      <div class="desc-text">{{ backgroundImage[imageIndex].description }}</div>
+    <div class="background-description" v-show="showBackgroundDescription && top5Businesses[imageIndex]">
+      <div class="desc-text">{{ top5Businesses[imageIndex]?.name }}</div>
+      <div class="desc-subtext">{{ top5Businesses[imageIndex]?.categories }}</div>
       <div class="desc-actions">
-        <el-button class="detail-btn" type="primary" @click="goToDetails">
+        <el-button class="detail-btn" type="primary" @click="goToBusinessDetails">
           <el-icon><Search /></el-icon>
           查看详情
         </el-button>
       </div>
     </div>
    
->>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// 添加 showBackgroundDescription 属性定义
+const props = defineProps({
+  showBackgroundDescription: {
+    type: Boolean,
+    default: true
+  }
+});
+
 import { computed, onMounted, onUnmounted, ref, toRefs } from "vue";
+// ElMessage 是 Element Plus 提供的全局消息方法，声明用于 TypeScript 校验
+declare const ElMessage: any;
 import { useAuth } from "@/hooks/UseAuth";
 import { useAuthStore } from "@/stores/UseAuthStore";
 import UseRegister from "@/hooks/UseRegister";
@@ -395,6 +409,17 @@ import { useSearch } from "@/hooks/UseSearch";
 import { router } from "@/router";
 import { UseSearchStore } from "@/stores/UseSearchStore";
 import { useAddFriends } from "@/hooks/UseAddFriends";
+
+// build full image URL safely; accepts remote URLs or stored filenames
+const filePath = (file: any) => {
+  if (file == null) {
+    console.log('null');
+    return ''
+  }
+  // 如果图片链接已经是完整的URL，直接使用；否则拼接静态服务器地址
+  const fullPath = file.includes('http') ? file : `http://localhost:3000/images/${file}.jpg`;
+  return fullPath;
+}
 
 function formatDateTime(dateTime) {
   const date = new Date(dateTime);
@@ -409,7 +434,7 @@ function formatDateTime(dateTime) {
 
 let searchStore = UseSearchStore();
 
-let { info, search, result, getResult } = toRefs(useSearch());
+let { info, search, result, getResult ,getTop5BusinessWith5Stars} = toRefs(useSearch());
 
 let {
   notifications,
@@ -431,16 +456,13 @@ function reload() {
   getResult.value(1, info.value);
 }
 
-function goToDetails() {
-  // Use the current background description as the search query and navigate to Search
-  const desc = backgroundImage.value[imageIndex.value]?.description || '';
-  console.log("Searching for:", desc);
-  router.push({ name: 'Search', query: { info: desc } });
-  // trigger the search result load
-  try {
-    getResult.value(1, desc);
-  } catch (e) {
-    // safe no-op if getResult is not available
+function goToBusinessDetails() {
+  const business = top5Businesses.value[imageIndex.value];
+  if (business && business.businessId) {
+    router.push({
+      path: '/merchantDetail',
+      query: { id: business.businessId }
+    });
   }
 }
 
@@ -469,22 +491,31 @@ let token = computed(() => authStore.token);
 let userType = computed(() => authStore.userType);
 
 let circleUrl = "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/OIP-C.jpg";
+
+
+// 初始化top5商家数据
+const top5Businesses = ref([]);
+
 let backgroundImage = ref([
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/4.jpg",
     key: 1,
+    description: "探索城市中的美味佳肴"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/3.jpg",
     key: 2,
+    description: "感受都市夜晚的璀璨灯火"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/1.jpg",
     key: 3,
+    description: "拥抱大自然的宁静美景"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/2.jpg",
     key: 4,
+    description: "体验现代城市的繁华生活"
   },
 ]);
 let imageIndex = ref(0);
@@ -497,9 +528,21 @@ let view = ref({
   "background-position": "30% 25%",
 });
 
-function changeImage() {
-  imageIndex.value = (imageIndex.value + 1) % 4;
-  imageUrl.value = backgroundImage.value[imageIndex.value].url;
+async function changeImage() {
+  // prefer cycling through top5Businesses if available, otherwise fallback images
+  const total = (top5Businesses.value && top5Businesses.value.length > 0) ? top5Businesses.value.length : backgroundImage.value.length;
+  imageIndex.value = (imageIndex.value + 1) % total;
+
+  // choose URL: business image if present, else fallback array url
+  let chosenUrl = '';
+  if (top5Businesses.value && top5Businesses.value.length > 0) {
+    const b = top5Businesses.value[imageIndex.value];
+    chosenUrl = filePath(b?.image || b?.url || '');
+  } else {
+    chosenUrl = backgroundImage.value[imageIndex.value].url;
+  }
+
+  imageUrl.value = chosenUrl;
   view.value = {
     "background-image": `url(${imageUrl.value})`,
     height: 800 + "px",
@@ -507,7 +550,6 @@ function changeImage() {
     "background-size": "cover",
     "background-position": "30% 25%",
   };
-  // console.log('更换背景图片... '+'当前图片URL: '+imageUrl.value+' 样式对象url: '+view.value["background-image"]);
 }
 
 let intervalId;
@@ -542,6 +584,18 @@ onMounted(async () => {
     await getNotifications.value();
     await getApplyInfo.value();
   }
+  
+  // 初始加载top5商家数据并将背景指向第一条（如果存在）
+  const businesses = await getTop5BusinessWith5Stars.value();
+  if (businesses && businesses.length > 0) {
+    top5Businesses.value = businesses;
+    const first = top5Businesses.value[0];
+    const url = filePath(first?.image || first?.url || '');
+    if (url) {
+      imageUrl.value = url;
+      view.value["background-image"] = `url(${imageUrl.value})`;
+    }
+  }
 });
 
 onUnmounted(() => {
@@ -562,7 +616,7 @@ const hotSearchRank = ref([]);
 const getHotSearchTop10 = () => {
   axios.get("/ppi/hot_search/top10").then((resp) => {
     hotSearchRank.value = resp.data;
-    console.log(resp);
+    console.log("top10:"+resp);
   });
 };
 
@@ -572,6 +626,50 @@ function searchTop10ToSearch(searchContent) {
     query: { info: searchContent },
   });
   getResult.value(1, searchContent);
+}
+
+// Upload dialog state and handlers
+import { ref as vueRef } from 'vue';
+
+const uploadVisible = vueRef(false);
+const uploadFile = vueRef<File | null>(null);
+const previewUrl = vueRef('');
+
+function openUpload() {
+  uploadVisible.value = true;
+}
+
+function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files && input.files[0];
+  if (file) {
+    uploadFile.value = file;
+    previewUrl.value = URL.createObjectURL(file);
+  } else {
+    uploadFile.value = null;
+    previewUrl.value = '';
+  }
+}
+
+async function submitUpload() {
+  if (!uploadFile.value) {
+    ElMessage({ message: '请选择图片后再上传', type: 'warning' });
+    return;
+  }
+  const formData = new FormData();
+  formData.append('file', uploadFile.value);
+  try {
+    const resp = await axios.post('http://localhost:3000/photos', formData);
+    
+    ElMessage({ message: '上传成功', type: 'success' });
+    uploadVisible.value = false;
+    // 清理
+    uploadFile.value = null;
+    previewUrl.value = '';
+  } catch (err) {
+    console.error(err);
+    ElMessage({ message: '上传失败', type: 'error' });
+  }
 }
 </script>
 
@@ -795,8 +893,6 @@ function searchTop10ToSearch(searchContent) {
 .item {
   color: #e00707;
 }
-<<<<<<< HEAD
-=======
 
 .camera {
   height: 48px;
@@ -854,5 +950,4 @@ function searchTop10ToSearch(searchContent) {
 .background-description .detail-btn :deep(.el-icon) {
   margin-right: 8px;
 }
->>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
 </style>

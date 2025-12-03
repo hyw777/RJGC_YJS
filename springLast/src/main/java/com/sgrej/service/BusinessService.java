@@ -19,6 +19,12 @@ public interface BusinessService {
     PageResult pageQuery(BusinessPageQueryDTO businessPageQueryDTO);
 
     /**
+     * 获取前5个星级为5的商家
+     * @return
+     */
+    List<BusinessVO1> getTop5BusinessWith5Stars();
+
+    /**
      * 商铺详情
      * @param bId
      * @return

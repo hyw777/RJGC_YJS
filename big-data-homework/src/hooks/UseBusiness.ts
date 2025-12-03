@@ -38,6 +38,7 @@ export function useBusiness() {
             result.value.reviewVOList.forEach((result) => {
                 result.date = formatDateTime(result.date);
             });
+            console.log( "result:"+result.value)
             let imageList = result.value.imageList
             for(let i = 0; i < imageList.length; i++) {
                 // 检查 records 和 image 是否存在
@@ -56,6 +57,8 @@ export function useBusiness() {
             console.error(e)
         }
     }
+    
+   
 
-    return {result,getResult}
+    return {result, getResult}
 }
