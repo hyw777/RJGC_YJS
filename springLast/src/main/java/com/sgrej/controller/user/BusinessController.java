@@ -28,6 +28,25 @@ public class BusinessController {
 
     @Autowired
     private AccessService accessService;
+    
+    /**
+     * 根据商家名称进行模糊搜索
+     * @param name 商家名称关键词
+     * @return 匹配的商家列表
+     */
+    @GetMapping("/searchByName")
+    public ResponseResult searchByName(@RequestParam(required = false) String name) {
+        log.info("根据名称搜索商铺信息:{}", name);
+        // 创建查询条件对象，默认第一页，每页10条记录
+        BusinessPageQueryDTO queryDTO = new BusinessPageQueryDTO();
+        queryDTO.setPage(1);
+        queryDTO.setPageSize(10);
+        queryDTO.setBusinessName(name);
+        
+        // 执行分页查询
+        PageResult pageResult = businessService.pageQuery(queryDTO);
+        return ResponseResult.success(pageResult);
+    }
 
     /**
      * 搜索商铺，考虑到模糊查询可能会出现很多记录，使用分页查询
@@ -53,6 +72,16 @@ public class BusinessController {
         //首页能看到的商铺信息,
         PageResult pageResult=businessService.pageQuery(businessPageQueryDTO);
         return ResponseResult.success(pageResult);
+    }
+    /**
+     * 获取前5个星级为5的商家
+     * @return
+     */
+    @GetMapping("/top5")
+    public ResponseResult getTop5BusinessWith5Stars(){
+        log.info("获取前5个星级为5的商家");
+        List<BusinessVO1> businessList = businessService.getTop5BusinessWith5Stars();
+        return ResponseResult.success(businessList);
     }
 
     /**

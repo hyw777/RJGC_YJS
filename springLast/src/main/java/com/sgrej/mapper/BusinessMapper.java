@@ -13,6 +13,16 @@ import java.util.List;
 @Mapper
 public interface BusinessMapper {
 
+    /**
+     * 获取前5个星级为5的商家
+     * @return
+     */
+    @Select("SELECT business_id, name, address, city, state, postal_code, latitude, longitude, stars, review_count, is_open, categories, attributes, hours, created_at, updated_at, bid " +
+            "FROM business " +
+            "WHERE stars = 5 AND is_open = 1 " +
+            "ORDER BY review_count DESC " +
+            "LIMIT 5")
+    List<BusinessVO> getTop5BusinessWith5Stars();
 
     /**
      * 根据id查询商户名

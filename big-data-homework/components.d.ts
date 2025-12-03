@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BusinessManage: typeof import('./src/components/admin/BusinessManage.vue')['default']
-    Category: typeof import('./src/components/index/Category.vue')['default']
     CenterBody: typeof import('./src/components/center/CenterBody.vue')['default']
     CenterFoot: typeof import('./src/components/center/CenterFoot.vue')['default']
     CenterHead: typeof import('./src/components/center/CenterHead.vue')['default']
@@ -39,8 +38,11 @@ declare module 'vue' {
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElRate: typeof import('element-plus/es')['ElRate']
     ElRow: typeof import('element-plus/es')['ElRow']
+<<<<<<< HEAD
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSpinner: typeof import('element-plus/es')['ElSpinner']
+=======
+>>>>>>> 4855f1fc9d2b3b1de9830fb768d8b508774b05ac
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
@@ -53,7 +55,6 @@ declare module 'vue' {
     Friend: typeof import('./src/components/new-index/Friend.vue')['default']
     FriendInfoMid: typeof import('./src/components/friendInfo/FriendInfoMid.vue')['default']
     Friends: typeof import('./src/components/profile/Friends.vue')['default']
-    HighScore: typeof import('./src/components/index/HighScore.vue')['default']
     Information: typeof import('./src/components/boss/Information.vue')['default']
     Input: typeof import('./src/components/common/Input.vue')['default']
     LoginHead: typeof import('./src/components/login/LoginHead.vue')['default']
@@ -67,14 +68,12 @@ declare module 'vue' {
     NewIndexView: typeof import('./src/components/new-index/NewIndexView.vue')['default']
     News: typeof import('./src/components/new-index/News.vue')['default']
     Overview: typeof import('./src/components/profile/Overview.vue')['default']
-    Popular: typeof import('./src/components/index/Popular.vue')['default']
     ProfileCenter: typeof import('./src/components/admin/ProfileCenter.vue')['default']
     ProfileMid: typeof import('./src/components/profile/ProfileMid.vue')['default']
     ReviewManage: typeof import('./src/components/admin/ReviewManage.vue')['default']
     Reviews: typeof import('./src/components/profile/Reviews.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TopNav: typeof import('./src/components/index/TopNav.vue')['default']
     UploadImg: typeof import('./src/components/boss/UploadImg.vue')['default']
     UserManage: typeof import('./src/components/admin/UserManage.vue')['default']
     UserManage2: typeof import('./src/components/admin/UserManage2.vue')['default']
