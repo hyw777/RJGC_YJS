@@ -348,6 +348,36 @@
         </div>
       </div>
       <div class="nav-2"></div>
+<<<<<<< HEAD
+=======
+    
+    <!-- Upload Dialog -->
+    <el-dialog v-model="uploadVisible" title="上传图片" width="640">
+      <div class="upload-body">
+        <input type="file" accept="image/*" @change="onFileChange" />
+        <div class="preview" v-if="previewUrl">
+          <img :src="previewUrl" alt="preview" />
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="uploadVisible = false">取消</el-button>
+          <el-button type="primary" color="#E00707" @click="submitUpload">上传</el-button>
+        </div>
+      </template>
+    </el-dialog>
+     <!-- Background Image Description -->
+    <div class="background-description" v-show="showBackgroundDescription && backgroundImage[imageIndex].description">
+      <div class="desc-text">{{ backgroundImage[imageIndex].description }}</div>
+      <div class="desc-actions">
+        <el-button class="detail-btn" type="primary" @click="goToDetails">
+          <el-icon><Search /></el-icon>
+          查看详情
+        </el-button>
+      </div>
+    </div>
+   
+>>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
     </div>
   </div>
 </template>
@@ -399,6 +429,19 @@ function reload() {
     query: { info: info.value },
   });
   getResult.value(1, info.value);
+}
+
+function goToDetails() {
+  // Use the current background description as the search query and navigate to Search
+  const desc = backgroundImage.value[imageIndex.value]?.description || '';
+  console.log("Searching for:", desc);
+  router.push({ name: 'Search', query: { info: desc } });
+  // trigger the search result load
+  try {
+    getResult.value(1, desc);
+  } catch (e) {
+    // safe no-op if getResult is not available
+  }
 }
 
 let { merchantVisible, merchantForm, submitMerchan } = toRefs(useMerchant());
@@ -752,4 +795,64 @@ function searchTop10ToSearch(searchContent) {
 .item {
   color: #e00707;
 }
+<<<<<<< HEAD
+=======
+
+.camera {
+  height: 48px;
+  width: 7%;
+  background-color: #6e7072;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.upload-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upload-body .preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+}
+
+.background-description {
+  position: absolute;
+  top: 50%;
+  left: 200px;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+}
+
+.background-description .desc-text {
+  max-width: 680px;
+  word-wrap: break-word;
+}
+
+.background-description .desc-actions {
+  margin-top: 12px;
+}
+
+.background-description .detail-btn {
+  background-color: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+.background-description .detail-btn :deep(.el-icon) {
+  margin-right: 8px;
+}
+>>>>>>> a6ff71d2a948e8de85a90be4694594cdc8dd40b3
 </style>
