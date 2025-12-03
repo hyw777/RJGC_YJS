@@ -218,14 +218,13 @@
                 v-for="(item, index) in hotSearchRank"
                 :key="index"
                 class="text item"
-                @click="searchTop10ToSearch(item)
-                "
+                @click="searchTop10ToSearch(item)"
               >
                 {{ index + 1 + " " + item.searchContent }}
               </p>
             </el-card>
           </div>
-         <div @click="openUpload" class="camera">
+          <div @click="openUpload" class="camera">
             <el-icon size="30px" color="white">
               <Camera />
             </el-icon>
@@ -235,7 +234,6 @@
               <Search />
             </el-icon>
           </div>
-          
         </div>
         <div class="item">
           <router-link
@@ -313,11 +311,7 @@
                 @click.stop="select"
               >
                 <!-- 替换 el-avatar 为文字头像 -->
-                <div
-                  class="avatar-text"
-                  v-if="authStore.userName"
-                >
-                
+                <div class="avatar-text" v-if="authStore.userName">
                   {{ getInitials(authStore.userName) }}
                 </div>
                 <div class="avatar-text" v-else>?</div>
@@ -362,34 +356,44 @@
         </div>
       </div>
       <div class="nav-2"></div>
-    
-    <!-- Upload Dialog -->
-    <el-dialog v-model="uploadVisible" title="上传图片" width="640">
-      <div class="upload-body">
-        <input type="file" accept="image/*" @change="onFileChange" />
-        <div class="preview" v-if="previewUrl">
-          <img :src="previewUrl" alt="preview" />
+
+      <!-- Upload Dialog -->
+      <el-dialog v-model="uploadVisible" title="上传图片" width="640">
+        <div class="upload-body">
+          <input type="file" accept="image/*" @change="onFileChange" />
+          <div class="preview" v-if="previewUrl">
+            <img :src="previewUrl" alt="preview" />
+          </div>
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="uploadVisible = false">取消</el-button>
+            <el-button type="primary" color="#E00707" @click="submitUpload"
+              >上传</el-button
+            >
+          </div>
+        </template>
+      </el-dialog>
+      <!-- Background Image Description -->
+      <div
+        class="background-description"
+        v-show="showBackgroundDescription && top5Businesses[imageIndex]"
+      >
+        <div class="desc-text">{{ top5Businesses[imageIndex]?.name }}</div>
+        <div class="desc-subtext">
+          {{ top5Businesses[imageIndex]?.categories }}
+        </div>
+        <div class="desc-actions">
+          <el-button
+            class="detail-btn"
+            type="primary"
+            @click="goToBusinessDetails"
+          >
+            <el-icon><Search /></el-icon>
+            查看详情
+          </el-button>
         </div>
       </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="uploadVisible = false">取消</el-button>
-          <el-button type="primary" color="#E00707" @click="submitUpload">上传</el-button>
-        </div>
-      </template>
-    </el-dialog>
-     <!-- Background Image Description -->
-    <div class="background-description" v-show="showBackgroundDescription && top5Businesses[imageIndex]">
-      <div class="desc-text">{{ top5Businesses[imageIndex]?.name }}</div>
-      <div class="desc-subtext">{{ top5Businesses[imageIndex]?.categories }}</div>
-      <div class="desc-actions">
-        <el-button class="detail-btn" type="primary" @click="goToBusinessDetails">
-          <el-icon><Search /></el-icon>
-          查看详情
-        </el-button>
-      </div>
-    </div>
-   
     </div>
   </div>
 </template>
@@ -399,8 +403,8 @@
 const props = defineProps({
   showBackgroundDescription: {
     type: Boolean,
-    default: true
-  }
+    default: true,
+  },
 });
 
 import { computed, onMounted, onUnmounted, ref, toRefs } from "vue";
@@ -421,13 +425,15 @@ import { useAddFriends } from "@/hooks/UseAddFriends";
 // build full image URL safely; accepts remote URLs or stored filenames
 const filePath = (file: any) => {
   if (file == null) {
-    console.log('null');
-    return ''
+    console.log("null");
+    return "";
   }
   // 如果图片链接已经是完整的URL，直接使用；否则拼接静态服务器地址
-  const fullPath = file.includes('http') ? file : `http://localhost:3000/images/${file}.jpg`;
+  const fullPath = file.includes("http")
+    ? file
+    : `http://localhost:3000/images/${file}.jpg`;
   return fullPath;
-}
+};
 
 function formatDateTime(dateTime) {
   const date = new Date(dateTime);
@@ -442,7 +448,9 @@ function formatDateTime(dateTime) {
 
 let searchStore = UseSearchStore();
 
-let { info, search, result, getResult ,getTop5BusinessWith5Stars} = toRefs(useSearch());
+let { info, search, result, getResult, getTop5BusinessWith5Stars } = toRefs(
+  useSearch()
+);
 
 let {
   notifications,
@@ -464,26 +472,13 @@ function reload() {
   getResult.value(1, info.value);
 }
 
-<<<<<<< HEAD
-function goToDetails() {
-  // Use the current background description as the search query and navigate to Search
-  const desc = backgroundImage.value[imageIndex.value]?.description || "";
-  console.log("Searching for:", desc);
-  router.push({ name: "Search", query: { info: desc } });
-  // trigger the search result load
-  try {
-    getResult.value(1, desc);
-  } catch (e) {
-    // safe no-op if getResult is not available
-=======
 function goToBusinessDetails() {
   const business = top5Businesses.value[imageIndex.value];
   if (business && business.businessId) {
     router.push({
-      path: '/merchantDetail',
-      query: { id: business.businessId }
+      path: "/merchantDetail",
+      query: { id: business.businessId },
     });
->>>>>>> 4855f1fc9d2b3b1de9830fb768d8b508774b05ac
   }
 }
 
@@ -513,7 +508,6 @@ let userType = computed(() => authStore.userType);
 
 let circleUrl = "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/OIP-C.jpg";
 
-
 // 初始化top5商家数据
 const top5Businesses = ref([]);
 
@@ -521,22 +515,22 @@ let backgroundImage = ref([
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/4.jpg",
     key: 1,
-    description: "探索城市中的美味佳肴"
+    description: "探索城市中的美味佳肴",
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/3.jpg",
     key: 2,
-    description: "感受都市夜晚的璀璨灯火"
+    description: "感受都市夜晚的璀璨灯火",
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/1.jpg",
     key: 3,
-    description: "拥抱大自然的宁静美景"
+    description: "拥抱大自然的宁静美景",
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/2.jpg",
     key: 4,
-    description: "体验现代城市的繁华生活"
+    description: "体验现代城市的繁华生活",
   },
 ]);
 let imageIndex = ref(0);
@@ -551,14 +545,17 @@ let view = ref({
 
 async function changeImage() {
   // prefer cycling through top5Businesses if available, otherwise fallback images
-  const total = (top5Businesses.value && top5Businesses.value.length > 0) ? top5Businesses.value.length : backgroundImage.value.length;
+  const total =
+    top5Businesses.value && top5Businesses.value.length > 0
+      ? top5Businesses.value.length
+      : backgroundImage.value.length;
   imageIndex.value = (imageIndex.value + 1) % total;
 
   // choose URL: business image if present, else fallback array url
-  let chosenUrl = '';
+  let chosenUrl = "";
   if (top5Businesses.value && top5Businesses.value.length > 0) {
     const b = top5Businesses.value[imageIndex.value];
-    chosenUrl = filePath(b?.image || b?.url || '');
+    chosenUrl = filePath(b?.image || b?.url || "");
   } else {
     chosenUrl = backgroundImage.value[imageIndex.value].url;
   }
@@ -605,13 +602,13 @@ onMounted(async () => {
     await getNotifications.value();
     await getApplyInfo.value();
   }
-  
+
   // 初始加载top5商家数据并将背景指向第一条（如果存在）
   const businesses = await getTop5BusinessWith5Stars.value();
   if (businesses && businesses.length > 0) {
     top5Businesses.value = businesses;
     const first = top5Businesses.value[0];
-    const url = filePath(first?.image || first?.url || '');
+    const url = filePath(first?.image || first?.url || "");
     if (url) {
       imageUrl.value = url;
       view.value["background-image"] = `url(${imageUrl.value})`;
@@ -637,7 +634,7 @@ const hotSearchRank = ref([]);
 const getHotSearchTop10 = () => {
   axios.get("/ppi/hot_search/top10").then((resp) => {
     hotSearchRank.value = resp.data;
-    console.log("top10:"+resp);
+    console.log("top10:" + resp);
   });
 };
 
@@ -650,50 +647,51 @@ function searchTop10ToSearch(searchContent) {
 }
 
 // Upload dialog state and handlers
-import { ref as vueRef } from 'vue';
+import { ref as vueRef } from "vue";
 
 const uploadVisible = vueRef(false);
 const uploadFile = vueRef<File | null>(null);
-const previewUrl = vueRef('');
+const previewUrl = vueRef("");
 
 function getInitials(name: string) {
   if (!name) return "?";
   const firstChar = name.trim().charAt(0).toUpperCase();
   return firstChar || "?";
-function openUpload() {
-  uploadVisible.value = true;
-}
-
-function onFileChange(e: Event) {
-  const input = e.target as HTMLInputElement;
-  const file = input.files && input.files[0];
-  if (file) {
-    uploadFile.value = file;
-    previewUrl.value = URL.createObjectURL(file);
-  } else {
-    uploadFile.value = null;
-    previewUrl.value = '';
+  function openUpload() {
+    uploadVisible.value = true;
   }
-}
 
-async function submitUpload() {
-  if (!uploadFile.value) {
-    ElMessage({ message: '请选择图片后再上传', type: 'warning' });
-    return;
+  function onFileChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    if (file) {
+      uploadFile.value = file;
+      previewUrl.value = URL.createObjectURL(file);
+    } else {
+      uploadFile.value = null;
+      previewUrl.value = "";
+    }
   }
-  const formData = new FormData();
-  formData.append('file', uploadFile.value);
-  try {
-    const resp = await axios.post('http://localhost:3000/photos', formData);
-    
-    ElMessage({ message: '上传成功', type: 'success' });
-    uploadVisible.value = false;
-    // 清理
-    uploadFile.value = null;
-    previewUrl.value = '';
-  } catch (err) {
-    console.error(err);
-    ElMessage({ message: '上传失败', type: 'error' });
+
+  async function submitUpload() {
+    if (!uploadFile.value) {
+      ElMessage({ message: "请选择图片后再上传", type: "warning" });
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", uploadFile.value);
+    try {
+      const resp = await axios.post("http://localhost:3000/photos", formData);
+
+      ElMessage({ message: "上传成功", type: "success" });
+      uploadVisible.value = false;
+      // 清理
+      uploadFile.value = null;
+      previewUrl.value = "";
+    } catch (err) {
+      console.error(err);
+      ElMessage({ message: "上传失败", type: "error" });
+    }
   }
 }
 </script>

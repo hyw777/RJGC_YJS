@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <NewIndexView style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
+    <NewIndexView :show-background-description="false" style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
     <FriendInfoMid :userId="userId"></FriendInfoMid>
   </div>
 </template>
