@@ -36,6 +36,9 @@ public class BusinessServiceImpl implements BusinessService {
     private ReviewMapper reviewMapper;
 
     @Autowired
+    private TipMapper tipMapper;
+
+    @Autowired
     private PhotoMapper photoMapper;
 
     @Autowired
@@ -129,9 +132,21 @@ public class BusinessServiceImpl implements BusinessService {
             reviewVOS.add(reviewVO);
         }
 
+        // 添加小贴士
+        List<Tips> tipList=tipMapper.searchByBid(bid);
+        List<TipsVO> tipsVOList=new ArrayList<>();
+        for(Tips tip:tipList){
+            String userName=userMapper.getUserName(tip.getUserId());
+            TipsVO tipsVO=new TipsVO();
+            BeanUtils.copyProperties(tip,tipsVO);
+            tipsVO.setUserName(userName);
+            tipsVOList.add(tipsVO);
+        }
+
         //将全部信息进行封装并且返回结果
         BusinessVO2 businessVO2=new BusinessVO2();
         businessVO2.setReviewVOList(reviewVOS);
+        businessVO2.setTipList(tipsVOList);
         BeanUtils.copyProperties(business,businessVO2);
         businessVO2.setImageList(images);
 
@@ -180,7 +195,6 @@ public class BusinessServiceImpl implements BusinessService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LoginUser loginUser=(LoginUser) authentication.getPrincipal();
         String city = loginUser.getUser().getCity();
-
         //从数据库中查找附近商家信息
         List<BusinessVO> businessVOs=businessMapper.getNearBy(city);
 
@@ -194,6 +208,9 @@ public class BusinessServiceImpl implements BusinessService {
             // 得到商家对应的第一张图片
             String imageUrl = photoMapper.selectImage(bid);
 
+            if("".equals(imageUrl) || imageUrl==null){
+                continue;
+            }
             //TODO
             // 对得到的图片路径还需要进行拼接
 

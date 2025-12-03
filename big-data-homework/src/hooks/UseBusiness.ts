@@ -47,7 +47,7 @@ export function useBusiness() {
                         // 如果已经包含 http，则无需更改
                     } else {
                         // 否则，拼接 URL
-                        result.value.imageList[i] = `/api/images/${file}`;
+                        result.value.imageList[i] = `${file}`;
                     }
                 }
             }

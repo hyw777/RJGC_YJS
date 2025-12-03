@@ -218,24 +218,18 @@
                 v-for="(item, index) in hotSearchRank"
                 :key="index"
                 class="text item"
-                @click="searchTop10ToSearch(item)
-                "
+                @click="searchTop10ToSearch(item)"
               >
                 {{ index + 1 + " " + item.searchContent }}
               </p>
             </el-card>
           </div>
-         <div @click="openUpload" class="camera">
-            <el-icon size="30px" color="white">
-              <Camera />
-            </el-icon>
-          </div>
+
           <div @click="reload()" class="search">
             <el-icon size="30px" color="white">
               <Search />
             </el-icon>
           </div>
-          
         </div>
         <div class="item">
           <router-link
@@ -354,43 +348,12 @@
         </div>
       </div>
       <div class="nav-2"></div>
-    
-    <!-- Upload Dialog -->
-    <el-dialog v-model="uploadVisible" title="上传图片" width="640">
-      <div class="upload-body">
-        <input type="file" accept="image/*" @change="onFileChange" />
-        <div class="preview" v-if="previewUrl">
-          <img :src="previewUrl" alt="preview" />
-        </div>
-      </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="uploadVisible = false">取消</el-button>
-          <el-button type="primary" color="#E00707" @click="submitUpload">上传</el-button>
-        </div>
-      </template>
-    </el-dialog>
-     <!-- Background Image Description -->
-    <div class="background-description" v-show="showBackgroundDescription && backgroundImage[imageIndex].description">
-      {{ backgroundImage[imageIndex].description }}
-    </div>
-   
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// 添加 showBackgroundDescription 属性定义
-const props = defineProps({
-  showBackgroundDescription: {
-    type: Boolean,
-    default: true
-  }
-});
-
 import { computed, onMounted, onUnmounted, ref, toRefs } from "vue";
-// ElMessage 是 Element Plus 提供的全局消息方法，声明用于 TypeScript 校验
-declare const ElMessage: any;
 import { useAuth } from "@/hooks/UseAuth";
 import { useAuthStore } from "@/stores/UseAuthStore";
 import UseRegister from "@/hooks/UseRegister";
@@ -467,22 +430,18 @@ let backgroundImage = ref([
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/4.jpg",
     key: 1,
-    description: "探索城市中的美味佳肴"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/3.jpg",
     key: 2,
-    description: "感受都市夜晚的璀璨灯火"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/1.jpg",
     key: 3,
-    description: "拥抱大自然的宁静美景"
   },
   {
     url: "https://hmleadnews-lgk.oss-cn-beijing.aliyuncs.com/2.jpg",
     key: 4,
-    description: "体验现代城市的繁华生活"
   },
 ]);
 let imageIndex = ref(0);
@@ -570,52 +529,6 @@ function searchTop10ToSearch(searchContent) {
     query: { info: searchContent },
   });
   getResult.value(1, searchContent);
-}
-
-// Upload dialog state and handlers
-import { ref as vueRef } from 'vue';
-
-const uploadVisible = vueRef(false);
-const uploadFile = vueRef<File | null>(null);
-const previewUrl = vueRef('');
-
-function openUpload() {
-  uploadVisible.value = true;
-}
-
-function onFileChange(e: Event) {
-  const input = e.target as HTMLInputElement;
-  const file = input.files && input.files[0];
-  if (file) {
-    uploadFile.value = file;
-    previewUrl.value = URL.createObjectURL(file);
-  } else {
-    uploadFile.value = null;
-    previewUrl.value = '';
-  }
-}
-
-async function submitUpload() {
-  if (!uploadFile.value) {
-    ElMessage({ message: '请选择图片后再上传', type: 'warning' });
-    return;
-  }
-  const formData = new FormData();
-  formData.append('file', uploadFile.value);
-  formData.append('bId', "yyy");
-  try {
-    // 默认 POST 到 /api/images/upload，按需修改
-    // Let axios set the Content-Type (including boundary) automatically
-    const resp = await axios.post('/api/images/uploadImage', formData);
-    ElMessage({ message: '上传成功', type: 'success' });
-    uploadVisible.value = false;
-    // 清理
-    uploadFile.value = null;
-    previewUrl.value = '';
-  } catch (err) {
-    console.error(err);
-    ElMessage({ message: '上传失败', type: 'error' });
-  }
 }
 </script>
 
@@ -838,43 +751,5 @@ async function submitUpload() {
 
 .item {
   color: #e00707;
-}
-
-.camera {
-  height: 48px;
-  width: 7%;
-  background-color: #6e7072;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  margin-left: 8px;
-}
-
-.upload-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.upload-body .preview img {
-  max-width: 100%;
-  max-height: 300px;
-  border-radius: 6px;
-}
-
-.background-description {
-  position: absolute;
-  top: 50%;
-  left: 200px;
-  transform: translateY(-50%);
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 10px 20px;
-  border-radius: 10px;
-  backdrop-filter: blur(5px);
 }
 </style>

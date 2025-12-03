@@ -39,6 +39,7 @@ declare module 'vue' {
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
+    ElTag: typeof import('element-plus/es')['ElTag']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     FCollections: typeof import('./src/components/friendInfo/FCollections.vue')['default']
     FFriends: typeof import('./src/components/friendInfo/FFriends.vue')['default']

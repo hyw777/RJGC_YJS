@@ -13,8 +13,8 @@ public interface TipMapper {
     @Select("select * from niche_tips where user_id = #{userId}")
     List<Tips> searchByUid(int userId);
 
-    @Select("select * from niche_tips where business_id = #{businessId}")
-    List<Tips> searchByBid(int bId);
+    @Select("select tip_id,user_id,business_id,text,date,compliment_count from tips where business_id = #{businessId}")
+    List<Tips> searchByBid(String bId);
 
     /**
      * 添加tip

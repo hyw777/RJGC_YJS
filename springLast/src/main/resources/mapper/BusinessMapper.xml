@@ -57,10 +57,11 @@
                 and city like concat('%',#{city},'%')
             </if>
             <if test="1 == 1">
-                and is_open != -1
+                and is_open != 0
             </if>
         </where>
         order by stars desc,review_count desc
+        limit 20
     </select>
 
 

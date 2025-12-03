@@ -3,6 +3,8 @@ package com.sgrej.domain.vo;
 import lombok.*;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,7 +24,7 @@ public class TipsVO implements Serializable {
     /**
      * 发表时间
      */
-    private String datePosted;
+    private Timestamp date;
     /**
      * 收到的赞美次数
      */

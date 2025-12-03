@@ -2,6 +2,7 @@ package com.sgrej.domain.pojo;
 import lombok.*;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 @Data
 @AllArgsConstructor
@@ -17,11 +18,11 @@ public class Tips implements Serializable {
     /**
      * 用户id
      */
-    private int userId;
+    private String userId;
     /**
      * 商户id
      */
-    private int businessId;
+    private String businessId;
     /**
      * tip内容
      */
@@ -29,7 +30,7 @@ public class Tips implements Serializable {
     /**
      * 发表时间
      */
-    private String datePosted;
+    private Timestamp date;
     /**
      * 收到的赞美次数
      */

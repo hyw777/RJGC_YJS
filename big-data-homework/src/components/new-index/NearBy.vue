@@ -51,17 +51,20 @@ import { useActivity } from "@/hooks/UseActivity";
 import { useAuthStore } from "@/stores/UseAuthStore";
 import { UseButtonStore } from "@/stores/UseButtonStore";
 // 导入图标组件
-import { Check, Star, Heart, CircleClose } from '@element-plus/icons-vue';
+import { Check, Star, HeartFilled , CircleClose } from '@element-plus/icons-vue';
 
 let authStore = useAuthStore()
 let buttonStore = UseButtonStore()
 let { businesses, getNearByBusinesses } = toRefs(useActivity())
 
-const filePath  = (file: any) => {
+const filePath = (file: any) => {
   if (file == null) {
-    return ``
+    console.log('null');
+    return ''
   }
-  return file.includes('http') ? file : `/api/images/${file}`;
+  // 如果图片链接已经是完整的URL，直接使用；否则拼接静态服务器地址
+  const fullPath = file.includes('http') ? file : `http://localhost:3000/images/${file}.jpg`;
+  return fullPath;
 }
 
 onMounted(()=>{
