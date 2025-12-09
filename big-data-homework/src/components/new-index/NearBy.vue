@@ -19,12 +19,12 @@
           <span>{{business.categories}}</span>
         </div>
         <div class="actions">
-        <el-button type="text" class="action-btn" @click.prevent="markUseful(business)">
+        <!-- <el-button type="text" class="action-btn" @click.prevent="markUseful(business)">
           <el-icon><Check /></el-icon>
           有用 
           <span class="count">{{ business.__interactions?.useful ?? 0 }}</span>
-        </el-button>
-        <el-button type="text" class="action-btn" @click.prevent="markThanks(business)">
+        </el-button> -->
+        <!-- <el-button type="text" class="action-btn" @click.prevent="markThanks(business)">
           <el-icon><Star /></el-icon>
           感谢 
           <span class="count">{{ business.__interactions?.thanks ?? 0 }}</span>
@@ -38,7 +38,7 @@
           <el-icon><CircleClose /></el-icon>
           哦不 
           <span class="count">{{ business.__interactions?.ohno ?? 0 }}</span>
-        </el-button>
+        </el-button> -->
       </div>
       </div>
     </div>

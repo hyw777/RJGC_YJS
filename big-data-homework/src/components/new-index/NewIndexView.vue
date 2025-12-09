@@ -197,7 +197,11 @@
     </el-dialog>
     <div class="nav">
       <div class="nav-1">
-        <router-link to="/" class="logo"></router-link>
+        <router-link to="/" class="logo">
+          <el-icon size="40" color="#1890ff">
+            <ShoppingCart />
+          </el-icon>
+        </router-link>
         <div class="input-box">
           <div class="input">
             <el-input
@@ -241,7 +245,7 @@
             v-if="userType == 'admin'"
             style="margin-right: 50px"
           >
-            <el-icon color="#E00707" size="25" class="boss">
+            <el-icon color="blue" size="25" class="boss">
               <Avatar />
             </el-icon>
           </router-link>
@@ -250,7 +254,7 @@
             v-if="userType == 'boss'"
             style="margin-right: 50px"
           >
-            <el-icon color="#E00707" size="25" class="boss">
+            <el-icon color="blue" size="25" class="boss">
               <Shop />
             </el-icon>
           </router-link>
@@ -421,6 +425,9 @@ import { useSearch } from "@/hooks/UseSearch";
 import { router } from "@/router";
 import { UseSearchStore } from "@/stores/UseSearchStore";
 import { useAddFriends } from "@/hooks/UseAddFriends";
+
+// 导入购物车图标
+import { ShoppingCart } from '@element-plus/icons-vue'
 
 // build full image URL safely; accepts remote URLs or stored filenames
 const filePath = (file: any) => {
@@ -657,8 +664,20 @@ function getInitials(name: string) {
   if (!name) return "?";
   const firstChar = name.trim().charAt(0).toUpperCase();
   return firstChar || "?";
-  function openUpload() {
-    uploadVisible.value = true;
+}
+
+function openUpload() {
+  uploadVisible.value = true;
+}
+function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files && input.files[0];
+  if (file) {
+    uploadFile.value = file;
+    previewUrl.value = URL.createObjectURL(file);
+  } else {
+    uploadFile.value = null;
+    previewUrl.value = '';
   }
 
   function onFileChange(e: Event) {
@@ -698,6 +717,24 @@ function getInitials(name: string) {
 
 <style scoped>
 /* 添加新的头像样式 */
+.notifications {
+  padding: 8px;
+  cursor: pointer;
+  position: relative;
+  background-color: #e6f7ff; /* 添加浅蓝色背景 */
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.notifications:hover {
+  background-color: #bae7ff; /* 悬停时加深背景色 */
+}
+
 .avatar-text {
   width: 44px;
   height: 44px;
@@ -708,10 +745,16 @@ function getInitials(name: string) {
   color: white;
   font-size: 18px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1890ff, #40a9ff); /* 蓝色渐变背景 */
   cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.4); /* 添加蓝色阴影 */
+  transition: all 0.3s ease;
+}
+
+.avatar-text:hover {
+  transform: scale(1.05); /* 悬停时轻微放大 */
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.6); /* 加深阴影 */
 }
 
 .mail-line {
@@ -767,6 +810,10 @@ function getInitials(name: string) {
 
 .nav {
   padding: 36px 40px 0px 40px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(240, 248, 255, 0.4));
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 20px;
 }
 
 .nav-1 {
@@ -774,26 +821,15 @@ function getInitials(name: string) {
   height: 48px;
   justify-content: space-between;
   align-items: end;
-}
-
-.nav-2 {
-  display: flex;
-  height: 58px;
-}
-
-.logo {
-  height: 40px;
-  width: 4.5%;
-  background-image: url("https://s3-media0.fl.yelpcdn.com/assets/public/logo_desktop.yji-0a2bf1d9c330d8747446.svg");
-  background-size: contain;
-  background-repeat: no-repeat;
-  cursor: pointer;
+  padding: 16px 0;
 }
 
 .input-box {
   height: 48px;
   width: 51%;
   display: flex;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2); /* 添加输入框阴影 */
+  border-radius: 4px;
 }
 
 .input {
@@ -804,15 +840,12 @@ function getInitials(name: string) {
 .search {
   height: 48px;
   width: 7%;
-  background-color: #e00707;
+  background-color: #1890ff; /* 蓝色系 */
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-}
-
-:deep(.el-input) {
-  height: 100%;
+  border-radius: 0 4px 4px 0; /* 添加圆角 */
 }
 
 .item {
@@ -826,70 +859,13 @@ function getInitials(name: string) {
 }
 
 .item-style:hover {
-  background-color: rgba(209, 209, 209, 0.2);
+  background-color: rgba(24, 144, 255, 0.2); /* 蓝色系透明背景 */
   border-radius: 7px;
 }
 
 .item-style2:hover {
-  background-color: rgba(209, 209, 209, 0.2);
+  background-color: rgba(24, 144, 255, 0.2); /* 蓝色系透明背景 */
   border-radius: 35px;
-}
-
-.projects {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.notifications {
-  padding: 8px;
-  cursor: pointer;
-  position: relative;
-}
-
-.notifications-container {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  width: 300px;
-  height: 540px;
-  background-color: #ffffff;
-  left: -330px;
-  top: 50px;
-  border-radius: 5px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  overflow: auto;
-  padding: 30px;
-  cursor: auto;
-}
-
-.notification-box {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  margin-bottom: 35px;
-  color: #2d2e2f;
-  border-bottom: 1px solid rgba(235, 235, 235, 1);
-}
-
-.row1 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.row1.5 {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.row2 {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-  margin-bottom: 20px;
 }
 
 .apply {
@@ -897,20 +873,36 @@ function getInitials(name: string) {
   padding: 12px;
   cursor: pointer;
   color: #2d2e2f;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4));
+  border-radius: 4px;
+  /* border: 1px solid #91d5ff; 蓝色边框 */
+  transition: all 0.3s ease; /* 添加过渡动画 */
+}
+
+.apply:hover {
+  background-color: #bae7ff; /* 悬停时更深的蓝色 */
+  border-color: #1890ff;
 }
 
 .login {
   height: 42px;
   width: 16.4%;
-  border: 1px solid rgba(200, 201, 202, 1);
+  border: 1px solid #1890ff; /* 蓝色边框 */
   font-size: 16px !important;
   font-weight: 540 !important;
   text-align: center;
-  color: #ffffff;
+  color: #1890ff; /* 蓝色文字 */
   line-height: 37px;
   border-radius: 5px;
   cursor: pointer;
   margin-right: 15px;
+  background-color: transparent; /* 透明背景 */
+  transition: all 0.3s ease; /* 添加过渡动画 */
+}
+
+.login:hover {
+  background-color: #1890ff; /* 悬停时蓝色背景 */
+  color: white; /* 悬停时白色文字 */
 }
 
 .signup {
@@ -921,28 +913,31 @@ function getInitials(name: string) {
   text-align: center;
   color: #ffffff;
   line-height: 37px;
-  background-color: #e00707;
+  background-color: #1890ff; /* 蓝色背景 */
   border-radius: 5px;
   cursor: pointer;
+  transition: all 0.3s ease; /* 添加过渡动画 */
 }
 
-.nav-2-row-el :focus {
-  outline: none;
+.signup:hover {
+  background-color: #40a9ff; /* 悬停时更浅的蓝色 */
+  box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3); /* 添加阴影效果 */
 }
 
 .item {
-  color: #e00707;
+  color: #1890ff; /* 蓝色文字 */
 }
 
 .camera {
   height: 48px;
   width: 7%;
-  background-color: #6e7072;
+  background-color: #40a9ff; /* 蓝色系 */
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   margin-left: 8px;
+  border-radius: 4px 0 0 4px; /* 添加圆角 */
 }
 
 .upload-body {
@@ -989,5 +984,57 @@ function getInitials(name: string) {
 
 .background-description .detail-btn :deep(.el-icon) {
   margin-right: 8px;
+}
+
+.notifications-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 300px;
+  height: 540px;
+  background-color: #ffffff;
+  left: -330px;
+  top: 50px;
+  border-radius: 12px; /* 增加圆角 */
+  background-size: contain;
+  background-repeat: no-repeat;
+  overflow: auto;
+  padding: 30px;
+  cursor: auto;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* 添加更明显的阴影 */
+  border: 1px solid #e8e8e8; /* 添加边框 */
+}
+
+.notification-box {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 35px;
+  color: #2d2e2f;
+  border-bottom: 1px solid rgba(235, 235, 235, 1);
+  padding-bottom: 15px;
+  transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+.notification-box:hover {
+  background-color: #f0f8ff; /* 悬停时添加浅蓝背景 */
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.logo {
+  height: 40px;
+  width: 4.5%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 </style>

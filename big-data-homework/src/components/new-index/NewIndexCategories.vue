@@ -5,49 +5,49 @@
       <div class="category-card-box">
         <div class="category-card" @click="reload('restaurant')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><KnifeFork /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><KnifeFork /></el-icon>
             <div class="word-box">Restaurants</div>
           </div>
         </div>
         <div class="category-card" @click="reload('shop')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><ShoppingCart /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><ShoppingCart /></el-icon>
             <div class="word-box">Shopping</div>
           </div>
         </div>
         <div class="category-card" @click="reload('nightlife')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><Moon /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><Moon /></el-icon>
             <div class="word-box">Nightlife</div>
           </div>
         </div>
         <div class="category-card" @click="reload('active')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><Aim /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><Aim /></el-icon>
             <div class="word-box">Active Life</div>
           </div>
         </div>
         <div class="category-card" @click="reload('beauty')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><Scissor /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><Scissor /></el-icon>
             <div class="word-box">Beauty & Spas</div>
           </div>
         </div>
         <div class="category-card" @click="reload('automotive')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><Van /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><Van /></el-icon>
             <div class="word-box">Automotive</div>
           </div>
         </div>
         <div class="category-card" @click="reload('home')">
           <div class="content-box">
-            <el-icon size="40px" color="#f43939"><House /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><House /></el-icon>
             <div class="word-box">Home Services</div>
           </div>
         </div>
         <div class="category-card" @click="reload('more')">
           <div class="content-box">
-            <el-icon size="40px"><MoreFilled /></el-icon>
+            <el-icon size="40px" color="#3b82f6"><MoreFilled /></el-icon>
             <div class="word-box">More</div>
           </div>
         </div>
@@ -109,11 +109,11 @@ function reload(category) {
   width: 22.3%;
   height: 183px;
   margin: 18px 0px;
-  border: 1px solid rgba(245, 226, 227, 1);
+  border: 1px solid rgba(210, 225, 245, 1);
   cursor: pointer;
-  background: linear-gradient(180deg, #fffaf9 0%, #fff 100%);
+  background: linear-gradient(180deg, #f0f9ff 0%, #fff 100%);
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.06);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.06);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
@@ -126,7 +126,7 @@ function reload(category) {
 }
 
 .word-box {
-  color: #7f1d1d;
+  color: #1e40af;
   font-size: 16px;
   font-weight: 700;
   margin-top: 6px;
@@ -134,14 +134,14 @@ function reload(category) {
 
 .category-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 14px 34px rgba(220, 38, 38, 0.12);
-  border-color: rgba(220,38,38,0.14);
+  box-shadow: 0 14px 34px rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.14);
 }
 
 .category-card:active { transform: translateY(-2px) }
 
 .category-card el-icon, .category-card .el-icon {
-  color: #ef4444;
+  color: #3b82f6;
 }
 
 @media (max-width: 980px) {
