@@ -1,291 +1,607 @@
 <template>
-  <div class="merchant">
-    <div class="img-box">
-        <img class="img1" :src="baseInfo.imageList[0]" alt="img1">
-        <img class="img2" :src="baseInfo.imageList[1]" alt="img2">
-        <img class="img3" :src="baseInfo.imageList[2]" alt="img3">
-      <div class="info-box">
-        <div class="mid">
-          <span class="name">{{ baseInfo.name }}</span>
-          <div class="rate-box">
-            <el-rate size="large" v-model="baseInfo.stars" disabled/>
-            <span style="margin-left: 10px;color: #FFFFFF">{{ baseInfo.stars }}</span>
-            <span style="color: #FFFFFF;margin-left: 5px">({{ baseInfo.reviewCount }} reviews)</span>
-          </div>
-          <div class="info-bottom">
-            <div style="color: #58B4FF">Location</div>
-            <div class="state">{{ baseInfo.state }}</div>
-            <div class="city">{{ baseInfo.city }}</div>
-          </div>
-          <div class="hours-box">
-            <span class="hours-desc">Open</span>
-            <span class="hours">{{ baseInfo.hours }}</span>
-          </div>
-          <div class="category-box">
-            <span class="category-desc">Category</span>
-            <span class="category">{{ baseInfo.categories }}</span>
-          </div>
-        </div>
-        <el-button @click="jump" class="button">展示所有图片</el-button>
+  <div class="merchant-detail">
+    <!-- 加载指示器 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <!-- 使用 el-icon 中的 Loading 组件 -->
+        <el-icon class="is-loading" size="48"><Loading /></el-icon>
+        <p>加载中...</p>
       </div>
     </div>
-    <div class="bottom">
-      <div class="good">
-        <span style="font-size: 35px">Q & A</span>
-        <div class="good-line">
-          <div class="qgood">Q : &nbsp;Is it good for kids ?</div>
-          <div class="agood">A : &nbsp;{{ baseInfo.goodForKids }}</div>
-        </div>
-        <div class="card-line">
-          <div class="qcard">Q : &nbsp;Does it accept credit cards?</div>
-          <div class="acard">A : &nbsp;{{ baseInfo.businessAcceptsCreditcards == 'true' ? 'yes' : 'no' }}</div>
-        </div>
-      </div>
-      <div class="lines"></div>
-      <div class="bottom-right">
-        <div class="title">Reviews</div>
-        <div class="reviews-box" v-for="(reviews,index) in baseInfo.reviewVOList" :key="index">
-          <div class="head-box">
-            <span class="businessName">{{ reviews.userName }}</span>
+
+    <div v-else>
+      <!-- 商户图片展示区域 -->
+      <div class="image-gallery">
+        <div class="image-container">
+          <div class="main-images">
+            <img
+              v-for="(image, index) in baseInfo.imageList.slice(0, 3)"
+              :key="index"
+              class="main-image"
+              :src="getImagePath(image)"
+              :alt="`${baseInfo.name} - 图片${index + 1}`"
+              v-if="image !== undefined && image !== null && image !== ''"
+            />
           </div>
-          <div class="rate-box">
-            <div class="rate">
-              <el-rate v-model="reviews.stars" disabled/>
+        </div>
+
+        <el-button
+          @click="jump"
+          class="view-all-btn"
+          type="primary"
+          plain
+        >
+          查看全部 {{ baseInfo.imageList.length }} 张图片
+        </el-button>
+      </div>
+
+      <!-- 商户信息区域 -->
+      <div class="info-section">
+        <div class="info-header">
+          <div class="header-content">
+            <div class="business-header">
+              <h1 class="business-name">{{ baseInfo.name }}</h1>
             </div>
-            <div class="date">{{ reviews.date }}</div>
+            <div class="business-address">
+              <el-icon><Location /></el-icon>
+              <span>{{ baseInfo.city }}, {{ baseInfo.state }}</span>
+            </div>
           </div>
-          <div class="text-box">
-            <p class="text">{{ reviews.text }}</p>
+        </div>
+
+        <!-- 评分信息 -->
+        <div class="rating-section">
+          <div class="rating-item">
+            <span class="rating-label">用户评分</span>
+            <el-rate v-model="baseInfo.stars" disabled size="small" />
+            <span class="rating-value">{{ baseInfo.stars }}</span>
+            <span class="review-count">({{ baseInfo.reviewCount }} 条评论)</span>
           </div>
-          <div class="line"></div>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="basic-info">
+          <div class="info-grid">
+            <div class="info-card">
+              <el-icon><OfficeBuilding /></el-icon>
+              <div class="info-content">
+                <span class="label">营业状态</span>
+                <span class="value">-</span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <el-icon><Clock /></el-icon>
+              <div class="info-content">
+                <span class="label">营业时间</span>
+                <span class="value">{{ baseInfo.hours }}</span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <el-icon><Collection /></el-icon>
+              <div class="info-content">
+                <span class="label">分类</span>
+                <span class="value">{{ baseInfo.categories }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="lines2"></div>
+
+      <!-- Q&A 和评论区域 -->
+      <div class="content-section">
+        <!-- Q&A 部分 -->
+        <div class="qa-section">
+          <h2 class="section-title">Q&A</h2>
+          <div class="qa-item">
+            <div class="question">
+              <el-icon color="#409eff"><QuestionFilled /></el-icon>
+              <span>是否适合儿童</span>
+            </div>
+            <div class="answer">
+              <el-icon :color="baseInfo.goodForKids === 'true' ? '#67c23a' : '#f56c6c'" size="16">
+                <CircleCheck v-if="baseInfo.goodForKids === 'true'" />
+                <CircleClose v-else />
+              </el-icon>
+              <span class="answer-text">{{ baseInfo.goodForKids === 'true' ? '是' : '否' }}</span>
+            </div>
+          </div>
+          
+          <div class="qa-item">
+            <div class="question">
+              <el-icon color="#409eff"><QuestionFilled /></el-icon>
+              <span>是否接受信用卡</span>
+            </div>
+            <div class="answer">
+              <el-icon :color="baseInfo.businessAcceptsCreditcards === 'true' ? '#67c23a' : '#f56c6c'" size="16">
+                <CircleCheck v-if="baseInfo.businessAcceptsCreditcards === 'true'" />
+                <CircleClose v-else />
+              </el-icon>
+              <span class="answer-text">{{ baseInfo.businessAcceptsCreditcards === 'true' ? '是' : '否' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分割线 -->
+        <div class="divider-vertical"></div>
+
+        <!-- 评论部分 -->
+        <div class="reviews-section">
+          <div class="reviews-header">
+            <h2 class="section-title">用户评价 ({{ baseInfo.reviewVOList.length }})</h2>
+          </div>
+
+          <!-- 评论列表 -->
+          <div class="reviews-list">
+            <div
+              class="review-item"
+              v-for="(review, index) in baseInfo.reviewVOList"
+              :key="index"
+            >
+              <div class="review-header">
+                <div class="user-info">
+                  <el-avatar :size="32">{{
+                    review.userName?.charAt(0) || "U"
+                  }}</el-avatar>
+                  <div class="user-details">
+                    <span class="username">{{ review.userName }}</span>
+                    <span class="review-date">{{ review.date }}</span>
+                  </div>
+                </div>
+                <el-rate
+                  v-model="review.stars"
+                  disabled
+                  size="small"
+                  class="review-rating"
+                />
+              </div>
+
+              <div class="review-content">
+                {{ review.text }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {onMounted, toRefs} from "vue";
-import {useBaseInfo} from "@/hooks/UseBaseInfo";
-import {UseButtonStore} from "@/stores/UseButtonStore";
-import {router} from "@/router";
-import {UseImageListStore} from "@/stores/UseImageListStore";
+import { onMounted, ref, toRefs } from "vue";
+import { useBaseInfo } from "@/hooks/UseBaseInfo";
+import { UseButtonStore } from "@/stores/UseButtonStore";
+import { router } from "@/router";
+import { UseImageListStore } from "@/stores/UseImageListStore";
+import {
+  Location,
+  Clock,
+  Collection,
+  QuestionFilled,
+  CircleCheck,
+  CircleClose,
+  OfficeBuilding,
+  Loading
+} from "@element-plus/icons-vue";
 
 // 使用按钮store
 let buttonStore = UseButtonStore();
 
 // 使用baseInfohook
-let {baseInfo, getBaseInfo} = toRefs(useBaseInfo());
+let { baseInfo, getBaseInfo } = toRefs(useBaseInfo());
 
-let imageListStore = UseImageListStore()
+let imageListStore = UseImageListStore();
+
+// 添加 loading 状态
+const loading = ref(true);
 
 function jump() {
-  imageListStore.setImageList(baseInfo.value.imageList)
-  router.push('/imageDisplay')
+  imageListStore.setImageList(baseInfo.value.imageList);
+  router.push("/imageDisplay");
 }
 
+const getImagePath = (file: string) => {
+  if (!file) {
+    console.log("图片文件名为空");
+    return "";
+  }
+ 
+  const isHttpUrl = file.includes("http");
+
+  if (isHttpUrl) {
+    return file;
+  } else {
+    const fullPath = `http://localhost:3000/images/${file}.jpg`;
+     console.log("图片文件名:", fullPath);
+    return fullPath;
+  }
+};
+
 onMounted(() => {
-  buttonStore.setBossButton(0)
-  getBaseInfo.value();
+  buttonStore.setBossButton(0);
+  getBaseInfo.value().finally(() => {
+    // 数据加载完成后隐藏加载状态
+    console.log("商户信息：", baseInfo.value.imageList);
+    loading.value = false;
+  });
 });
 </script>
 
 <style scoped>
-.merchant {
-  display: flex;
-  flex-direction: column;
+/* 添加加载样式 */
+
+/* 添加旋转动画样式 */
+.is-loading {
+  animation: rotating 2s linear infinite;
 }
 
-.img-box {
-  display: flex;
-  height: 40%;
-  width: 80vw;
-  position: relative; /* 设置相对定位 */
+@keyframes rotating {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.img-box::after {
-  content: "";
-  position: absolute;
-  top: 50%;
+.loading-overlay {
+  position: fixed;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 50%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(0, 0, 0, 1));
-  pointer-events: none; /* 确保覆盖层不影响其他元素的交互 */
-}
-
-.img1, .img2, .img3 {
-  width: 33.33%;
-}
-
-.rate-box {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
   display: flex;
+  justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
 
-.info-box {
-  display: flex;
-  height: 170px;
-  width: 90%;
-  position: absolute;
-  left: 5%;
-  top: 45%; /* 修改top值，使其相对于伪元素的位置 */
-  z-index: 1; /* 确保info-box在伪元素上方 */
+.loading-spinner {
+  text-align: center;
 }
 
-.mid {
-  display: flex;
-  flex-direction: column;
-}
-
-.button {
-  background-color: rgb(0,0,0,0);
+.loading-spinner p {
+  margin-top: 16px;
+  color: #606266;
   font-size: 16px;
-  color: #FFFFFF;
-  width: 200px;
-  height: 48px;
-  margin-left: auto;
-  margin-top: auto;
 }
 
-.name {
-  font-size: 48px;
-  font-weight: 700;
-  color: #FFFFFF;
-}
-
-.info-bottom {
-  display: flex;
-  color: #FFFFFF;
-}
-
-.state {
-  margin-left: 10px;
-}
-
-.city {
-  margin-left: 20px;
-}
-
-
-.hours-desc {
-  color: #04C585;
-}
-
-.hours-box {
-  margin-top: 10px;
-}
-
-.hours {
-  margin-left: 10px;
-  color: #FFFFFF;
-}
-
-.category-box {
-  margin-top: 10px;
-}
-
-.category-desc {
-  color: yellow;
-}
-
-.category {
-  margin-left: 10px;
-  color: #FFFFFF;
-}
-
-.good {
-  display: flex;
-  flex-direction: column;
+.merchant-detail {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
-  width: 35%;
-  height: 280px;
-  margin-top: 40px;
-  font-size: 25px;
-  border: 1px solid rgba(235, 235, 235, 1);
-  border-radius: 5px;
-  margin-left: 5%;
+  background-color: #f5f7fa;
+  min-height: 100vh;
 }
 
-.good-line {
-  margin-top: 20px;
-  color: #6E7072;
+/* 图片展示区域样式 */
+.image-gallery {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  position: relative;
 }
 
-.card-line {
-  color: #6E7072;
-  margin-top: 40px;
+.image-container {
+  width: 100%;
+  margin-bottom: 16px;
 }
 
-.title {
-  color: #2D2E2F;
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 40px;
-}
-
-.reviews-box {
+.main-images {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 25px;
+  gap: 10px;
 }
 
-.head-box {
+.main-image {
+  flex: 1;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.view-all-btn {
+  width: 100%;
+  height: 36px;
+  font-size: 14px;
+}
+
+/* 信息区域 */
+.info-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.info-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
-.businessName {
-  color: #2D2E2F;
+.business-name {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.business-address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #606266;
   font-size: 16px;
 }
 
-.rate-box {
-  display: flex;
+/* 评分区域 */
+.rating-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e4e7ed;
 }
 
-.date {
-  color: #6E7072;
-  font-size: 14px;
+.rating-item {
   display: flex;
   align-items: center;
-  margin-left: 15px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.line {
-  height: 1px;
-  width: 100%;
-  background-color: rgb(235, 235, 235);
+.rating-item:last-child {
+  margin-bottom: 0;
 }
 
-.text {
-  color: #2D2E2F;
+.rating-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 80px;
+}
+
+.rating-value {
+  font-weight: 600;
+  color: #303133;
+}
+
+.review-count {
+  color: #909399;
   font-size: 14px;
 }
 
-.bottom {
-  height: 60%;
+/* 基本信息 */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.info-card {
   display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.info-card .el-icon {
+  font-size: 24px;
+  color: #409eff;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-content .label {
+  font-size: 14px;
+  color: #909399;
+}
+
+.info-content .value {
+  font-weight: 500;
+  color: #303133;
+}
+
+/* 内容区域 */
+.content-section {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.qa-section {
   flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
-.bottom-right {
-  width: 30%;
-  margin-top: 40px;
-  margin-left: 5%;
-  margin-right: 3.5%;
-  overflow: auto;
+.section-title {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
 }
 
-.lines {
+/* Q&A区域 */
+.qa-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.qa-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.question {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.answer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.answer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   width: 1px;
-  background-color: rgb(235, 235, 235);
-  margin-left: 13%;
+  height: 16px;
+  background-color: #e4e7ed;
 }
 
-.lines2 {
+.answer-text {
+  color: #606266;
+  font-size: 14px;
+}
+
+/* 分割线 */
+.divider-vertical {
   width: 1px;
-  background-color: rgb(235, 235, 235);
+  background-color: #e4e7ed;
+}
+
+/* 评论区域 */
+.reviews-section {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.review-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.username {
+  font-weight: 500;
+  color: #303133;
+}
+
+.review-date {
+  color: #909399;
+  font-size: 14px;
+}
+
+.review-rating {
+  margin-top: 8px;
+}
+
+.review-content {
+  color: #606266;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
+  .content-section {
+    flex-direction: column;
+  }
+
+  .divider-vertical {
+    width: 100%;
+    height: 1px;
+  }
+
+  .info-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .business-name {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .merchant-detail {
+    padding: 12px;
+  }
+
+  .image-gallery,
+  .info-section,
+  .qa-section,
+  .reviews-section {
+    padding: 12px;
+  }
+
+  .main-images {
+    flex-direction: column;
+  }
+
+  .main-image {
+    height: 150px;
+  }
+
+  .business-name {
+    font-size: 20px;
+  }
 }
 </style>

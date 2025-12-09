@@ -2,7 +2,7 @@
   <div class="container">
     <NewIndexView :show-background-description="false" style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
     <div class="display-box">
-      <img class="img" v-for="(image,index) in imageList" :src="image" :key="index">
+      <img class="img" v-for="(image,index) in imageList" :src="getImagePath(image)" :key="index">
     </div>
   </div>
 </template>
@@ -14,6 +14,23 @@ import {computed, onMounted} from "vue";
 
 let imageListStore = UseImageListStore()
 let imageList = computed(()=>imageListStore.imageList)
+
+const getImagePath = (file: string) => {
+  if (!file) {
+    console.log("图片文件名为空");
+    return "";
+  }
+ 
+  const isHttpUrl = file.includes("http");
+
+  if (isHttpUrl) {
+    return file;
+  } else {
+    const fullPath = `http://localhost:3000/images/${file}.jpg`;
+     console.log("图片文件名:", fullPath);
+    return fullPath;
+  }
+};
 </script>
 
 <style scoped>

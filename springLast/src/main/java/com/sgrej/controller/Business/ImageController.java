@@ -65,7 +65,11 @@ public class ImageController {
         }
         return ResponseResult.error("失败");
     }
-    
+    @PostMapping("/uploadImage2")
+    public ResponseResult uploadImage2(@RequestParam("filePath") String filePath,@RequestParam("bId") String bId){
+        businessService.addImage(filePath,bId);
+        return ResponseResult.success("成功");
+    }
     //下载图片
     @GetMapping ("/downloadImage")
     public String downloadImage(HttpServletResponse response, @RequestParam("fileName") String fileName){

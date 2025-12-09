@@ -1,7 +1,11 @@
 <template>
   <div class="boss">
     <div class="nav-top">
-      <router-link to="/" class="logo"></router-link>
+      <router-link to="/" class="logo">
+        <el-icon size="40" color="#1890ff">
+            <ShoppingCart />
+          </el-icon>
+      </router-link>
       <span class="title">Merchant Management Platform</span>
     </div>
     <div class="mid">
@@ -75,7 +79,7 @@ let bossButton = computed(()=>buttonStore.bossButton)
 .logo {
   height: 40px;
   width: 120px;
-  background-image: url("https://s3-media0.fl.yelpcdn.com/assets/public/logo_desktop.yji-0a2bf1d9c330d8747446.svg");
+  /* background-image: url("https://s3-media0.fl.yelpcdn.com/assets/public/logo_desktop.yji-0a2bf1d9c330d8747446.svg"); */
   background-size: contain;
   background-repeat: no-repeat;
   cursor: pointer;

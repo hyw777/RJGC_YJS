@@ -38,6 +38,7 @@ export function useAddFriends() {
         try {
             let res = await axios.get('/api/friend/apply')
             applyInfo.value = res.data.data
+            console.log(" applyInfo:"+applyInfo.value)
             applyInfo.value.forEach((review) => {
                 review.time = formatDateTime(review.time);
             });
