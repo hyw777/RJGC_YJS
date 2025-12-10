@@ -47,6 +47,8 @@ public class BusinessVO2 implements Serializable {
     /**
      * 评分
      */
+    private double latitude;
+    private double longitude;
     private double stars;
 
     /**

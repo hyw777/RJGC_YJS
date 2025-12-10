@@ -108,13 +108,41 @@
                 </div>
               </div>
             </div>
-            <div class="business-address">
+            <!-- 地址区域添加点击事件 -->
+            <div class="business-address" @click="showMapDialog = true">
               <el-icon><Location /></el-icon>
-              <span
-                >{{ result.address }}, {{ result.city }}, {{ result.state }}
-                {{ result.postalCode }}</span
-              >
+              <span>
+                {{ result.address }}, {{ result.city }}, {{ result.state }}
+                {{ result.postalCode }}
+              </span>
             </div>
+            <!-- 地图弹窗 -->
+            <el-dialog
+              v-model="showMapDialog"
+              title="商户位置与路线"
+              width="800px"
+              :before-close="handleClose"
+            >
+              <div class="map-container">
+                <div id="map" class="map"></div>
+                <div class="map-info">
+                  <p>商户地址: {{ fullAddress }}</p>
+                  <p v-if="userLocation">
+                    您的位置: {{ userLocation.address }}
+                  </p>
+                  <p v-if="distance">距离: {{ distance.toFixed(2) }} 公里</p>
+                  <el-button
+                    @click="calculateRoute"
+                    type="primary"
+                    v-if="userLocation && merchantLocation"
+                    class="route-btn"
+                  >
+                    规划路线
+                  </el-button>
+                  <div id="route-panel" class="route-panel"></div>
+                </div>
+              </div>
+            </el-dialog>
           </div>
           <el-button
             @click="toggleCollect"
@@ -140,17 +168,17 @@
             <span class="rating-label ai-label">AI评分</span>
             <el-rate v-model="aiScore" disabled size="small" />
             <span class="rating-value">{{ aiScore || 0 }}</span>
-            <el-button 
-              @click="toggleAIReason" 
-              type="primary" 
-              link 
+            <el-button
+              @click="toggleAIReason"
+              type="primary"
+              link
               size="small"
               class="toggle-reason-btn"
             >
-              {{ showAIReason ? '收起' : '点击生成AI评分' }}
+              {{ showAIReason ? "收起" : "点击生成AI评分" }}
             </el-button>
           </div>
-          
+
           <!-- AI评分理由展示区域 -->
           <div v-if="showAIReason" class="ai-reason-section">
             <div class="reason-content">
@@ -433,7 +461,7 @@ import {
   ArrowRight,
   OfficeBuilding,
   Lightning,
-  Loading 
+  Loading,
 } from "@element-plus/icons-vue";
 import { UseCollectStore } from "@/stores/UseCollectStore";
 import axios from "axios";
@@ -829,26 +857,25 @@ async function funny(reviewId, cool, useful, funny, index) {
   }
 }
 
-
 // 添加 loading 状态
 const loading = ref(true);
 
 onMounted(() => {
   console.log("商户信息：", result.value);
-  
+
   // 显示加载状态
   loading.value = true;
-  
+
   getResult.value(route.query.id).finally(() => {
     // 数据加载完成后隐藏加载状态
     loading.value = false;
   });
   // 添加评论提交事件监听
-  window.addEventListener('reviewSubmitted', handleReviewSubmitted);
+  window.addEventListener("reviewSubmitted", handleReviewSubmitted);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('reviewSubmitted', handleReviewSubmitted);
+  window.removeEventListener("reviewSubmitted", handleReviewSubmitted);
 });
 
 // 监听 reviewSubmitted 事件时也显示加载状态
@@ -863,14 +890,14 @@ const handleReviewSubmitted = () => {
 
 // 添加AI评分相关的响应式变量
 const showAIReason = ref(false);
-const aiReason = ref('');
+const aiReason = ref("");
 const aiLoading = ref(false);
 const aiScore = ref(0); // 新增：用于存储提取的AI评分
 
 // 切换AI评分理由显示/隐藏
 const toggleAIReason = () => {
   showAIReason.value = !showAIReason.value;
-  
+
   // 如果是第一次展开且还没有获取过评分理由，则获取评分
   if (showAIReason.value && !aiReason.value && !aiLoading.value) {
     getAIScore();
@@ -880,13 +907,13 @@ const toggleAIReason = () => {
 // 从AI返回的文本中提取评分
 const extractAIScore = (text) => {
   if (!text) return 0;
-  
+
   // 使用正则表达式匹配"最终评分：数字"格式
   const scoreMatch = text.match(/最终评分[：:]\s*(\d+)/);
   if (scoreMatch && scoreMatch[1]) {
     return parseInt(scoreMatch[1]);
   }
-  
+
   // 如果没有找到评分，返回默认值0
   return 0;
 };
@@ -900,29 +927,29 @@ function imageUrlToBase64(url) {
   return new Promise((resolve, reject) => {
     // 创建图片对象
     const img = new Image();
-    img.crossOrigin = 'Anonymous'; // 处理跨域问题
-    
+    img.crossOrigin = "Anonymous"; // 处理跨域问题
+
     img.onload = () => {
       // 创建canvas元素
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
       // 设置canvas尺寸与图片一致
       canvas.width = img.width;
       canvas.height = img.height;
-      
+
       // 将图片绘制到canvas上
       ctx.drawImage(img, 0, 0);
-      
+
       // 将canvas转换为base64编码
-      const dataURL = canvas.toDataURL('image/jpeg');
+      const dataURL = canvas.toDataURL("image/jpeg");
       resolve(dataURL);
     };
-    
+
     img.onerror = (error) => {
-      reject(new Error('图片加载失败: ' + error));
+      reject(new Error("图片加载失败: " + error));
     };
-    
+
     // 开始加载图片
     img.src = url;
   });
@@ -937,57 +964,59 @@ function imageUrlToBase64(url) {
 async function scoreShopAesthetics(apiKey, imageBase64) {
   // 1. 配置请求参数
   const requestOptions = {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: 'Qwen/Qwen3-VL-32B-Instruct', // 中文优先选该模型，也可换 GLM-4.1V
+      model: "Qwen/Qwen3-VL-32B-Instruct", // 中文优先选该模型，也可换 GLM-4.1V
       messages: [
         {
-          role: 'user',
+          role: "user",
           content: [
             // 文本指令：明确打分维度+规则
             {
-              type: 'text',
+              type: "text",
               text: `请对该商户实景图片进行美观度打分，要求：
 1. 评分维度：构图（1-5分）、色彩搭配（1-5分）、环境整洁度（1-5分）、品牌呈现（1-5分）；
 2. 输出综合分（四维度平均分，向下取整），并给出简短理由；
-3. 结果格式：最终评分： 理由：。`
+3. 结果格式：最终评分： 理由：。`,
             },
             // 图片数据（Base64编码）
             {
-              type: 'image_url',
+              type: "image_url",
               image_url: {
-                url: imageBase64
-              }
-            }
-          ]
-        }
+                url: imageBase64,
+              },
+            },
+          ],
+        },
       ],
       max_tokens: 1024, // 输出长度限制
-      temperature: 0.1  // 低随机性，保证打分稳定
-    })
+      temperature: 0.1, // 低随机性，保证打分稳定
+    }),
   };
 
   try {
     // 2. 发送请求
-    const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', requestOptions);
+    const response = await fetch(
+      "https://api.siliconflow.cn/v1/chat/completions",
+      requestOptions
+    );
     if (!response.ok) {
-    const errorText = await response.text(); // 获取详细错误信息
-    console.error('API错误详情:', errorText);
-    throw new Error(`HTTP 错误：${response.status} - ${errorText}`);
-  }
-    
+      const errorText = await response.text(); // 获取详细错误信息
+      console.error("API错误详情:", errorText);
+      throw new Error(`HTTP 错误：${response.status} - ${errorText}`);
+    }
+
     // 3. 解析结果
     const result = await response.json();
     const scoreResult = result.choices[0].message.content;
-    console.log('✅ 商户美观打分结果：\n', scoreResult);
+    console.log("✅ 商户美观打分结果：\n", scoreResult);
     return scoreResult;
-
   } catch (error) {
-    console.error('❌ 请求失败：', error.message);
+    console.error("❌ 请求失败：", error.message);
     throw error;
   }
 }
@@ -996,48 +1025,330 @@ async function scoreShopAesthetics(apiKey, imageBase64) {
 async function getAIScore() {
   // 检查是否有图片
   if (!result.value?.imageList || result.value.imageList.length === 0) {
-    aiReason.value = '该商户暂无图片，无法进行AI评分';
+    aiReason.value = "该商户暂无图片，无法进行AI评分";
     return;
   }
 
   // 获取第一张图片作为评分依据
   const firstImage = result.value.imageList[0];
   const imageUrl = getImagePath(firstImage);
-  
+
   // 检查是否是有效的图片URL
   if (!imageUrl) {
-    aiReason.value = '图片路径无效，无法进行AI评分';
+    aiReason.value = "图片路径无效，无法进行AI评分";
     return;
   }
 
   // 开始加载状态
   aiLoading.value = true;
-  
+
   try {
     // 将图片URL转换为base64编码
     const imageBase64 = await imageUrlToBase64(imageUrl);
-    
+
     // 替换为实际的API Key (在生产环境中应从安全的地方获取)
-    const apiKey = 'sk-jsppmnzualuadnsjwnneaqsupkcpjfoungipzaahqygoqhqw'; // 示例API Key
-    
+    const apiKey = "sk-jsppmnzualuadnsjwnneaqsupkcpjfoungipzaahqygoqhqw"; // 示例API Key
+
     // 调用AI评分函数，传递base64编码的图片
     const scoreResult = await scoreShopAesthetics(apiKey, imageBase64);
     aiReason.value = scoreResult;
-    
+
     // 提取AI评分并保存
     aiScore.value = extractAIScore(scoreResult);
   } catch (error) {
-    console.error('AI评分失败:', error);
+    console.error("AI评分失败:", error);
     aiReason.value = `AI评分失败: ${error.message}`;
   } finally {
     aiLoading.value = false;
   }
 }
 
+// *******************地图
+// 新增地图相关变量
+const showMapDialog = ref(false);
+const userLocation = ref<any>(null); // 用户位置（经纬度+地址）
+const merchantLocation = ref<any>(null); // 商户位置（直接用后端经纬度）
+const distance = ref<number>(0); // 距离（公里）
+const map = ref<any>(null); // 地图实例
+const driving = ref<any>(null); // 路线规划实例
+
+// 计算完整地址（用于显示）
+const fullAddress = computed(() => {
+  return `${result.value.address}, ${result.value.city}, ${result.value.state} ${result.value.postalCode}`;
+});
+
+// 初始化地图
+const initMap = () => {
+
+  // 设置安全密钥
+  (window as any)._AMapSecurityConfig = {
+    securityJsCode: "fece524185e1f50a1f12de4faa7a15cc",
+  };
+
+  if (window.AMap) {
+    createMap();
+  } else {
+    // 动态加载高德地图API（替换为你的密钥）
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src =
+      "/wpi/maps?v=2.0&key=038019d08912b27aa684b47177e4113e&callback=initAMap";
+    script.onerror = () => ElMessage.error("地图加载失败");
+    document.head.appendChild(script);
+    window.initAMap = createMap; // 全局回调函数
+  }
+};
+
+// 创建地图实例（核心修改：直接使用后端经纬度）
+const createMap = () => {
+  // 1. 直接从后端数据获取商户经纬度
+  if (!result.value.latitude || !result.value.longitude) {
+    ElMessage.error("商户位置信息缺失");
+    return;
+  }
+  merchantLocation.value = {
+    lat: result.value.latitude, // 后端返回的纬度
+    lng: result.value.longitude, // 后端返回的经度
+    address: fullAddress.value,
+  };
+
+  // ========== 打印商户经纬度 ==========
+  console.log("🚩 商户位置经纬度：", {
+    "纬度(lat)": merchantLocation.value.lat,
+    "经度(lng)": merchantLocation.value.lng,
+    完整地址: merchantLocation.value.address,
+  });
+
+  // 2. 创建地图并定位到商户位置
+  map.value = new AMap.Map("map", {
+    zoom: 13,
+    center: [merchantLocation.value.lng, merchantLocation.value.lat], // 直接用商户经纬度
+  });
+
+  // 3. 在地图上标记商户位置
+  new AMap.Marker({
+    position: [merchantLocation.value.lng, merchantLocation.value.lat],
+    title: result.value.name,
+    map: map.value,
+    label: { content: "商户", offset: new AMap.Pixel(0, 30) },
+  });
+
+  // 4. 获取用户当前位置
+  getUserLocation();
+};
+
+// ================================
+// 方法三：浏览器定位 + 高德兜底 + 可调试模拟
+// ================================
+const DEBUG_USE_MOCK_LOCATION = true; // 开发想固定贵州时改成 true
+
+// ================================
+// 固定坐标 + 调用高德反地理编码
+// ================================
+const FIXED_LOCATION = {
+  lat: 26.442885,
+  lng: 106.672978,
+};
+
+const getUserLocation = () => {
+  // 使用固定坐标
+  userLocation.value = {
+    lat: FIXED_LOCATION.lat,
+    lng: FIXED_LOCATION.lng,
+    address: "正在获取地址...",
+  };
+
+  console.log("📍 使用固定坐标：", FIXED_LOCATION);
+
+  // 调用高德反地理编码获取真实地址
+  AMap.plugin("AMap.Geocoder", () => {
+    const geocoder = new AMap.Geocoder();
+
+    geocoder.getAddress(
+      [FIXED_LOCATION.lng, FIXED_LOCATION.lat],
+      (status, result) => {
+        if (status === "complete" && result.regeocode) {
+          const addr = result.regeocode.formattedAddress;
+
+          userLocation.value.address = addr;
+
+          console.log("✅ 反地理编码成功：", addr);
+        } else {
+          userLocation.value.address = "无法获取详细地址";
+          console.error("❌ 反地理编码失败：", result);
+        }
+
+        // 移动地图
+        map.value.setCenter([FIXED_LOCATION.lng, FIXED_LOCATION.lat]);
+
+        // 计算距离
+        calculateDistance();
+      }
+    );
+  });
+};
+
+// ================================
+// 高德兜底定位
+// ================================
+const useAMapLocation = () => {
+  AMap.plugin("AMap.Geolocation", () => {
+    const geolocation = new AMap.Geolocation({
+      enableHighAccuracy: true,
+      timeout: 10000,
+      convert: true,
+      useNative: true,      // 强制原生
+      panToLocation: true,  // 自动移动
+      showButton: false,
+      showMarker: false,
+      showCircle: false,
+      needAddress: true,
+    });
+
+    geolocation.getCurrentPosition((status, result) => {
+      if (status === "complete") {
+        const { position } = result;
+
+        userLocation.value = {
+          lat: position.lat,
+          lng: position.lng,
+          address:
+            result.regeocode?.formattedAddress ||
+            "高德定位（无详细地址）",
+        };
+
+        console.log("✅ 高德兜底定位成功：", {
+          lat: position.lat,
+          lng: position.lng,
+        });
+
+        map.value.setCenter([position.lng, position.lat]);
+        calculateDistance();
+      } else {
+        ElMessage.error("定位失败，请检查浏览器GPS权限");
+        console.error("❌ 高德定位失败：", result.message);
+      }
+    });
+  });
+};
+
+// 计算用户与商户的距离（直接使用高德API）
+const calculateDistance = () => {
+  if (userLocation.value && merchantLocation.value) {
+    // ========== 打印距离计算的原始经纬度 ==========
+    console.log("📏 距离计算依据：", {
+      用户经纬度: [userLocation.value.lng, userLocation.value.lat],
+      商户经纬度: [merchantLocation.value.lng, merchantLocation.value.lat],
+    });
+
+    AMap.plugin("AMap.GeometryUtil", () => {
+      const distanceMeters = AMap.GeometryUtil.distance(
+        [userLocation.value.lng, userLocation.value.lat],
+        [merchantLocation.value.lng, merchantLocation.value.lat]
+      );
+      distance.value = distanceMeters / 1000; // 转换为公里
+      console.log(
+        "📐 计算结果：",
+        `${distance.value.toFixed(2)} 公里（${distanceMeters} 米）`
+      );
+    });
+  }
+};
+
+// 规划路线（直接使用高德API）
+const calculateRoute = () => {
+  if (!userLocation.value || !merchantLocation.value) {
+    ElMessage.warning("用户或商户位置缺失");
+    return;
+  }
+
+  if (driving.value) driving.value.clear();
+
+  AMap.plugin("AMap.Driving", () => {
+    driving.value = new AMap.Driving({
+      map: map.value,
+      panel: "route-panel",
+      policy: AMap.DrivingPolicy.LEAST_TIME,
+    });
+
+    const start = new AMap.LngLat(
+      userLocation.value.lng,
+      userLocation.value.lat
+    );
+    const end = new AMap.LngLat(
+      merchantLocation.value.lng,
+      merchantLocation.value.lat
+    );
+
+    driving.value.search(start, end, (status, result) => {
+      if (status === "complete" && result.routes?.length) {
+        ElMessage.success("✅ 路线规划成功");
+        console.log("🛣 路线结果：", result);
+      } else {
+        ElMessage.error("❌ 路线规划失败");
+        console.error("路线失败详情：", result);
+      }
+    });
+  });
+};
+
+// 关闭弹窗时清理资源
+const handleClose = () => {
+  showMapDialog.value = false;
+  if (map.value) map.value.destroy();
+  if (driving.value) driving.value.destroy();
+  userLocation.value = null;
+  distance.value = 0;
+};
+
+// 监听弹窗显示状态，初始化地图
+watch(showMapDialog, (newVal) => {
+  if (newVal) setTimeout(initMap, 100); // 延迟确保弹窗渲染完成
+});
 </script>
 
 <style scoped>
+/* 地图弹窗样式 */
+.map-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 500px;
+}
 
+#map {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+}
+
+#mapContainer {
+  width: 100%; /* 必须设置具体宽度 */
+  height: 500px; /* 必须设置具体高度 */
+  position: relative; /* 确保定位正常 */
+}
+
+.map-info {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+.map-info p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.route-btn {
+  margin: 10px 0;
+}
+
+.route-panel {
+  max-height: 200px;
+  overflow-y: auto;
+}
 
 /* 添加加载样式 */
 

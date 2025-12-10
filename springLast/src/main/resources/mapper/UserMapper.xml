@@ -94,4 +94,12 @@
         </where>
     </select>
 
+    <select id="getUserNamesByUserIds" resultType="map">
+        SELECT uid as userId, name as userName FROM user
+        WHERE uid IN
+        <foreach collection="list" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
+
 </mapper>

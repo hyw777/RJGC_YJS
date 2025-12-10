@@ -32,4 +32,5 @@
         </where>
         order by date desc
     </select>
+
 </mapper>

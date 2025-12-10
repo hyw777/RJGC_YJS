@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.*;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface BusinessMapper {
@@ -95,5 +96,7 @@ public interface BusinessMapper {
     int countAllBusinesses();
 
     void updateBusinessStatus(@Param("businessId") Integer businessId, @Param("isOpen") Integer isOpen);
+
+    Map<String, String> getBusinessNamesByIds(List<String> businessIds);
 
 }

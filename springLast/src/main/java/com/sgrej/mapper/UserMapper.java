@@ -11,6 +11,7 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Mapper
@@ -56,4 +57,7 @@ public interface UserMapper extends BaseMapper<User> {
     void updateFriendByuId(int userId, String newFriends);
 
     Page<User> findFriend2(FindFriendDTO findFriendDTO,List<Integer> friendIds);
+
+    Map<String, String> getUserNamesByUserIds(List<String> userIds);
+
 }

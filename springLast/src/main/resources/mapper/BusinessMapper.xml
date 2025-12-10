@@ -85,5 +85,11 @@
         WHERE business_id = #{businessId}
     </update>
 
-
+    <select id="getBusinessNamesByIds" resultType="map">
+        SELECT business_id as businessId, name as businessName FROM business
+        WHERE bid IN
+        <foreach collection="list" item="businessId" open="(" separator="," close=")">
+            #{businessId}
+        </foreach>
+    </select>
 </mapper>

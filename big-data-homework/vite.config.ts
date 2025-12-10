@@ -35,6 +35,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/ppi/, '')
       },
+      // 新增：代理地图SDK（webapi.amap.com）
+    '/wpi': {
+      target: 'https://webapi.amap.com', 
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/wpi/, '')
+    },
       '/gpi': {
         target: 'https://restapi.amap.com',
         changeOrigin: true,
