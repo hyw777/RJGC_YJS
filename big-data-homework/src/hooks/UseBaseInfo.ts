@@ -16,11 +16,11 @@ export function useBaseInfo() {
         goodForKids: "",
         businessAcceptsCreditcards: "",
         bid: "",
-        imageList: [],
-        reviewVOList: []
+        imageList: [] as string[], // 明确指定类型
+        reviewVOList: [] as any[] // 明确指定类型
     })
 
-    function formatDateTime(dateTime) {
+    function formatDateTime(dateTime: string | number | Date) {
         const date = new Date(dateTime);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,18 +35,27 @@ export function useBaseInfo() {
         try {
             const response = await axios.get('/api/business/baseInfo');
             baseInfo.value = response.data.data;
-            baseInfo.value.reviewVOList.forEach((review) => {
+            baseInfo.value.reviewVOList.forEach((review: any) => {
                 review.date = formatDateTime(review.date);
             });
             //路径处理
-            // baseInfo.value.imageList.map(file => {
-            //     return file.includes('http') ? file : `/api/images/${file}`;
-            // });
-            // for(let i = 0;i<baseInfo.value.imageList.length;i++){
-            //     baseInfo.value.imageList[i] = baseInfo.value.imageList[i].includes('http') ? baseInfo.value.imageList[i] : `/api/images/${baseInfo.value.imageList[i]}`;
-            // }
-        } catch (error) {
-            console.error(error);
+            console.log("baseInfo:"+baseInfo.value.bid)
+           let imageList = baseInfo.value.imageList
+            for(let i = 0; i < imageList.length; i++) {
+                // 检查 records 和 image 是否存在
+                if (imageList[i]) {
+                    let file = imageList[i];
+                    if (typeof file === 'string' && file.includes('http')) {
+                        // 如果已经包含 http，则无需更改
+                    } else {
+                        // 否则，拼接 URL
+                        baseInfo.value.imageList[i] = `${file}`;
+                    }
+                }
+            }
+               
+        }catch (e){
+            console.error(e)
         }
     }
 

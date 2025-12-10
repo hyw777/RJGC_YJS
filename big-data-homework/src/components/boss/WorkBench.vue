@@ -1,5 +1,13 @@
 <template>
   <div class="workbench">
+    <!-- 加载指示器 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <el-icon class="is-loading" size="48"><Loading /></el-icon>
+        <p>数据加载中...</p>
+      </div>
+    </div>
+
     <div class="container">
       <div class="stats-card">
         <h2 class="card-title">数据概览</h2>
@@ -54,17 +62,21 @@ import {onMounted, ref, toRefs, nextTick} from 'vue';
 import { UseButtonStore } from '@/stores/UseButtonStore';
 import { useWorkbench } from '@/hooks/UseWorkbench';
 import * as echarts from 'echarts';
+import { Loading } from '@element-plus/icons-vue';
 
 const buttonStore = UseButtonStore();
 const { data, getData } = toRefs(useWorkbench())
 
-let myChart
+let myChart: echarts.ECharts | null = null // 添加类型声明
 const activePeriod = ref(7)
+const loading = ref(true) // 添加加载状态
 
 const handleClick = async (days: number) => {
+  loading.value = true // 开始加载
   activePeriod.value = days
   await getData.value(days);
   updateChart();
+  loading.value = false // 加载完成
 };
 
 const updateChart = () => {
@@ -159,13 +171,51 @@ onMounted(async () => {
   const chartElement = document.getElementById('main');
   if (chartElement) {
     myChart = echarts.init(chartElement);
-    handleClick(7);
+    await handleClick(7); // 等待初始数据加载完成
   }
 });
 </script>
 
 
 <style scoped>
+/* 添加加载样式 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.loading-spinner p {
+  margin-top: 16px;
+  color: #606266;
+  font-size: 16px;
+}
+
+/* 添加旋转动画样式 */
+.is-loading {
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .workbench {
   display: flex;
   justify-content: center;
