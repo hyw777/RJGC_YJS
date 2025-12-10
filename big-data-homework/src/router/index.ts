@@ -28,7 +28,7 @@ import MerchantDetail from "@/pages/MerchantDetail.vue";
 import MerchantView from "@/components/merchant-detail/MerchantView.vue";
 import Information from "@/components/boss/Information.vue";
 import adminPage from "@/pages/Left2.vue";
-import BusinessManage from "@/components/admin/BusinessManage.vue";
+import BusinessApplyManage from "@/components/admin/BusinessApplyManage.vue";
 import UserManage from "@/components/admin/UserManage2.vue";
 import UploadImg from "@/components/boss/UploadImg.vue";
 import Search from "@/pages/Search.vue";
@@ -95,8 +95,8 @@ export const router = createRouter({
                     component:UserManage
                 },
                 {
-                    path:'businessManage',
-                    component:BusinessManage
+                    path:'businessApplyManage',
+                    component:BusinessApplyManage
                 },
                 {
                     path:'reviewManage',

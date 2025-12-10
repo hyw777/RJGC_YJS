@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserManageServiceImpl implements UserManageService {
@@ -36,30 +37,20 @@ public class UserManageServiceImpl implements UserManageService {
      */
     @Override
     public PageResult getAllUser(@RequestBody FindFriendDTO findFriendDTO) {
-        PageHelper.startPage(findFriendDTO.getPageNum(),findFriendDTO.getPageSize());
-        List<FindfriendVO> findFriendVOS=new ArrayList<>();
+        PageHelper.startPage(findFriendDTO.getPageNum(), findFriendDTO.getPageSize());
         Page<User> users = userMapper.findFriend(findFriendDTO);
-        for(User user:users.getResult()){
-            FindfriendVO findfriendVO=new FindfriendVO();
-            //复制基础属性
-            BeanUtils.copyProperties(user,findfriendVO);
 
-            //找对应用户的评论总数和朋友总数
-            if(user.getFriends()!= null) {
-                int friendNumber = user.getFriends().split(", ").length;
-                findfriendVO.setFriendNumbers(friendNumber);
-            }
+        List<FindfriendVO> findFriendVOS = users.getResult().stream()
+                .map(user -> {
+                    FindfriendVO vo = new FindfriendVO();
+                    BeanUtils.copyProperties(user, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
 
-            //找到评价数量
-            int reviewCount=reviewMapper.getReviewCount(user.getUid());
-            findfriendVO.setReviewCount(reviewCount);
-            findFriendVOS.add(findfriendVO);
-
-
-        }
-        PageHelper.startPage(findFriendDTO.getPageNum(),findFriendDTO.getPageSize());
-        return new PageResult(users.getTotal(),findFriendVOS);
+        return new PageResult(users.getTotal(), findFriendVOS);
     }
+
 
 
     /**

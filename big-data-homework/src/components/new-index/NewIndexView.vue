@@ -195,208 +195,268 @@
         </div>
       </template>
     </el-dialog>
-    <div class="nav">
-      <div class="nav-1">
-        <router-link to="/" class="logo">
-          <el-icon size="40" color="#1890ff">
-            <ShoppingCart />
-          </el-icon>
-        </router-link>
-        <div class="input-box">
-          <div class="input">
-            <el-input
-              v-model="info"
-              placeholder="找找你喜欢的商户"
-              @click="
-                display = !display;
-                getHotSearchTop10();
-              "
-            ></el-input>
-            <el-card style="max-width: 400px" v-show="display">
-              <template #header>
-                <div class="card-header">
-                  <span>猜你想搜</span>
-                </div>
-              </template>
-              <p
-                v-for="(item, index) in hotSearchRank"
-                :key="index"
-                class="text item"
-                @click="searchTop10ToSearch(item)"
-              >
-                {{ index + 1 + " " + item.searchContent }}
-              </p>
-            </el-card>
-          </div>
-          <div @click="openUpload" class="camera">
-            <el-icon size="30px" color="white">
-              <Camera />
-            </el-icon>
-          </div>
-          <div @click="reload()" class="search">
-            <el-icon size="30px" color="white">
-              <Search />
-            </el-icon>
-          </div>
-        </div>
-        <div class="item">
-          <router-link
-            to="/adminPage"
-            v-if="userType == 'admin'"
-            style="margin-right: 50px"
-          >
-            <el-icon color="blue" size="25" class="boss">
-              <Avatar />
+
+    <div class="modern-nav">
+      <div class="nav-container">
+        <div class="nav-content">
+          <!-- Logo 区域 -->
+          <router-link to="/" class="logo">
+            <el-icon size="40" color="#1890ff">
+              <ShoppingCart />
             </el-icon>
           </router-link>
-          <router-link
-            to="/boss"
-            v-if="userType == 'boss'"
-            style="margin-right: 50px"
-          >
-            <el-icon color="blue" size="25" class="boss">
-              <Shop />
-            </el-icon>
-          </router-link>
-          <div
-            v-if="userType != 'admin'"
-            class="apply item-style"
-            @click="merchantVisible = true"
-          >
-            <span>Apply for Business</span>
-          </div>
-          <template v-if="token">
-            <div style="display: flex">
-              <div class="notifications item-style2" @click="switchExpand">
-                <div
-                  class="notifications-container"
-                  @click.stop
-                  v-show="isExpanded"
-                >
-                  <div
-                    class="notification-box"
-                    v-for="(info, index) in applyInfo"
-                    :key="index"
-                  >
-                    <div class="row1">
-                      <span style="font-size: 20px">{{ info.name }}</span>
-                      <span style="color: #6e7072">{{
-                        formatDateTime(info.time)
-                      }}</span>
+
+          <!-- 搜索区域 -->
+          <div class="search-area">
+            <div class="input-box">
+              <div class="input-wrapper">
+                <el-input
+                  v-model="info"
+                  placeholder="搜索商户、服务或商品..."
+                  @click="
+                    display = !display;
+                    getHotSearchTop10();
+                  "
+                  class="search-input"
+                ></el-input>
+                <!-- <el-card class="hot-search-card" v-show="display">
+                  <template #header>
+                    <div class="card-header">
+                      <span>热门搜索</span>
                     </div>
-                    <span class="row1.5">{{ info.reason }}</span>
-                    <div class="row2">
-                      <el-icon
-                        @click="agree(info.applicantId)"
-                        style="cursor: pointer"
-                        size="20"
-                        color="green"
-                        ><Select
-                      /></el-icon>
-                      <el-icon
-                        @click="disagree(info.applicantId)"
-                        style="cursor: pointer"
-                        size="20"
-                        color="#E00707"
-                        ><CloseBold
-                      /></el-icon>
+                  </template>
+                  <p
+                    v-for="(item, index) in hotSearchRank"
+                    :key="index"
+                    class="text item"
+                    @click="searchTop10ToSearch(item)"
+                  >
+                    {{ index + 1 + ". " + item.searchContent }}
+                  </p>
+                </el-card> -->
+              </div>
+              <div @click="openUpload" class="action-button camera-button">
+                <el-icon size="20px" color="#ffffff">
+                  <Camera />
+                </el-icon>
+              </div>
+              <div @click="reload()" class="action-button search-button">
+                <el-icon size="20px" color="#ffffff">
+                  <Search />
+                </el-icon>
+              </div>
+            </div>
+          </div>
+
+          <!-- 用户操作区域 -->
+          <div class="user-actions">
+            <template v-if="token">
+              <!-- 商家/管理员入口 -->
+              <router-link
+                to="/adminPage"
+                v-if="userType == 'admin'"
+                class="admin-link"
+              >
+                <el-icon color="#1890ff" size="24">
+                  <Avatar />
+                </el-icon>
+                <span class="link-text">管理后台</span>
+              </router-link>
+
+              <router-link
+                to="/boss"
+                v-if="userType == 'boss'"
+                class="boss-link"
+              >
+                <el-icon color="#1890ff" size="24">
+                  <Shop />
+                </el-icon>
+                <span class="link-text">商家中心</span>
+              </router-link>
+
+              <!-- 商家申请 -->
+              <div
+                v-if="userType != 'admin'"
+                class="apply-business"
+                @click="merchantVisible = true"
+              >
+                <el-icon color="#1890ff" size="20">
+                  <Shop />
+                </el-icon>
+                <span class="apply-text">申请成为商家</span>
+              </div>
+
+              <!-- 通知区域 -->
+              <div class="notifications-wrapper">
+                <div class="notifications item-style2" @click="switchExpand">
+                  <div
+                    class="notifications-container"
+                    @click.stop
+                    v-show="isExpanded"
+                  >
+                    <div class="notifications-header">
+                      <h3>好友申请</h3>
+                      <span class="notification-count" v-if="notifications > 0"
+                        >{{ notifications }}个未读</span
+                      >
+                    </div>
+                    <div class="notifications-list">
+                      <div
+                        class="notification-box"
+                        v-for="(info, index) in applyInfo"
+                        :key="index"
+                      >
+                        <div class="notification-avatar">
+                          <div class="avatar-placeholder">
+                            {{ getInitials(info.name) }}
+                          </div>
+                        </div>
+                        <div class="notification-content">
+                          <div class="notification-header">
+                            <span class="user-name">{{ info.name }}</span>
+                            <span class="notification-time">{{
+                              formatDateTime(info.time)
+                            }}</span>
+                          </div>
+                          <div class="notification-message">
+                            {{ info.reason }}
+                          </div>
+                          <div class="notification-actions">
+                            <el-button
+                              size="small"
+                              type="success"
+                              @click="agree(info.applicantId)"
+                              round
+                            >
+                              <el-icon><Check /></el-icon> 接受
+                            </el-button>
+                            <el-button
+                              size="small"
+                              type="danger"
+                              @click="disagree(info.applicantId)"
+                              round
+                            >
+                              <el-icon><Close /></el-icon> 拒绝
+                            </el-button>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="no-notifications"
+                        v-if="applyInfo.length === 0"
+                      >
+                        <el-icon><Bell /></el-icon>
+                        <p>暂无好友申请</p>
+                      </div>
                     </div>
                   </div>
+                  <el-badge
+                    :show-zero="false"
+                    :value="notifications"
+                    class="badge-item"
+                  >
+                    <el-icon size="24px" color="#1890ff">
+                      <BellFilled />
+                    </el-icon>
+                  </el-badge>
                 </div>
-                <el-badge :show-zero="false" :value="notifications">
-                  <el-icon size="24px" color="black">
-                    <Bell />
-                  </el-icon>
-                </el-badge>
               </div>
-              <div
-                class="avatar"
-                style="margin-left: 15px"
-                @click.stop="select"
-              >
-                <!-- 替换 el-avatar 为文字头像 -->
+
+              <!-- 用户头像菜单 -->
+              <div class="avatar-menu" @click.stop="select">
                 <div class="avatar-text" v-if="authStore.userName">
                   {{ getInitials(authStore.userName) }}
                 </div>
                 <div class="avatar-text" v-else>?</div>
                 <div
-                  class="avatar-select"
+                  class="avatar-dropdown"
                   v-show="isSelected == true"
                   ref="selectRef"
                 >
-                  <div class="select-box">
+                  <div class="dropdown-content">
                     <router-link
-                      class="container-box"
+                      class="dropdown-item"
                       to="/profile"
                       @click="jumpFirst"
                     >
-                      <el-icon size="24"> <User /> </el-icon>&nbsp;&nbsp;About
-                      Me
+                      <el-icon size="20"> <User /> </el-icon>
+                      <span>个人资料</span>
                     </router-link>
                     <router-link
                       to="/profile/collections"
-                      class="container-box"
+                      class="dropdown-item"
                     >
-                      <el-icon size="24"> <CollectionTag /> </el-icon
-                      >&nbsp;&nbsp;My Collections
+                      <el-icon size="20"> <CollectionTag /> </el-icon>
+                      <span>我的收藏</span>
                     </router-link>
-                    <router-link to="/findFriends" class="container-box">
-                      <el-icon size="24"> <Plus /> </el-icon>&nbsp;&nbsp;Find
-                      Friends
+                    <router-link to="/findFriends" class="dropdown-item">
+                      <el-icon size="20"> <UserFilled /> </el-icon>
+                      <span>查找好友</span>
                     </router-link>
-                    <div class="container-box" @click="logout">
-                      <el-icon size="24"> <SwitchButton /> </el-icon
-                      >&nbsp;&nbsp;Log Out
+                    <div class="dropdown-item" @click="logout">
+                      <el-icon size="20"> <SwitchButton /> </el-icon>
+                      <span>退出登录</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </template>
-          <template v-else>
-            <div class="login" @click="writeBack">Log In</div>
-            <div class="signup" @click="signUpVisible = true">Sign Up</div>
-          </template>
+            </template>
+
+            <!-- 未登录状态 -->
+            <template v-else>
+              <div class="auth-buttons">
+                <div class="login-button" @click="writeBack">
+                  <el-icon><User /></el-icon>
+                  <span>登录</span>
+                </div>
+                <div class="signup-button" @click="signUpVisible = true">
+                  <el-icon><EditPen /></el-icon>
+                  <span>注册</span>
+                </div>
+              </div>
+            </template>
+          </div>
         </div>
       </div>
-      <div class="nav-2"></div>
 
-      <!-- Upload Dialog -->
-      <el-dialog v-model="uploadVisible" title="上传图片" width="640">
-        <div class="upload-body">
-          <input type="file" accept="image/*" @change="onFileChange" />
-          <div class="preview" v-if="previewUrl">
-            <img :src="previewUrl" alt="preview" />
-          </div>
+      <div class="nav-divider"></div>
+    </div>
+
+    <!-- Upload Dialog -->
+    <el-dialog v-model="uploadVisible" title="上传图片" width="640">
+      <div class="upload-body">
+        <input type="file" accept="image/*" @change="onFileChange" />
+        <div class="preview" v-if="previewUrl">
+          <img :src="previewUrl" alt="preview" />
         </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="uploadVisible = false">取消</el-button>
-            <el-button type="primary" color="#E00707" @click="submitUpload"
-              >上传</el-button
-            >
-          </div>
-        </template>
-      </el-dialog>
-      <!-- Background Image Description -->
-      <div
-        class="background-description"
-        v-show="showBackgroundDescription && top5Businesses[imageIndex]"
-      >
-        <div class="desc-text">{{ top5Businesses[imageIndex]?.name }}</div>
-        <div class="desc-subtext">
-          {{ top5Businesses[imageIndex]?.categories }}
-        </div>
-        <div class="desc-actions">
-          <el-button
-            class="detail-btn"
-            type="primary"
-            @click="goToBusinessDetails"
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="uploadVisible = false">取消</el-button>
+          <el-button type="primary" color="#E00707" @click="submitUpload"
+            >上传</el-button
           >
-            <el-icon><Search /></el-icon>
-            查看详情
-          </el-button>
         </div>
+      </template>
+    </el-dialog>
+    <!-- Background Image Description -->
+    <div
+      class="background-description"
+      v-show="showBackgroundDescription && top5Businesses[imageIndex]"
+    >
+      <div class="desc-text">{{ top5Businesses[imageIndex]?.name }}</div>
+      <div class="desc-subtext">
+        {{ top5Businesses[imageIndex]?.categories }}
+      </div>
+      <div class="desc-actions">
+        <el-button
+          class="detail-btn"
+          type="primary"
+          @click="goToBusinessDetails"
+        >
+          <el-icon><Search /></el-icon>
+          查看详情
+        </el-button>
       </div>
     </div>
   </div>
@@ -427,7 +487,7 @@ import { UseSearchStore } from "@/stores/UseSearchStore";
 import { useAddFriends } from "@/hooks/UseAddFriends";
 
 // 导入购物车图标
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart } from "@element-plus/icons-vue";
 
 // build full image URL safely; accepts remote URLs or stored filenames
 const filePath = (file: any) => {
@@ -542,9 +602,12 @@ let backgroundImage = ref([
 ]);
 let imageIndex = ref(0);
 let imageUrl = ref(backgroundImage.value[imageIndex.value].url);
+// 修改 view 的初始化逻辑
+
+
 let view = ref({
   "background-image": `url(${imageUrl.value})`,
-  height: 800 + "px",
+  height: props.compactMode ? "auto" : "800px",
   "background-repeat": "no-repeat",
   "background-size": "cover",
   "background-position": "30% 25%",
@@ -669,6 +732,7 @@ function getInitials(name: string) {
 function openUpload() {
   uploadVisible.value = true;
 }
+
 function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files && input.files[0];
@@ -677,62 +741,256 @@ function onFileChange(e: Event) {
     previewUrl.value = URL.createObjectURL(file);
   } else {
     uploadFile.value = null;
-    previewUrl.value = '';
+    previewUrl.value = "";
   }
+}
 
-  function onFileChange(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const file = input.files && input.files[0];
-    if (file) {
-      uploadFile.value = file;
-      previewUrl.value = URL.createObjectURL(file);
-    } else {
-      uploadFile.value = null;
-      previewUrl.value = "";
-    }
+async function submitUpload() {
+  if (!uploadFile.value) {
+    ElMessage({ message: "请选择图片后再上传", type: "warning" });
+    return;
   }
+  const formData = new FormData();
+  formData.append("file", uploadFile.value);
+  try {
+    const resp = await axios.post("http://localhost:3000/photos", formData);
 
-  async function submitUpload() {
-    if (!uploadFile.value) {
-      ElMessage({ message: "请选择图片后再上传", type: "warning" });
-      return;
-    }
-    const formData = new FormData();
-    formData.append("file", uploadFile.value);
-    try {
-      const resp = await axios.post("http://localhost:3000/photos", formData);
-
-      ElMessage({ message: "上传成功", type: "success" });
-      uploadVisible.value = false;
-      // 清理
-      uploadFile.value = null;
-      previewUrl.value = "";
-    } catch (err) {
-      console.error(err);
-      ElMessage({ message: "上传失败", type: "error" });
-    }
+    ElMessage({ message: "上传成功", type: "success" });
+    uploadVisible.value = false;
+    // 清理
+    uploadFile.value = null;
+    previewUrl.value = "";
+  } catch (err) {
+    console.error(err);
+    ElMessage({ message: "上传失败", type: "error" });
   }
 }
 </script>
 
 <style scoped>
-/* 添加新的头像样式 */
+/* 导航栏整体样式 */
+.modern-nav {
+  background: transparent; /* 将背景色设置为透明 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+
+.nav-container {
+  padding: 0 40px;
+}
+
+.nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 关键：均匀分布元素 */
+  height: 70px;
+  gap: 30px;
+  padding: 0 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 10px;
+  flex-shrink: 0; /* 防止logo被压缩 */
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1890ff;
+  letter-spacing: -0.5px;
+}
+
+/* 搜索区域 */
+.search-area {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  height: 48px;
+}
+
+.input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-input {
+  height: 48px;
+}
+.search-area {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 auto; /* 居中显示 */
+}
+
+.search-input :deep(.el-input__wrapper) {
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+  border-radius: 24px 0 0 24px;
+  border: 1px solid #e8e8e8;
+  background-color: #ffffff;
+  height: 44px;
+}
+
+.search-input :deep(.el-input__inner) {
+  height: 46px;
+  border: none;
+  background: transparent;
+}
+
+.hot-search-card {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  z-index: 100;
+}
+
+.card-header {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.text.item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.text.item:hover {
+  background-color: #f0f8ff;
+}
+
+/* 操作按钮 */
+.action-button {
+  height: 48px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+}
+.camera-button {
+  background-color: #40a9ff;
+  box-shadow: 0 2px 8px rgba(64, 169, 255, 0.2);
+}
+
+.camera-button:hover {
+  background-color: #1890ff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.search-button {
+  background-color: #1890ff;
+  border-radius: 0 24px 24px 0;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.search-button:hover {
+  background-color: #40a9ff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* 确保按钮容器正确对齐 */
+.input-box {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  width: 100%;
+}
+
+/* 用户操作区域 */
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0; /* 防止被压缩 */
+}
+
+
+.admin-link,
+.boss-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1890ff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.admin-link:hover,
+.boss-link:hover {
+  background-color: #e6f7ff;
+}
+
+.apply-business {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1890ff;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #e6f7ff;
+  border: 1px solid #bae7ff;
+}
+
+.apply-business:hover {
+  background-color: #bae7ff;
+  transform: translateY(-2px);
+}
+
+/* 通知区域 */
+.notifications-wrapper {
+  position: relative;
+}
+
 .notifications {
   padding: 8px;
   cursor: pointer;
-  position: relative;
-  background-color: #e6f7ff; /* 添加浅蓝色背景 */
+  background-color: #e6f7ff;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 33px; /* 从44px减小到40px */
+  height: 33px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
 }
 
 .notifications:hover {
-  background-color: #bae7ff; /* 悬停时加深背景色 */
+  background-color: #bae7ff;
+  transform: translateY(-2px);
+}
+
+/* 头像菜单 */
+.avatar-menu {
+  position: relative;
+  cursor: pointer;
 }
 
 .avatar-text {
@@ -745,211 +1003,166 @@ function onFileChange(e: Event) {
   color: white;
   font-size: 18px;
   font-weight: bold;
-  background: linear-gradient(135deg, #1890ff, #40a9ff); /* 蓝色渐变背景 */
-  cursor: pointer;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
   border: 2px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.4); /* 添加蓝色阴影 */
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
   transition: all 0.3s ease;
 }
 
 .avatar-text:hover {
-  transform: scale(1.05); /* 悬停时轻微放大 */
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.6); /* 加深阴影 */
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
 }
 
-.mail-line {
-  display: flex;
-  justify-content: space-between;
-}
-
-.find {
-  cursor: pointer;
-  color: #6e7072;
-  font-size: 13px;
-}
-
-.avatar {
-  position: relative;
-}
-
-.el-avatar {
-  cursor: pointer;
-}
-
-.avatar-select {
-  display: flex;
+.avatar-dropdown {
   position: absolute;
-  width: 226px;
+  top: 50px;
+  right: 0;
+  width: 200px;
   background-color: white;
-  left: -390%;
-  border-radius: 5px;
-  z-index: 3;
-}
-
-.select-box {
-  display: flex;
-  flex-direction: column;
-  margin: 16px;
-  flex-grow: 1;
-  border-radius: 5px;
-}
-
-.container-box {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  height: 35px;
-  color: #2d2e2f;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.container-box:hover {
-  background-color: rgba(235, 235, 235, 1);
-}
-
-.nav {
-  padding: 36px 40px 0px 40px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(240, 248, 255, 0.4));
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin: 20px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
 }
 
-.nav-1 {
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-content {
+  padding: 8px 0;
+}
+
+.dropdown-item {
   display: flex;
-  height: 48px;
-  justify-content: space-between;
-  align-items: end;
-  padding: 16px 0;
-}
-
-.input-box {
-  height: 48px;
-  width: 51%;
-  display: flex;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2); /* 添加输入框阴影 */
-  border-radius: 4px;
-}
-
-.input {
-  height: 48px;
-  width: 93%;
-}
-
-.search {
-  height: 48px;
-  width: 7%;
-  background-color: #1890ff; /* 蓝色系 */
-  display: flex;
-  justify-content: center;
   align-items: center;
-  cursor: pointer;
-  border-radius: 0 4px 4px 0; /* 添加圆角 */
+  gap: 12px;
+  padding: 12px 20px;
+  color: #262626;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.item {
+.dropdown-item:hover {
+  background-color: #f0f8ff;
+}
+
+/* 登录注册按钮 */
+.auth-buttons {
   display: flex;
-  justify-content: end;
-  align-items: center;
-  height: 44px;
-  width: 27.3%;
-  color: #ffffff;
-  font-size: 14px;
-}
-
-.item-style:hover {
-  background-color: rgba(24, 144, 255, 0.2); /* 蓝色系透明背景 */
-  border-radius: 7px;
-}
-
-.item-style2:hover {
-  background-color: rgba(24, 144, 255, 0.2); /* 蓝色系透明背景 */
-  border-radius: 35px;
-}
-
-.apply {
-  margin: 0px 10px;
-  padding: 12px;
-  cursor: pointer;
-  color: #2d2e2f;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4));
-  border-radius: 4px;
-  /* border: 1px solid #91d5ff; 蓝色边框 */
-  transition: all 0.3s ease; /* 添加过渡动画 */
-}
-
-.apply:hover {
-  background-color: #bae7ff; /* 悬停时更深的蓝色 */
-  border-color: #1890ff;
-}
-
-.login {
-  height: 42px;
-  width: 16.4%;
-  border: 1px solid #1890ff; /* 蓝色边框 */
-  font-size: 16px !important;
-  font-weight: 540 !important;
-  text-align: center;
-  color: #1890ff; /* 蓝色文字 */
-  line-height: 37px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-right: 15px;
-  background-color: transparent; /* 透明背景 */
-  transition: all 0.3s ease; /* 添加过渡动画 */
-}
-
-.login:hover {
-  background-color: #1890ff; /* 悬停时蓝色背景 */
-  color: white; /* 悬停时白色文字 */
-}
-
-.signup {
-  height: 44px;
-  width: 19%;
-  font-size: 16px !important;
-  font-weight: 540 !important;
-  text-align: center;
-  color: #ffffff;
-  line-height: 37px;
-  background-color: #1890ff; /* 蓝色背景 */
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease; /* 添加过渡动画 */
-}
-
-.signup:hover {
-  background-color: #40a9ff; /* 悬停时更浅的蓝色 */
-  box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3); /* 添加阴影效果 */
-}
-
-.item {
-  color: #1890ff; /* 蓝色文字 */
-}
-
-.camera {
-  height: 48px;
-  width: 7%;
-  background-color: #40a9ff; /* 蓝色系 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  margin-left: 8px;
-  border-radius: 4px 0 0 4px; /* 添加圆角 */
-}
-
-.upload-body {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
 }
 
-.upload-body .preview img {
-  max-width: 100%;
-  max-height: 300px;
-  border-radius: 6px;
+.login-button,
+.signup-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.login-button {
+  color: #1890ff;
+  border: 1px solid #1890ff;
+  background-color: transparent;
+}
+
+.login-button:hover {
+  background-color: #1890ff;
+  color: white;
+}
+
+.signup-button {
+  color: white;
+  background-color: #1890ff;
+  border: 1px solid #1890ff;
+}
+
+.signup-button:hover {
+  background-color: #40a9ff;
+  transform: translateY(-2px);
+}
+
+/* 分割线 */
+.nav-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e8e8e8, transparent);
+  margin: 0 40px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .nav-content {
+    gap: 15px;
+  }
+
+  .search-area {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 992px) {
+  .nav-container {
+    padding: 0 20px;
+  }
+
+  .logo-text {
+    font-size: 20px;
+  }
+
+  .search-area {
+    max-width: 300px;
+  }
+
+  .admin-link span,
+  .boss-link span,
+  .apply-business span {
+    display: none;
+  }
+
+  .admin-link,
+  .boss-link,
+  .apply-business {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-content {
+    height: 60px;
+  }
+
+  .search-area {
+    display: none;
+  }
+
+  .user-actions {
+    gap: 10px;
+  }
+
+  .nav-divider {
+    margin: 0 20px;
+  }
+}
+
+.view {
+  width: 100vw;
+  min-height: 100vh; /* 保持这个设置 */
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+  padding-bottom: 40px;
+  height: auto !important; /* 覆盖js中设置的固定高度 */
 }
 
 .background-description {
@@ -986,55 +1199,155 @@ function onFileChange(e: Event) {
   margin-right: 8px;
 }
 
-.notifications-container {
+.upload-body {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.upload-body .preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+}
+
+/* 好友通知 */
+.notifications-container {
   position: absolute;
-  width: 300px;
-  height: 540px;
+  width: 320px; /* 从380px减小到320px */
   background-color: #ffffff;
-  left: -330px;
+  left: -270px; /* 调整位置 */
   top: 50px;
-  border-radius: 12px; /* 增加圆角 */
-  background-size: contain;
-  background-repeat: no-repeat;
-  overflow: auto;
-  padding: 30px;
+  border-radius: 12px;
+  overflow: hidden;
   cursor: auto;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* 添加更明显的阴影 */
-  border: 1px solid #e8e8e8; /* 添加边框 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e8e8e8;
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notifications-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notifications-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notification-count {
+  background-color: #ff4d4f;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.notifications-list {
+  max-height: 300px; /* 减小高度 */
+  overflow-y: auto;
 }
 
 .notification-box {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  margin-bottom: 35px;
-  color: #2d2e2f;
-  border-bottom: 1px solid rgba(235, 235, 235, 1);
-  padding-bottom: 15px;
-  transition: all 0.3s ease; /* 添加过渡效果 */
+  padding: 12px 16px; /* 减小内边距 */
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
-
 .notification-box:hover {
-  background-color: #f0f8ff; /* 悬停时添加浅蓝背景 */
-  border-radius: 8px;
-  padding: 10px;
+  background-color: #f0f8ff;
 }
 
-.logo {
+.notification-avatar {
+  margin-right: 12px;
+}
+
+.avatar-placeholder {
+  width: 40px;
   height: 40px;
-  width: 4.5%;
-  background-size: contain;
-  background-repeat: no-repeat;
-  cursor: pointer;
-  transition: transform 0.3s ease;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
 }
 
-.logo:hover {
-  transform: scale(1.05);
+.notification-content {
+  flex: 1;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #262626;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.notification-message {
+  font-size: 13px; /* 减小字体 */
+  color: #595959;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 40px 20px;
+  color: #bfbfbf;
+}
+
+.no-notifications .el-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.badge-item :deep(.el-badge__content) {
+  background-color: #ff4d4f;
+  border: none;
+}
+
+.mail-line {
+  display: flex;
+  justify-content: space-between;
+}
+
+.find {
+  cursor: pointer;
+  color: #6e7072;
+  font-size: 13px;
 }
 </style>

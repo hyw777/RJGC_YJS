@@ -46,19 +46,39 @@
     </update>
 
     <select id="findFriend" resultType="com.sgrej.domain.pojo.User">
-        select uid,user_id,name,password,email,gender,age,city,review_count,cool,useful,elite,yelping_since,funny,friends from user
+        SELECT
+        uid,
+        user_id AS userId,
+        name,
+        password,
+        email,
+        gender,
+        age,
+        city,
+        review_count AS reviewCount,
+        cool,
+        useful,
+        elite,
+        yelping_since AS yelpingSince,
+        funny,
+        friends,
+        CASE
+        WHEN friends IS NOT NULL THEN CHAR_LENGTH(friends) - CHAR_LENGTH(REPLACE(friends, ',', '')) + 1
+        ELSE 0
+        END AS friendNumbers
+        FROM user
         <where>
             <if test="userName != null and userName.trim() != '' ">
-             and name like concat('%',#{userName},'%')
+                AND name LIKE CONCAT('%', #{userName}, '%')
             </if>
             <if test="email != null and email.trim() != ''">
-            and  email = #{email}
+                AND email = #{email}
             </if>
             <if test="(email == null || email.trim() == '') and (userName == null || userName.trim() == '') ">
-            and user_id > 0 and user_id &lt; 2000000
+                AND user_id > 0 AND user_id &lt; 2000000
             </if>
         </where>
-        order by yelping_since desc
+        ORDER BY yelping_since DESC
     </select>
 
     <select id="findFriend2" resultType="com.sgrej.domain.pojo.User">

@@ -1,6 +1,6 @@
 import {ref} from "vue";
 import axios from "axios";
-
+import { ElMessage } from "element-plus";
 export function useAddFriends() {
     let notifications = ref(0)
     let isExpanded = ref(false)

@@ -1,282 +1,763 @@
 <template>
-  <div class="all">
-    <div class="search-box">
-      <input
-        type="text"
-        class="search-input"
-        placeholder="search with email or name..."
-        @keyup.enter="search"
-        v-model="input"
-      />
-      <button class="search-button" @click="search">
-        <el-icon size="20px"><Search /></el-icon>
-      </button>
+  <div class="user-management">
+    <!-- 搜索区域 -->
+    <div class="search-section">
+      <div class="search-wrapper">
+        <el-input
+          v-model="input"
+          placeholder="Search with email or name..."
+          class="search-input"
+          clearable
+          @keyup.enter="handleSearch"
+        >
+          <template #append>
+            <el-button :icon="Search" @click="handleSearch" />
+          </template>
+        </el-input>
+      </div>
     </div>
 
-    <!--  用户数据展示框-->
-    <div class="item">
-      <div class="page-data">
-        <div
-          class="each-data"
-          v-for="(user, index) in pageResult.records"
-          :key="index" >
-          <img
-            src="https://img2.baidu.com/it/u=660058380,2227239641&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=716"
-            style="width: 90px; height: 90px"
-          />
-          <p class="name">{{ user.name }}</p>
-          <div class="city">{{ user.city }}</div>
-          <div class="friends">
-            <el-icon color="#f37325"><User /></el-icon>
-            <div class="number">{{ user.friendNumbers }}</div>
-            <div class="detail">friends</div>
-          </div>
-          <div class="reviews">
-            <el-icon color="#f37325"><Star /></el-icon>
-            <div class="number">{{ user.friendNumbers }}</div>
-            <div class="detail">reviews</div>
-          </div>
-          <el-icon
-            class="view"
-            size="25px"
-            color="grey"
-            @click="seeStatus(user.userId)"
-            ><Tools
-          /></el-icon>
-        </div>
-        <div v-if="display" class="seeBox">
-          <div v-if="status == 0">
-            The user is normal now
-            <button class="back-botton" @click="display = !display">
-              <el-icon><Back /></el-icon>
-            </button>
-            <button class="cz-button" @click="changeUserStatus(userId, 1)">
-              <el-icon><Lock /></el-icon>
-            </button>
-          </div>
-          <div v-if="status == 1">
-            This user is block now
-            <button class="back-botton" @click="display = !display">
-              <el-icon><Back /></el-icon>
-            </button>
-            <button class="cz-button" @click="changeUserStatus(userId, 0)">
-              <el-icon><Key /></el-icon>
-            </button>
+    <!-- 用户统计 (只保留总数) -->
+    <div class="stats-section" v-if="pageResult.total > 0">
+      <el-card class="stat-card">
+        <div class="stat-item">
+          <el-icon size="24" color="#409EFF"><User /></el-icon>
+          <div>
+            <div class="stat-number">{{ pageResult.total }}</div>
+            <div class="stat-label">Total Users</div>
           </div>
         </div>
-        <div class="pageBottom">
+      </el-card>
+    </div>
+
+    <!-- 加载指示器 -->
+    <div class="loading-container" v-if="loading">
+      <el-skeleton animated>
+        <template #template>
+          <div class="skeleton-grid">
+            <div v-for="i in 6" :key="i" class="skeleton-item">
+              <el-skeleton-item variant="circle" class="skeleton-avatar" />
+              <div class="skeleton-content">
+                <el-skeleton-item variant="text" class="skeleton-line short" />
+                <el-skeleton-item variant="text" class="skeleton-line" />
+                <div class="skeleton-stats">
+                  <el-skeleton-item variant="text" class="skeleton-stat" />
+                  <el-skeleton-item variant="text" class="skeleton-stat" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </el-skeleton>
+    </div>
+
+    <!-- 用户列表 -->
+    <div v-else class="users-section">
+      <el-empty description="No users found" v-if="pageResult.total === 0" />
+
+      <div v-else>
+        <el-scrollbar
+          ref="scrollbarRef"
+          class="users-scrollbar"
+          @scroll="handleScroll"
+        >
+          <div class="users-grid">
+            <div
+              v-for="(user, index) in visibleUsers"
+              :key="user.userId"
+              class="user-card"
+              :class="{ blocked: user.status === 1 }"
+            >
+              <div class="user-header">
+                <div
+                  class="avatar-placeholder"
+                  :style="getAvatarStyle(user.name)"
+                >
+                  <span class="avatar-text">{{ getInitials(user.name) }}</span>
+                </div>
+                <div
+                  class="user-status-badge"
+                  :class="getStatusClass(user.status)"
+                >
+                  {{ getStatusText(user.status) }}
+                </div>
+              </div>
+
+              <div class="user-info">
+                <h3 class="user-name">{{ user.name }}</h3>
+                <p class="user-email">{{ user.email }}</p>
+                <p class="user-city" v-if="user.city">
+                  <el-icon><Location /></el-icon>
+                  {{ user.city }}
+                </p>
+              </div>
+
+              <div class="user-stats">
+                <div class="stat-item">
+                  <el-icon color="#409eff"><User /></el-icon>
+                  <div>
+                    <div class="stat-value">{{ user.friendNumbers || 0 }}</div>
+                    <div class="stat-label">Friends</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <el-icon color="#f37325"><Star /></el-icon>
+                  <div>
+                    <div class="stat-value">{{ user.reviewNumbers || 0 }}</div>
+                    <div class="stat-label">Reviews</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="user-actions">
+                <el-button
+                  size="small"
+                  @click="seeStatus(user.userId)"
+                  :icon="Tools"
+                >
+                  Manage
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </el-scrollbar>
+
+        <!-- 分页 -->
+        <div class="pagination-wrapper">
           <el-pagination
             background
-            v-model:current-page="findFriendDTO.pageNum"
-            layout="prev, pager, next"
-            :page-count="Math.ceil(pageResult.total / findFriendDTO.pageSize)"
-            @current-change="search"
-            style="margin-left: 333px;margin-top: 40px;"
+            :current-page="findFriendDTO.pageNum"
+            layout="prev, pager, next, jumper, ->, total"
+            :total="pageResult.total"
+            :page-size="findFriendDTO.pageSize"
+            @current-change="handlePageChange"
           />
         </div>
       </div>
     </div>
+
+    <!-- 状态管理对话框 -->
+    <el-dialog
+      v-model="display"
+      title="User Status Management"
+      width="400px"
+      center
+    >
+      <div class="status-dialog-content">
+        <div v-if="status === 0" class="status-normal">
+          <el-icon size="48" color="#67C23A"><CircleCheck /></el-icon>
+          <h3>User is currently active</h3>
+          <p>This user can access all system features</p>
+        </div>
+        <div v-else-if="status === 1" class="status-blocked">
+          <el-icon size="48" color="#F56C6C"><CircleClose /></el-icon>
+          <h3>User is currently blocked</h3>
+          <p>This user cannot access system features</p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="display = false">Cancel</el-button>
+          <el-button
+            v-if="status === 0"
+            type="danger"
+            @click="changeUserStatus(userId, 1)"
+          >
+            Block User
+          </el-button>
+          <el-button v-else type="success" @click="changeUserStatus(userId, 0)">
+            Unblock User
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
+
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import axios from "axios";
+import { ElMessage } from "element-plus";
+import {
+  Search,
+  User,
+  Star,
+  Tools,
+  CircleCheck,
+  CircleClose,
+  Location,
+  Loading,
+  Back,
+  Lock,
+  Unlock,
+} from "@element-plus/icons-vue";
+
 onMounted(() => {
-  search();
+  handleSearch();
 });
 
-//   数据定义在这里
-let input = ref("");
-let pageResult = ref([]);
+// 数据状态
+const loading = ref(false);
+const input = ref("");
+const pageResult = ref({
+  records: [],
+  total: 0,
+});
+// 修改分页参数
 const findFriendDTO = ref({
-  pageSize: 12,
+  pageSize: 10, // 设置为10，与显示数量一致
   pageNum: 1,
   email: "",
   userName: "",
 });
-let status = ref(-1);
-let userId = ref(0);
-let display = ref(false);
-// 当前页的数据
-const search = () => {
-  if (input.value.includes("@qq.com")) {
+
+const status = ref(-1);
+const userId = ref(0);
+const display = ref(false);
+
+// 虚拟滚动相关
+const visibleUsers = ref([]);
+const loadedCount = ref(0);
+const batchSize = 10;
+const hasMore = ref(true);
+const scrollbarRef = ref();
+
+// 计算属性
+const normalUsersCount = computed(() => {
+  return pageResult.value.records.filter((user) => user.status === 0).length;
+});
+
+const blockedUsersCount = computed(() => {
+  return pageResult.value.records.filter((user) => user.status === 1).length;
+});
+
+// 获取用户首字母
+const getInitials = (name) => {
+  if (!name) return "?";
+  return name.charAt(0).toUpperCase();
+};
+
+// 获取头像背景色
+const getAvatarStyle = (name) => {
+  if (!name) return { backgroundColor: "#409eff" };
+
+  const colors = [
+    "#409eff",
+    "#67c23a",
+    "#e6a23c",
+    "#f56c6c",
+    "#909399",
+    "#00c1d4",
+    "#722ed1",
+    "#52c41a",
+    "#fa8c16",
+    "#eb2f96",
+  ];
+
+  const charCode = name.charCodeAt(0);
+  const colorIndex = charCode % colors.length;
+
+  return {
+    backgroundColor: colors[colorIndex],
+  };
+};
+
+// 获取用户状态文本
+const getStatusText = (status) => {
+  return status === 1 ? "Blocked" : "Active";
+};
+
+// 获取用户状态样式类
+const getStatusClass = (status) => {
+  return status === 1 ? "blocked" : "active";
+};
+
+// 搜索处理
+const handleSearch = () => {
+  if (input.value.includes("@")) {
     findFriendDTO.value.email = input.value;
     findFriendDTO.value.userName = "";
   } else {
     findFriendDTO.value.userName = input.value;
     findFriendDTO.value.email = "";
   }
-  axios
-    .post("/api/friend/find", findFriendDTO.value)
-    .then((response) => {
-      pageResult.value = response.data.data;
-      console.log(pageResult.value);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+
+  findFriendDTO.value.pageNum = 1;
+  fetchUsers();
 };
 
-const seeStatus = (id) => {
-  axios
-    .get(`/api/userManage/getStatus/${id}`)
-    .then((response) => {
-      status.value = response.data.data;
-      display.value = true;
-      userId.value = id;
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+// 分页处理
+const handlePageChange = (pageNum) => {
+  console.log("Page changed to:", pageNum); // 添加调试日志
+  findFriendDTO.value.pageNum = pageNum;
+  fetchUsers();
 };
 
-const changeUserStatus = (userId, num) => {
-  console.log(userId);
-  axios
-    .put(`/api/userManage/changeStatus`, {
-      userId: userId,
-      status: num,
-    })
-    .then((response) => {
-      display.value = !display.value;
-    })
-    .catch((error) => {
-      console.log(error);
+// 获取用户数据
+// 在 fetchUsers 方法中添加缓存机制
+const userCache = new Map(); // 添加缓存
+
+// 修改 fetchUsers 函数，移除缓存逻辑
+const fetchUsers = async () => {
+  loading.value = true;
+  
+  try {
+    const response = await axios.post(
+      "/api/userManage/getInfo",
+      findFriendDTO.value
+    );
+    pageResult.value = response.data.data;
+
+    // 重置虚拟滚动状态
+    visibleUsers.value = [];
+    loadedCount.value = 0;
+    hasMore.value = true;
+
+    // 加载第一批数据
+    loadBatch();
+
+    nextTick(() => {
+      if (scrollbarRef.value) {
+        scrollbarRef.value.setScrollTop(0);
+      }
     });
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 批量加载用户
+// 优化批量加载逻辑
+const loadBatch = () => {
+  const start = loadedCount.value;
+  const end = Math.min(start + batchSize, pageResult.value.records.length);
+
+  if (start < end) {
+    // 使用数组展开而非多次 push
+    visibleUsers.value = [
+      ...visibleUsers.value,
+      ...pageResult.value.records.slice(start, end),
+    ];
+    loadedCount.value = end;
+    hasMore.value = end < pageResult.value.records.length;
+  } else {
+    hasMore.value = false;
+  }
+};
+
+// 查看用户状态
+const seeStatus = async (id) => {
+  try {
+    const response = await axios.get(`/api/userManage/getStatus/${id}`);
+    status.value = response.data.data;
+    userId.value = id;
+    display.value = true;
+  } catch (error) {
+    console.error("Failed to get user status:", error);
+  }
+};
+
+// 更改用户状态
+const changeUserStatus = async (targetUserId, newStatus) => {
+  try {
+    await axios.put(`/api/userManage/changeStatus`, {
+      userId: targetUserId,
+      status: newStatus,
+    });
+
+    // 更新本地状态
+    status.value = newStatus;
+
+    // 更新用户列表中的状态
+    const userIndex = pageResult.value.records.findIndex(
+      (u) => u.userId === targetUserId
+    );
+    if (userIndex !== -1) {
+      // 创建新的记录数组以触发响应式更新
+      const updatedRecords = [...pageResult.value.records];
+      updatedRecords[userIndex] = {
+        ...updatedRecords[userIndex],
+        status: newStatus,
+      };
+      pageResult.value.records = updatedRecords;
+    }
+
+    // 同样更新 visibleUsers 中的状态
+    const visibleUserIndex = visibleUsers.value.findIndex(
+      (u) => u.userId === targetUserId
+    );
+    if (visibleUserIndex !== -1) {
+      visibleUsers.value[visibleUserIndex].status = newStatus;
+    }
+
+    display.value = false;
+
+    ElMessage.success(
+      newStatus === 0
+        ? "User has been unblocked successfully"
+        : "User has been blocked successfully"
+    );
+  } catch (error) {
+    console.error("Failed to change user status:", error);
+    ElMessage.error("Failed to update user status");
+  }
 };
 </script>
 
 <style scoped>
+.user-management {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
 
-.search-box {
-  margin-top: 1%;
-  width: 400px;
-  height: 50px;
-  margin-left: 33%;
-  position: absolute;
-  background-color: #ffffff;
+/* 搜索区域 */
+.search-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
 }
-.search-input {
-  width: 330px;
-  height: 40px;
+
+.search-wrapper {
+  width: 100%;
+  max-width: 500px;
 }
-.search-button {
-  border: none;
+
+.search-input :deep(.el-input-group__append) {
+  background-color: #409eff;
+  border-color: #409eff;
+  color: white;
+}
+
+.search-input :deep(.el-button) {
+  color: white;
+}
+
+/* 统计区域 */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #909399;
+}
+
+/* 加载容器 */
+.loading-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.skeleton-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.skeleton-avatar {
   width: 60px;
-  height: 40px;
-  background-color: white;
+  height: 60px;
+  border-radius: 50%;
 }
-.item {
-  /* 去掉margin-left，因为我们要使用left属性进行定位 */
-  width: 175vh;
-  height: 470px;
-  position: relative; /* 如果.item不是直接子元素，可以使用absolute或fixed */
-  /* 使用top属性将.item放在.search-box下方 */
-  top: 100px; /* 因为.search-box的高度是50px，所以这里也设置为50px */
-  /* 如果你希望.item有水平偏移，可以添加left属性 */
-  left: 0; /* 与.search-box的margin-left相同，以保持水平对齐 */
-  /* 如果需要，可以添加margin-left或transform来调整水平位置 */
-  margin-left: 3%; /* 去掉之前的margin-left */
-  /* 注意：如果.item是.search-box的直接子元素，则position应该为absolute */
- 
-}
-.page-data {
-  display: flex;
-  width: 100%;
-  flex-wrap: wrap; /* 允许容器内的项目换行 */
-  gap: 10px;
 
+.skeleton-content {
+  flex: 1;
 }
-.each-data {
-  margin-right: 60px;
-  width: 300px;
-  height: 90px;
+
+.skeleton-line {
+  width: 100%;
+  height: 16px;
+  margin-bottom: 10px;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-stats {
   display: flex;
-  margin-bottom: 15px;
-  border-top: 2px solid rgba(198, 193, 193, 0.18);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.skeleton-stat {
+  width: 80px;
+  height: 14px;
+}
+
+/* 用户列表区域 */
+.users-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.users-scrollbar {
+  height: calc(100vh - 300px);
+}
+
+.users-grid {
+  display: grid;
+  /* 修改网格列数，使卡片更小 */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  padding: 10px;
+}
+
+.user-card {
+  border: 1px solid #ebeef5;
+  border-radius: 10px;
+  padding: 15px;
+  transition: all 0.3s ease;
   position: relative;
+  background: white;
+  /* 限制卡片最大高度 */
+  max-height: 220px;
 }
 
-.name {
+.user-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  border-color: #409eff;
+}
+
+.user-card.blocked {
+  border-color: #f56c6c;
+  background-color: #fdf6f6;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.avatar-placeholder {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.user-status-badge {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+.user-status-badge.active {
+  background-color: #f0f9eb;
+  color: #67c23a;
+}
+
+.user-status-badge.blocked {
+  background-color: #fef0f0;
+  color: #f56c6c;
+}
+
+.user-info {
+  margin-bottom: 15px;
+}
+
+.user-name {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  /* 限制名称长度 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: #909399;
+  /* 限制邮箱长度 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-city {
   margin: 0;
-  margin-left: 8px;
-  font-size: 19px;
-  text-align: left;
-  color: #629fb2;
-  width: 350px;
-}
-.view {
-  margin-top: 20px;
-  color: #928484;
-  top: 20px;
-}
-.city {
-  margin-top: 26px;
-  text-align: left;
-  margin-left: 99px;
-  font-size: 15px;
-  position: absolute;
-}
-.friends {
+  font-size: 13px;
+  color: #909399;
   display: flex;
   align-items: center;
-  font-size: 14px;
-  margin-left: 99px;
-  margin-top: 48px;
-  position: absolute;
+  gap: 4px;
 }
 
-.reviews {
+.user-stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.stat-item {
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #303133;
   font-size: 14px;
-  margin-left: 99px;
-  margin-top: 70px;
-  position: absolute;
 }
-.detail {
-  margin-left: 10px;
-  color: #666666;
+
+.stat-label {
+  color: #909399;
+  font-size: 11px;
 }
-.seeBox {
-  border-radius: 20px;
-  font-size: 20px;
-  width: 400px;
-  height: 70px;
-  position: absolute;
-  background-color: rgba(241, 241, 241, 0.75);
-  left: 280px;
-  top: 100px;
-  text-align: center;
-  border: 2px solid;
+
+.user-actions {
+  display: flex;
+  justify-content: flex-end;
 }
-.pageBottom {
+
+/* 骨架屏调整 */
+.skeleton-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.skeleton-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+.skeleton-line {
   width: 100%;
-  height: 6%;
-  border-bottom: #e8e5dd 1px solid;
-  position: absolute;
-  bottom: 0px;
+  height: 14px;
+  margin-bottom: 8px;
 }
 
-.number {
-  margin-left: 10px;
-  color: #111111;
+.skeleton-line.short {
+  width: 60%;
 }
-.back-botton {
-  border: none;
-  font-size: 20px;
-  bottom: 0;
-  position: absolute;
-  left: 20px;
-  background-color: transparent;
+
+.skeleton-stats {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
 }
-.cz-button {
-  border: none;
-  color: #191717;
-  bottom: 0;
-  position: absolute;
-  left: 320px;
-  background-color: transparent;
-  font-size: 30px;
+
+.skeleton-stat {
+  width: 70px;
+  height: 12px;
+}
+
+/* 加载更多提示 */
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 20px;
+  color: #909399;
+  font-size: 14px;
+}
+
+.loading-icon {
+  animation: rotating 2s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 分页区域 */
+.pagination-wrapper {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 状态对话框 */
+.status-dialog-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.status-dialog-content h3 {
+  margin: 15px 0 10px;
+  color: #303133;
+}
+
+.status-dialog-content p {
+  color: #909399;
+  margin: 0;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+
+  .search-wrapper {
+    max-width: 100%;
+  }
 }
 </style>
