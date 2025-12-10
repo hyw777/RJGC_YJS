@@ -34,7 +34,12 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/ppi/, '')
-      }
+      },
+      '/gpi': {
+        target: 'https://restapi.amap.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/gpi/, '')
+      },
     }
   },
 })

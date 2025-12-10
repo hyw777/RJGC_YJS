@@ -39,4 +39,30 @@ public class BusinessManageController {
         return ResponseResult.success();
     }
 
+    /**
+     * 获取所有商户（分页）
+     * @param page 页码
+     * @param pageSize 每页大小
+     * @return
+     */
+    @GetMapping("/list")
+    public ResponseResult listBusinesses(@RequestParam(defaultValue = "1") Integer page,
+                                         @RequestParam(defaultValue = "10") Integer pageSize) {
+        Map<String, Object> result = businessManageService.listBusinesses(page, pageSize);
+        return ResponseResult.success(result);
+    }
+
+    /**
+     * 修改商户状态
+     * @param request 包含商户ID和状态的请求对象
+     * @return
+     */
+    @PutMapping("/changeBusinessStatus")
+    public ResponseResult changeBusinessStatus(@RequestBody Map<String, Object> request) {
+        Integer businessId = (Integer) request.get("businessId");
+        Integer isOpen = (Integer) request.get("isOpen");
+        businessManageService.changeBusinessStatus(businessId, isOpen);
+        return ResponseResult.success();
+    }
+
 }

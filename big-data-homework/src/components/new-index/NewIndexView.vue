@@ -3,53 +3,165 @@
     <el-dialog
       v-model="merchantVisible"
       title="申请成为商家"
-      width="600"
+      width="700"
       class="merchant-dialog"
     >
       <el-form
         :model="merchantForm"
         label-width="auto"
-        style="max-width: 450px"
+        style="max-width: 600px"
       >
         <el-form-item label="商家名" prop="name">
           <el-input v-model="merchantForm.name" />
         </el-form-item>
+
         <el-form-item label="地址" prop="address">
-          <el-input v-model="merchantForm.address" />
+          <el-input
+            v-model="merchantForm.address"
+            @input="autoFillCoordinates"
+            placeholder="请输入详细地址"
+          />
         </el-form-item>
+
         <el-form-item label="城市" prop="city">
           <el-input v-model="merchantForm.city" />
         </el-form-item>
+
         <el-form-item label="州" prop="state">
           <el-input v-model="merchantForm.state" />
         </el-form-item>
+
+        <el-form-item label="邮政编码" prop="postalCode">
+          <el-input v-model="merchantForm.postalCode" />
+        </el-form-item>
+
+        <el-form-item label="纬度" prop="latitude">
+          <el-input-number
+            v-model="merchantForm.latitude"
+            :precision="8"
+            disabled
+          />
+        </el-form-item>
+
+        <el-form-item label="经度" prop="longitude">
+          <el-input-number
+            v-model="merchantForm.longitude"
+            :precision="8"
+            disabled
+          />
+        </el-form-item>
+
         <el-form-item label="分类" prop="categories">
           <el-input v-model="merchantForm.categories" />
         </el-form-item>
+
         <el-form-item label="营业时间" prop="hours">
-          <el-input v-model="merchantForm.hours" />
-        </el-form-item>
-        <el-form-item label="儿童适宜" prop="goodForKids">
-          <el-radio-group v-model="merchantForm.goodForKids" class="ml-4">
-            <el-radio value="yes" size="large">是</el-radio>
-            <el-radio value="no" size="large">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="接受信用卡" prop="businessAcceptsCreditcards">
-          <el-radio-group
-            v-model="merchantForm.businessAcceptsCreditcards"
-            class="ml-4"
-            style="color: #e00707"
+          <div
+            v-for="(time, day) in businessHours"
+            :key="day"
+            class="hours-item"
           >
-            <el-radio value="true" size="large">是</el-radio>
-            <el-radio value="false" size="large">否</el-radio>
-          </el-radio-group>
+            <span class="day-label">{{ day }}:</span>
+            <el-time-picker
+              v-model="businessHours[day].start"
+              placeholder="开始时间"
+              format="HH:mm"
+              value-format="HH:mm"
+              width="80px"
+            />
+            <span class="separator">-</span>
+            <el-time-picker
+              v-model="businessHours[day].end"
+              placeholder="结束时间"
+              format="HH:mm"
+              value-format="HH:mm"
+              width="80px"
+            />
+          </div>
+        </el-form-item>
+
+        <el-form-item label="商户属性" prop="attributes">
+          <div class="attributes-container">
+            <!-- WiFi选项 -->
+            <div class="attribute-item">
+              <el-checkbox
+                v-model="selectedAttributes"
+                label="WiFi"
+                class="main-checkbox"
+              >
+                提供WiFi
+              </el-checkbox>
+              <el-select
+                v-model="wifiOption"
+                placeholder="WiFi类型"
+                size="small"
+                class="attribute-select"
+                :disabled="!selectedAttributes.includes('WiFi')"
+              >
+                <el-option label="免费WiFi" value="u'free'"></el-option>
+                <el-option label="无WiFi" value="u'no'"></el-option>
+              </el-select>
+            </div>
+
+            <!-- Alcohol选项 -->
+            <div class="attribute-item">
+              <el-checkbox
+                v-model="selectedAttributes"
+                label="Alcohol"
+                class="main-checkbox"
+              >
+                提供酒精饮品
+              </el-checkbox>
+              <el-select
+                v-model="alcoholOption"
+                placeholder="酒水类型"
+                size="small"
+                class="attribute-select"
+                :disabled="!selectedAttributes.includes('Alcohol')"
+              >
+                <el-option
+                  label="啤酒和葡萄酒"
+                  value="'beer_and_wine'"
+                ></el-option>
+                <el-option label="不提供" value="'none'"></el-option>
+              </el-select>
+            </div>
+
+            <!-- 其他选项 -->
+            <el-checkbox v-model="selectedAttributes" label="OutdoorSeating"
+              >户外座位</el-checkbox
+            >
+            <el-checkbox v-model="selectedAttributes" label="RestaurantsTakeOut"
+              >提供外卖</el-checkbox
+            >
+            <el-checkbox
+              v-model="selectedAttributes"
+              label="RestaurantsDelivery"
+              >提供外带</el-checkbox
+            >
+            <el-checkbox
+              v-model="selectedAttributes"
+              label="BusinessAcceptsCreditCards"
+              >接受信用卡</el-checkbox
+            >
+            <el-checkbox v-model="selectedAttributes" label="DogsAllowed"
+              >允许宠物入内</el-checkbox
+            >
+            <el-checkbox v-model="selectedAttributes" label="GoodForKids"
+              >适合儿童</el-checkbox
+            >
+          </div>
         </el-form-item>
       </el-form>
+
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="merchantVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitMerchan" color="#E00707">
+          <el-button
+            type="primary"
+            @click="handleMerchantSubmit"
+            color="#E00707"
+          >
             提交
           </el-button>
         </div>
@@ -486,7 +598,102 @@ import { router } from "@/router";
 import { UseSearchStore } from "@/stores/UseSearchStore";
 import { useAddFriends } from "@/hooks/UseAddFriends";
 
-// 导入购物车图标
+// ****************申请成为商家
+// 定义一周的天数
+const weekDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+// 营业时间数据结构
+const businessHours = ref({
+  Monday: { start: "", end: "" },
+  Tuesday: { start: "", end: "" },
+  Wednesday: { start: "", end: "" },
+  Thursday: { start: "", end: "" },
+  Friday: { start: "", end: "" },
+  Saturday: { start: "", end: "" },
+  Sunday: { start: "", end: "" },
+});
+
+// 在提交前将营业时间转换为 JSON 字符串
+function formatBusinessHours() {
+  const hoursObj = {};
+  for (const day of weekDays) {
+    const timeSlot = businessHours.value[day];
+    if (timeSlot.start && timeSlot.end) {
+      hoursObj[day] = `${timeSlot.start}-${timeSlot.end}`;
+    }
+  }
+  return JSON.stringify(hoursObj);
+}
+// 属性相关数据
+const selectedAttributes = ref<string[]>([]);
+const wifiOption = ref("u'free'");
+const alcoholOption = ref("'beer_and_wine'");
+
+// 格式化 attributes 为 JSON 字符串的方法
+function formatAttributes() {
+  const attrs: Record<string, string> = {};
+
+  // 处理 WiFi 选项
+  if (selectedAttributes.value.includes("WiFi")) {
+    attrs["WiFi"] = wifiOption.value;
+  } else {
+    attrs["WiFi"] = "u'no'";
+  }
+
+  // 处理酒精饮品选项
+  if (selectedAttributes.value.includes("Alcohol")) {
+    attrs["Alcohol"] = alcoholOption.value;
+  } else {
+    attrs["Alcohol"] = "'none'";
+  }
+
+  // 处理其他布尔型属性
+  const booleanAttrs = [
+    "OutdoorSeating",
+    "RestaurantsTakeOut",
+    "RestaurantsDelivery",
+    "BusinessAcceptsCreditCards",
+    "DogsAllowed",
+    "GoodForKids",
+  ];
+
+  booleanAttrs.forEach((attr) => {
+    if (selectedAttributes.value.includes(attr)) {
+      attrs[attr] = "True";
+    } else {
+      attrs[attr] = "False";
+    }
+  });
+
+  return JSON.stringify(attrs);
+}
+
+let {
+  merchantVisible,
+  merchantForm,
+  submitMerchan: originalSubmitMerchan,
+} = toRefs(useMerchant());
+
+function handleMerchantSubmit() {
+  // 格式化营业时间
+  merchantForm.value.hours = formatBusinessHours();
+
+  // 格式化商户属性
+  merchantForm.value.attributes = formatAttributes();
+
+  // 调用原始的提交函数
+  originalSubmitMerchan.value();
+}
+
+// ******************导入购物车图标
 import { ShoppingCart } from "@element-plus/icons-vue";
 
 // build full image URL safely; accepts remote URLs or stored filenames
@@ -549,8 +756,6 @@ function goToBusinessDetails() {
   }
 }
 
-let { merchantVisible, merchantForm, submitMerchan } = toRefs(useMerchant());
-
 // 使用找回hook
 let { findData, findPassword } = UseFind();
 let findVisible = ref(false);
@@ -603,7 +808,6 @@ let backgroundImage = ref([
 let imageIndex = ref(0);
 let imageUrl = ref(backgroundImage.value[imageIndex.value].url);
 // 修改 view 的初始化逻辑
-
 
 let view = ref({
   "background-image": `url(${imageUrl.value})`,
@@ -765,9 +969,207 @@ async function submitUpload() {
     ElMessage({ message: "上传失败", type: "error" });
   }
 }
+
+// **************************高德
+// 添加一个方法来根据地址获取经纬度
+async function getAddressCoordinates(address: string) {
+  try {
+    // 使用高德地图API（需要申请Key）
+    const response = await axios.get(
+      "/gpi/v3/geocode/geo",
+      {
+        params: {
+          key: "96b27b572a0e16d551ac65dd0e02f65f", // 需要申请的API Key
+          address: address,
+          city: "城市名", // 可选，指定城市
+        },
+      }
+    );
+
+    if (response.data.status === "1" && response.data.geocodes.length > 0) {
+      const geocode = response.data.geocodes[0];
+      return {
+        latitude: geocode.location.split(",")[1],
+        longitude: geocode.location.split(",")[0],
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("获取坐标失败:", error);
+    return null;
+  }
+}
+
+async function autoFillCoordinates() {
+  if (!merchantForm.value.address || merchantForm.value.address.length < 5) {
+    return;
+  }
+  
+  // 短暂延迟，避免频繁请求
+  setTimeout(async () => {
+    const coordinates = await getAddressCoordinates(merchantForm.value.address);
+    if (coordinates) {
+      merchantForm.value.latitude = parseFloat(coordinates.latitude);
+      merchantForm.value.longitude = parseFloat(coordinates.longitude);
+    }
+  }, 500);
+}
+
 </script>
 
 <style scoped>
+/* 添加以下样式 */
+/* 在现有样式中添加以下内容 */
+.hours-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.day-label {
+  width: 90px !important;
+  font-weight: 500;
+  color: #666;
+}
+
+.separator {
+  margin: 0 10px;
+  color: #999;
+}
+.attributes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attribute-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.main-checkbox {
+  margin-right: 15px !important;
+}
+
+.attribute-select {
+  width: 160px;
+  margin-left: 8px;
+}
+
+.attributes-checkbox-group .el-checkbox {
+  margin-right: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.el-form-item:last-child {
+  margin-bottom: 0;
+}
+.merchant-dialog :deep(.el-dialog__body) {
+  padding: 20px 30px;
+}
+
+/* 调整表单项间距和整体布局 */
+.merchant-dialog :deep(.el-form-item) {
+  margin-bottom: 20px;
+}
+
+.merchant-dialog :deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #333;
+}
+
+.attribute-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.main-checkbox {
+  margin-right: 15px !important;
+}
+
+.attribute-select {
+  width: 160px;
+}
+
+.attributes-checkbox-group .el-checkbox {
+  margin-right: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.el-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.hours-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.day-label {
+  width: 80px;
+  font-weight: 500;
+  color: #666;
+}
+
+.separator {
+  margin: 0 10px;
+  color: #999;
+}
+
+/* 强制设置时间选择器宽度 */
+.el-time-picker {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+}
+
+:deep(.el-time-picker) {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+}
+.attributes-checkbox-group .el-checkbox {
+  margin-right: 20px;
+  margin-bottom: 10px;
+}
+
+.checkbox-with-select {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.checkbox-with-select .el-select {
+  width: 150px;
+  margin-top: 5px;
+}
+
+.hours-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.day-label {
+  width: 80px;
+  font-weight: 500;
+  color: #666;
+}
+.separator {
+  margin: 0 10px;
+  color: #999;
+}
+
 /* 导航栏整体样式 */
 .modern-nav {
   background: transparent; /* 将背景色设置为透明 */
@@ -776,7 +1178,6 @@ async function submitUpload() {
   top: 0;
   z-index: 100;
 }
-
 
 .nav-container {
   padding: 0 40px;
@@ -924,7 +1325,6 @@ async function submitUpload() {
   gap: 20px;
   flex-shrink: 0; /* 防止被压缩 */
 }
-
 
 .admin-link,
 .boss-link {

@@ -3,6 +3,8 @@ package com.sgrej.domain.vo;
 
 import lombok.*;
 
+import java.sql.Timestamp;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,16 +21,26 @@ public class BusinessApplyVO {
 
     private String state;
 
+    private String postalCode;
+
+    private Double latitude;
+
+    private Double longitude;
+
+    private double stars;
+
+    private int reviewCount;
+
+    private int isOpen;
+
     private String categories;
+
+    private String attributes;
 
     private String hours;
 
     private String bid;
 
-    private String goodForKids;//是否对孩子友好
-
-    private String businessAcceptsCreditcards;//是否接受刷卡
-
-    private String applyTime;
+    private Timestamp applyTime;
 
 }

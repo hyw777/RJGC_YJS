@@ -76,7 +76,7 @@ public interface BusinessMapper {
     @Insert("insert into user_business(user_id,business_id) values (#{userId},#{businessId})")
     void bindBusiness(int userId, int businessId);
 
-    @Select("select business_id,name,address,city,state,stars,review_count,is_open,categories,hours,bid,good_for_kids,business_accepts_creditcards" +
+    @Select("select business_id,name,address,city,state,postal_code,latitude,longitude,stars,review_count,is_open,categories,attributes,hours,created_at,updated_at,bid" +
             "  from business where is_open = -1 and business_id ")
     List<Business> getApplys();
 
@@ -89,4 +89,11 @@ public interface BusinessMapper {
 
     @Insert("insert into hot_search(content,`time`) values (#{businessName},#{time})")
     void saveSearchContent(String businessName, Timestamp time);
+
+    List<BusinessVO> selectAllBusinesses(@Param("start") int start, @Param("pageSize") int pageSize);
+
+    int countAllBusinesses();
+
+    void updateBusinessStatus(@Param("businessId") Integer businessId, @Param("isOpen") Integer isOpen);
+
 }

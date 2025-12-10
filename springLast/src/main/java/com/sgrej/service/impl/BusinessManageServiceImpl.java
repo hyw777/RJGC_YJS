@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BusinessManageServiceImpl implements BusinessManageService {
@@ -44,6 +46,7 @@ public class BusinessManageServiceImpl implements BusinessManageService {
         List<BusinessApplyVO> businessApplyVOList=new ArrayList<>();
         for(Business business:businessList){
             BusinessApplyVO businessApplyVO=new BusinessApplyVO();
+            businessApplyVO.setApplyTime(business.getCreatedAt());
             BeanUtils.copyProperties(business,businessApplyVO);
             businessApplyVOList.add(businessApplyVO);
         }
@@ -84,4 +87,31 @@ public class BusinessManageServiceImpl implements BusinessManageService {
             newMapper.add(news);
         }
     }
+
+    @Override
+    public Map<String, Object> listBusinesses(Integer page, Integer pageSize) {
+        // 计算起始位置
+        int start = (page - 1) * pageSize;
+
+        // 查询数据
+        List<BusinessVO> businesses = businessMapper.selectAllBusinesses(start, pageSize);
+        int total = businessMapper.countAllBusinesses();
+
+        // 封装分页结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("records", businesses);
+        result.put("total", total);
+        result.put("current", page);
+        result.put("size", pageSize);
+        result.put("pages", (total + pageSize - 1) / pageSize);
+
+        return result;
+    }
+
+    @Override
+    public void changeBusinessStatus(Integer businessId, Integer isOpen) {
+        businessMapper.updateBusinessStatus(businessId, isOpen);
+    }
+
+
 }

@@ -3,6 +3,7 @@ package com.sgrej.service;
 import com.sgrej.domain.vo.BusinessApplyVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BusinessManageService {
 
@@ -18,4 +19,8 @@ public interface BusinessManageService {
      * @param result
      */
     void isAgree(int businessId, int result);
+
+    Map<String, Object> listBusinesses(Integer page, Integer pageSize);
+
+    void changeBusinessStatus(Integer businessId, Integer isOpen);
 }

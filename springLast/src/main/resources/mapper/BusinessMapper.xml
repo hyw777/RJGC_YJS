@@ -63,11 +63,27 @@
 
     <insert id="register" keyProperty="businessId" useGeneratedKeys="true">
         INSERT INTO business
-        (`name`, `address`, `city`, `state`, `stars`, `review_count`, `is_open`, `categories`, `hours`, `bid`, `good_for_kids`, `business_accepts_creditcards`)
+        (`name`, `address`, `city`, `state`,`postal_code`, `latitude`, `longitude`, `stars`, `review_count`, `is_open`, `categories`,`attributes`,`hours`, `created_at`, `updated_at`,`bid`)
         VALUES
-        (#{name}, #{address}, #{city}, #{state}, #{stars}, #{reviewCount}, #{isOpen}, #{categories}, #{hours}, #{bid}, #{goodForKids}, #{businessAcceptsCreditcards})
-
+        (#{name}, #{address}, #{city}, #{state}, #{postalCode}, #{latitude}, #{longitude}, #{stars}, #{reviewCount}, #{isOpen}, #{categories}, #{attributes}, #{hours}, NOW(), NOW(), #{bid})
     </insert>
+
+    <select id="selectAllBusinesses" resultType="com.sgrej.domain.vo.BusinessVO">
+        SELECT business_id,name,address,stars,review_count,is_open,categories,bid
+        FROM business
+        ORDER BY business_id DESC
+            LIMIT #{start}, #{pageSize}
+    </select>
+
+    <select id="countAllBusinesses" resultType="int">
+        SELECT COUNT(*) FROM business
+    </select>
+
+    <update id="updateBusinessStatus">
+        UPDATE business
+        SET is_open = #{isOpen}
+        WHERE business_id = #{businessId}
+    </update>
 
 
 </mapper>
