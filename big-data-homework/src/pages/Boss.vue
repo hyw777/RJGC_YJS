@@ -6,25 +6,25 @@
             <ShoppingCart />
           </el-icon>
       </router-link>
-      <span class="title">Merchant Management Platform</span>
+      <span class="title">商户管理平台</span>
     </div>
     <div class="mid">
       <div class="nav-left">
         <router-link to="/boss/information" replace class="info button" :class="{'isActive':bossButton == 0}">
           <el-icon class="icon"><House /></el-icon>
-          <span class="button-title">Information</span>
+          <span class="button-title">商户信息</span>
         </router-link>
         <router-link to="/boss/editInfo" replace class="info button" :class="{'isActive':bossButton == 1}">
           <el-icon class="icon"><Edit /></el-icon>
-          <span class="button-title">Edit Information</span>
+          <span class="button-title">编辑信息</span>
         </router-link>
         <router-link to="/boss/workbench" replace class="workbench button" :class="{'isActive':bossButton == 2}">
           <el-icon class="icon"><Odometer /></el-icon>
-          <span class="button-title">Workbench</span>
+          <span class="button-title">工作台</span>
         </router-link>
         <router-link to="/boss/uploadImg" replace class="user-profile button" :class="{'isActive':bossButton == 4}">
           <el-icon class="icon"><Upload /></el-icon>
-          <span class="button-title">Upload Images</span>
+          <span class="button-title">上传图片</span>
         </router-link>
       </div>
       <router-view style="flex: 1; height: 100%; overflow: auto;"></router-view>
@@ -135,5 +135,4 @@ let bossButton = computed(()=>buttonStore.bossButton)
   width: 24px;
   text-align: center;
 }
-
 </style>

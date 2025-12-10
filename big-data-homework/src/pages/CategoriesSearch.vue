@@ -1,8 +1,13 @@
 <template>
   <div class="search">
     <NewIndexView
-    :show-background-description="false"
-        style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
+      :show-background-description="false"
+      style="
+        background-image: none;
+        height: 131px;
+        min-height: auto;
+      "
+    />
     <div class="display">
       <div class="title">
         相关商家

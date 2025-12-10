@@ -1,7 +1,13 @@
 <template>
   <div class="container">
-    <NewIndexView :show-background-description="false" style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
-    <div class="display-box">
+    <NewIndexView
+      :show-background-description="false"
+      style="
+        background-image: none;
+        height: 131px;
+        min-height: auto;
+      "
+    /><div class="display-box">
       <img class="img" v-for="(image,index) in imageList" :src="getImagePath(image)" :key="index">
     </div>
   </div>

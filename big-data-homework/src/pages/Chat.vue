@@ -1,5 +1,12 @@
 <template>
-  <NewIndexView style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"></NewIndexView>
+   <NewIndexView
+      :show-background-description="false"
+      style="
+        background-image: none;
+        height: 131px;
+        min-height: auto;
+      "
+    />
 </template>
 
 <script setup lang="ts">

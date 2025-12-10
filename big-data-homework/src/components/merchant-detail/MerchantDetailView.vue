@@ -138,8 +138,33 @@
 
           <div class="rating-item ai-rating">
             <span class="rating-label ai-label">AI评分</span>
-            <el-rate v-model="result.stars" disabled size="small" />
-            <span class="rating-value">{{ result.stars }}</span>
+            <el-rate v-model="aiScore" disabled size="small" />
+            <span class="rating-value">{{ aiScore || 0 }}</span>
+            <el-button 
+              @click="toggleAIReason" 
+              type="primary" 
+              link 
+              size="small"
+              class="toggle-reason-btn"
+            >
+              {{ showAIReason ? '收起' : '点击生成AI评分' }}
+            </el-button>
+          </div>
+          
+          <!-- AI评分理由展示区域 -->
+          <div v-if="showAIReason" class="ai-reason-section">
+            <div class="reason-content">
+              <div v-if="aiLoading" class="loading-state">
+                <el-icon class="is-loading"><Loading /></el-icon>
+                <span>AI正在分析图片美观度...</span>
+              </div>
+              <div v-else-if="aiReason" class="reason-text">
+                <pre>{{ aiReason }}</pre>
+              </div>
+              <div v-else class="no-reason">
+                <span>暂无评分理由</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -835,6 +860,180 @@ const handleReviewSubmitted = () => {
     });
   }, 1000);
 };
+
+// 添加AI评分相关的响应式变量
+const showAIReason = ref(false);
+const aiReason = ref('');
+const aiLoading = ref(false);
+const aiScore = ref(0); // 新增：用于存储提取的AI评分
+
+// 切换AI评分理由显示/隐藏
+const toggleAIReason = () => {
+  showAIReason.value = !showAIReason.value;
+  
+  // 如果是第一次展开且还没有获取过评分理由，则获取评分
+  if (showAIReason.value && !aiReason.value && !aiLoading.value) {
+    getAIScore();
+  }
+};
+
+// 从AI返回的文本中提取评分
+const extractAIScore = (text) => {
+  if (!text) return 0;
+  
+  // 使用正则表达式匹配"最终评分：数字"格式
+  const scoreMatch = text.match(/最终评分[：:]\s*(\d+)/);
+  if (scoreMatch && scoreMatch[1]) {
+    return parseInt(scoreMatch[1]);
+  }
+  
+  // 如果没有找到评分，返回默认值0
+  return 0;
+};
+
+/**
+ * 将图片URL转换为base64编码
+ * @param {string} url - 图片URL
+ * @returns {Promise<string>} base64编码的图片数据
+ */
+function imageUrlToBase64(url) {
+  return new Promise((resolve, reject) => {
+    // 创建图片对象
+    const img = new Image();
+    img.crossOrigin = 'Anonymous'; // 处理跨域问题
+    
+    img.onload = () => {
+      // 创建canvas元素
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // 设置canvas尺寸与图片一致
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      // 将图片绘制到canvas上
+      ctx.drawImage(img, 0, 0);
+      
+      // 将canvas转换为base64编码
+      const dataURL = canvas.toDataURL('image/jpeg');
+      resolve(dataURL);
+    };
+    
+    img.onerror = (error) => {
+      reject(new Error('图片加载失败: ' + error));
+    };
+    
+    // 开始加载图片
+    img.src = url;
+  });
+}
+
+/**
+ * 商户实景图片美观打分 - 多模态请求（Base64传图）
+ * @param {string} apiKey - Silicon Flow API Key
+ * @param {string} imageBase64 - 商户图片Base64编码数据
+ * @returns {Promise<string>} 打分结果+优化建议
+ */
+async function scoreShopAesthetics(apiKey, imageBase64) {
+  // 1. 配置请求参数
+  const requestOptions = {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'Qwen/Qwen3-VL-32B-Instruct', // 中文优先选该模型，也可换 GLM-4.1V
+      messages: [
+        {
+          role: 'user',
+          content: [
+            // 文本指令：明确打分维度+规则
+            {
+              type: 'text',
+              text: `请对该商户实景图片进行美观度打分，要求：
+1. 评分维度：构图（1-5分）、色彩搭配（1-5分）、环境整洁度（1-5分）、品牌呈现（1-5分）；
+2. 输出综合分（四维度平均分，向下取整），并给出简短理由；
+3. 结果格式：最终评分： 理由：。`
+            },
+            // 图片数据（Base64编码）
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageBase64
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 1024, // 输出长度限制
+      temperature: 0.1  // 低随机性，保证打分稳定
+    })
+  };
+
+  try {
+    // 2. 发送请求
+    const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', requestOptions);
+    if (!response.ok) {
+    const errorText = await response.text(); // 获取详细错误信息
+    console.error('API错误详情:', errorText);
+    throw new Error(`HTTP 错误：${response.status} - ${errorText}`);
+  }
+    
+    // 3. 解析结果
+    const result = await response.json();
+    const scoreResult = result.choices[0].message.content;
+    console.log('✅ 商户美观打分结果：\n', scoreResult);
+    return scoreResult;
+
+  } catch (error) {
+    console.error('❌ 请求失败：', error.message);
+    throw error;
+  }
+}
+
+// 获取AI评分
+async function getAIScore() {
+  // 检查是否有图片
+  if (!result.value?.imageList || result.value.imageList.length === 0) {
+    aiReason.value = '该商户暂无图片，无法进行AI评分';
+    return;
+  }
+
+  // 获取第一张图片作为评分依据
+  const firstImage = result.value.imageList[0];
+  const imageUrl = getImagePath(firstImage);
+  
+  // 检查是否是有效的图片URL
+  if (!imageUrl) {
+    aiReason.value = '图片路径无效，无法进行AI评分';
+    return;
+  }
+
+  // 开始加载状态
+  aiLoading.value = true;
+  
+  try {
+    // 将图片URL转换为base64编码
+    const imageBase64 = await imageUrlToBase64(imageUrl);
+    
+    // 替换为实际的API Key (在生产环境中应从安全的地方获取)
+    const apiKey = 'sk-jsppmnzualuadnsjwnneaqsupkcpjfoungipzaahqygoqhqw'; // 示例API Key
+    
+    // 调用AI评分函数，传递base64编码的图片
+    const scoreResult = await scoreShopAesthetics(apiKey, imageBase64);
+    aiReason.value = scoreResult;
+    
+    // 提取AI评分并保存
+    aiScore.value = extractAIScore(scoreResult);
+  } catch (error) {
+    console.error('AI评分失败:', error);
+    aiReason.value = `AI评分失败: ${error.message}`;
+  } finally {
+    aiLoading.value = false;
+  }
+}
+
 </script>
 
 <style scoped>
@@ -1741,5 +1940,43 @@ const handleReviewSubmitted = () => {
   .next-btn {
     right: 8px;
   }
+}
+
+/* AI评分理由区域样式 */
+.ai-reason-section {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.reason-content {
+  min-height: 24px;
+}
+
+.reason-content .loading-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #909399;
+}
+
+.reason-content .reason-text pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.reason-content .no-reason {
+  color: #909399;
+  font-style: italic;
+}
+
+.toggle-reason-btn {
+  margin-left: auto;
 }
 </style>

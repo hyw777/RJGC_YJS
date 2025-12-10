@@ -1,19 +1,26 @@
 <template>
   <div class="container">
-    <NewIndexView :show-background-description="false" style="background-image: none;height: 131px;border-bottom: 1px solid rgba(235, 235, 235, 1)"/>
+    <NewIndexView
+      :show-background-description="false"
+      style="
+        background-image: none;
+        height: 131px;
+        min-height: auto;
+      "
+    />
     
     <div class="content-wrapper">
       <div class="search-section">
-        <h1 class="page-title">Find Friends</h1>
+        <h1 class="page-title">寻找好友</h1>
         
         <div class="search-box">
-          <div class="search-title">Search Friends By Email</div>
-          <div class="search-description">Enter an email address to find your friends on Yelp</div>
+          <div class="search-title">通过邮箱搜索好友</div>
+          <div class="search-description">输入邮箱地址找到您的好友</div>
           <div class="search-input-wrapper">
             <input
               type="email"
               class="search-input"
-              placeholder="Enter email address..."
+              placeholder="请输入邮箱地址..."
               @keyup.enter="search"
               v-model="input"
             />
@@ -29,9 +36,9 @@
           <div class="security-card">
             <p class="security-text">
               <el-icon class="security-icon"><Lock /></el-icon>
-              Your information is safe.
+              您的信息是安全的。
             </p>
-            <p class="security-desc">We don't store your email password. Your address book is used to find friends on Yelp.</p>
+            <p class="security-desc">我们不会存储您的邮箱密码。您的通讯录仅用于查找好友。</p>
           </div>
         </div>
         
@@ -55,14 +62,14 @@
                 
                 <div class="user-stats">
                   <div class="stat-item">
-                    <el-icon color="#f37325"><User /></el-icon>
+                    <el-icon color="#1890ff"><User /></el-icon>
                     <span class="stat-number">{{ user.friendNumbers || 0 }}</span>
-                    <span class="stat-label">friends</span>
+                    <span class="stat-label">位好友</span>
                   </div>
                   <div class="stat-item">
-                    <el-icon color="#f37325"><Star /></el-icon>
+                    <el-icon color="#1890ff"><Star /></el-icon>
                     <span class="stat-number">{{ user.reviewCounts || 0 }}</span>
-                    <span class="stat-label">reviews</span>
+                    <span class="stat-label">条评论</span>
                   </div>
                 </div>
               </div>
@@ -89,25 +96,25 @@
     <div class="add-friend-modal" v-show="display2">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Add a Friend</h2>
+          <h2>添加好友</h2>
           <div class="close-btn" @click="cancel()">
             <el-icon><Close /></el-icon>
           </div>
         </div>
         <div class="modal-body">
-          <p class="modal-greeting">Hi, {{ recName }}</p>
+          <p class="modal-greeting">您好，{{ recName }}</p>
           <textarea
             class="message-input"
             v-model="applyInfo"
-            placeholder="Enter your message here..."
+            placeholder="请输入您的消息..."
           />
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="cancel()">
-            Cancel
+            取消
           </button>
           <button class="btn btn-primary" @click="send()">
-            Send Request
+            发送请求
           </button>
         </div>
       </div>
@@ -134,7 +141,7 @@ const findFriendDTO = ref({
 
 const display2 = ref(false)
 const recName = ref('')
-const applyInfo = ref('Your reviews are really great, I\'d love to keep in touch on Yelp.')
+const applyInfo = ref('您的评论真的很棒，希望能与您保持联系。')
 
 const applicationDTO = ref({
   reason: '',
@@ -157,7 +164,7 @@ const validateEmail = (email) => {
 
 const search = () => {
   if (!validateEmail(input.value)) {
-    ElMessage.error("Please enter a valid email address");
+    ElMessage.error("请输入有效的邮箱地址");
     return;
   }
   
@@ -182,11 +189,11 @@ const send = () => {
   axios.post('/api/friend/add', applicationDTO.value)
     .then((response) => {
       display2.value = false;
-      ElMessage.success("Friend request sent successfully!");
+      ElMessage.success("好友请求发送成功！");
     })
     .catch((error) => {
       console.log(error);
-      ElMessage.error("Failed to send friend request");
+      ElMessage.error("发送好友请求失败");
     })
 }
 
@@ -199,7 +206,7 @@ const cancel = () => {
 .container {
   width: 100vw;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+  background: linear-gradient(135deg, #f2f8fc 0%, #f6fcff 100%);
   padding-bottom: 40px;
 }
 
@@ -212,7 +219,7 @@ const cancel = () => {
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #2d3748;
+  color: #001529;
   margin-bottom: 24px;
   text-align: center;
 }
@@ -220,7 +227,7 @@ const cancel = () => {
 .search-section {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.15);
   padding: 40px;
   margin-bottom: 32px;
   transition: box-shadow 0.3s ease;
@@ -228,18 +235,18 @@ const cancel = () => {
 }
 
 .search-section:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 24px rgba(24, 144, 255, 0.2);
 }
 
 .search-title {
-  color: #e00707;
+  color: #1890ff;
   font-weight: 700;
   margin-bottom: 8px;
   font-size: 24px;
 }
 
 .search-description {
-  color: #718096;
+  color: #597ef7;
   margin-bottom: 24px;
   font-size: 16px;
 }
@@ -249,15 +256,15 @@ const cancel = () => {
   align-items: center;
   max-width: 600px;
   margin: 0 auto;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #bae7ff;
   border-radius: 12px;
   overflow: hidden;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #e00707;
-  box-shadow: 0 0 0 3px rgba(224, 7, 7, 0.1);
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
 }
 
 .search-input {
@@ -267,7 +274,7 @@ const cancel = () => {
   border: none;
   outline: none;
   font-size: 16px;
-  background-color: #f8fafc;
+  background-color: #f0f9ff;
 }
 
 .search-input:focus {
@@ -278,7 +285,7 @@ const cancel = () => {
   border: none;
   width: 60px;
   height: 56px;
-  background-color: #e00707;
+  background-color: #1890ff;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -288,19 +295,19 @@ const cancel = () => {
 }
 
 .search-button:hover {
-  background-color: #c50606;
+  background-color: #40a9ff;
 }
 
 .results-section {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.15);
   padding: 40px;
   transition: box-shadow 0.3s ease;
 }
 
 .results-section:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 24px rgba(24, 144, 255, 0.2);
 }
 
 .security-info {
@@ -308,8 +315,8 @@ const cancel = () => {
 }
 
 .security-card {
-  background-color: #fff5f5;
-  border: 1px solid #ffecec;
+  background-color: #f0f9ff;
+  border: 1px solid #bae7ff;
   border-radius: 12px;
   padding: 24px;
   text-align: center;
@@ -317,7 +324,7 @@ const cancel = () => {
 
 .security-text {
   font-weight: 700;
-  color: #e00707;
+  color: #1890ff;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -330,7 +337,7 @@ const cancel = () => {
 }
 
 .security-desc {
-  color: #666;
+  color: #597ef7;
   line-height: 1.6;
 }
 
@@ -345,16 +352,16 @@ const cancel = () => {
   display: flex;
   align-items: center;
   padding: 24px;
-  border: 1px solid #edf2f7;
+  border: 1px solid #bae7ff;
   border-radius: 16px;
   transition: all 0.3s ease;
   position: relative;
   background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
 }
 
 .user-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.2);
   transform: translateY(-3px);
 }
 
@@ -364,7 +371,7 @@ const cancel = () => {
   border-radius: 50%;
   object-fit: cover;
   margin-right: 20px;
-  border: 3px solid #edf2f7;
+  border: 3px solid #bae7ff;
 }
 
 .user-info {
@@ -374,13 +381,13 @@ const cancel = () => {
 .user-name {
   font-size: 20px;
   font-weight: 700;
-  color: #2d3748;
+  color: #001529;
   margin: 0 0 8px 0;
 }
 
 .user-city {
   font-size: 15px;
-  color: #718096;
+  color: #597ef7;
   margin: 0 0 16px 0;
   display: flex;
   align-items: center;
@@ -388,7 +395,7 @@ const cancel = () => {
 
 .user-city .el-icon {
   margin-right: 6px;
-  color: #a0aec0;
+  color: #1890ff;
 }
 
 .user-stats {
@@ -405,18 +412,18 @@ const cancel = () => {
 .stat-number {
   margin: 0 6px;
   font-weight: 700;
-  color: #2d3748;
+  color: #001529;
 }
 
 .stat-label {
-  color: #718096;
+  color: #597ef7;
 }
 
 .add-friend {
   position: absolute;
   top: 20px;
   right: 20px;
-  color: #0073BB;
+  color: #1890ff;
   cursor: pointer;
   font-size: 24px;
   transition: color 0.3s ease;
@@ -430,15 +437,15 @@ const cancel = () => {
 }
 
 .add-friend:hover {
-  color: #e00707;
-  background: #fef2f2;
+  color: #40a9ff;
+  background: #e6f7ff;
 }
 
 .pagination-wrapper {
   display: flex;
   justify-content: center;
   padding-top: 24px;
-  border-top: 1px solid #edf2f7;
+  border-top: 1px solid #bae7ff;
 }
 
 .add-friend-modal {
@@ -459,13 +466,13 @@ const cancel = () => {
   border-radius: 16px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 40px rgba(24, 144, 255, 0.3);
   position: relative;
 }
 
 .modal-header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1px solid #bae7ff;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -473,19 +480,19 @@ const cancel = () => {
 
 .modal-header h2 {
   margin: 0;
-  color: #2d3748;
+  color: #001529;
   font-size: 24px;
 }
 
 .close-btn {
   cursor: pointer;
   font-size: 20px;
-  color: #a0aec0;
+  color: #597ef7;
   transition: color 0.3s ease;
 }
 
 .close-btn:hover {
-  color: #e00707;
+  color: #1890ff;
 }
 
 .modal-body {
@@ -494,7 +501,7 @@ const cancel = () => {
 
 .modal-greeting {
   margin: 0 0 16px 0;
-  color: #2d3748;
+  color: #001529;
   font-size: 18px;
   font-weight: 500;
 }
@@ -503,7 +510,7 @@ const cancel = () => {
   width: 93%;
   height: 120px;
   padding: 16px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #bae7ff;
   border-radius: 12px;
   resize: none;
   font-family: inherit;
@@ -513,8 +520,8 @@ const cancel = () => {
 
 .message-input:focus {
   outline: none;
-  border-color: #e00707;
-  box-shadow: 0 0 0 3px rgba(224, 7, 7, 0.1);
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
 }
 
 .modal-footer {
@@ -535,22 +542,22 @@ const cancel = () => {
 }
 
 .btn-primary {
-  background-color: #e00707;
+  background-color: #1890ff;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #c50606;
+  background-color: #40a9ff;
   transform: translateY(-2px);
 }
 
 .btn-secondary {
-  background-color: #edf2f7;
-  color: #4a5568;
+  background-color: #f0f9ff;
+  color: #001529;
 }
 
 .btn-secondary:hover {
-  background-color: #e2e8f0;
+  background-color: #bae7ff;
   transform: translateY(-2px);
 }
 

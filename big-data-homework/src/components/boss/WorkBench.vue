@@ -53,6 +53,71 @@
         </div>
         <div id="main" class="chart-container"></div>
       </div>
+
+      <!-- AI策略分析模块 -->
+      <div class="ai-analysis-card">
+        <div class="ai-analysis-header">
+          <h2 class="card-title">AI策略分析</h2>
+          <el-button 
+            @click="handleAIAnalysis" 
+            :loading="aiAnalysis.loading"
+            type="primary"
+            class="analyze-button"
+          >
+            AI分析
+          </el-button>
+        </div>
+        
+        <div class="ai-analysis-content">
+          <div v-if="aiAnalysis.loading" class="analysis-loading">
+            <el-icon class="is-loading" size="24"><Loading /></el-icon>
+            <span>AI正在分析中，请稍候...</span>
+          </div>
+          
+          <div v-else-if="aiAnalysis.recommendations.length > 0 || aiAnalysis.tips.length > 0">
+            <!-- 推荐建议 -->
+            <div class="analysis-section" v-if="aiAnalysis.recommendations.length > 0">
+              <h3 class="section-title">
+                <el-icon color="#409eff"><Promotion /></el-icon>
+                优化建议
+              </h3>
+              <ul class="recommendations-list">
+                <li 
+                  v-for="(recommendation, index) in aiAnalysis.recommendations" 
+                  :key="index"
+                  class="recommendation-item"
+                >
+                  <el-icon color="#409eff"><Lightning /></el-icon>
+                  <span>{{ recommendation }}</span>
+                </li>
+              </ul>
+            </div>
+            
+            <!-- 运营技巧 -->
+            <div class="analysis-section" v-if="aiAnalysis.tips.length > 0">
+              <h3 class="section-title">
+                <el-icon color="#67c23a"><MagicStick /></el-icon>
+                运营技巧
+              </h3>
+              <ul class="tips-list">
+                <li 
+                  v-for="(tip, index) in aiAnalysis.tips" 
+                  :key="index"
+                  class="tip-item"
+                >
+                  <el-icon color="#67c23a"><Star /></el-icon>
+                  <span>{{ tip }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div v-else class="analysis-empty">
+            <el-icon size="48" color="#c0c4cc"><Help /></el-icon>
+            <p>点击"AI分析"按钮获取AI优化建议</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -62,13 +127,20 @@ import {onMounted, ref, toRefs, nextTick} from 'vue';
 import { UseButtonStore } from '@/stores/UseButtonStore';
 import { useWorkbench } from '@/hooks/UseWorkbench';
 import * as echarts from 'echarts';
-import { Loading } from '@element-plus/icons-vue';
+import { 
+  Loading, 
+  Promotion, 
+  Lightning, 
+  MagicStick, 
+  Star, 
+  Help 
+} from '@element-plus/icons-vue';
 
 const buttonStore = UseButtonStore();
-const { data, getData } = toRefs(useWorkbench())
+const workbench = useWorkbench();
+const { data, getData, aiAnalysis, getAIAnalysis, activePeriod } = toRefs(workbench);
 
 let myChart: echarts.ECharts | null = null // 添加类型声明
-const activePeriod = ref(7)
 const loading = ref(true) // 添加加载状态
 
 const handleClick = async (days: number) => {
@@ -77,6 +149,12 @@ const handleClick = async (days: number) => {
   await getData.value(days);
   updateChart();
   loading.value = false // 加载完成
+};
+
+// 处理AI分析
+const handleAIAnalysis = async () => {
+  workbench.activePeriod = activePeriod.value; // 传递当前时间段给hook
+  await getAIAnalysis.value();
 };
 
 const updateChart = () => {
@@ -202,8 +280,12 @@ onMounted(async () => {
   font-size: 16px;
 }
 
-/* 添加旋转动画样式 */
-.is-loading {
+/* 添加旋转动画样式 - 仅应用于指定的加载图标 */
+.loading-overlay .is-loading {
+  animation: rotating 2s linear infinite;
+}
+
+.analysis-loading .is-loading {
   animation: rotating 2s linear infinite;
 }
 
@@ -331,5 +413,106 @@ onMounted(async () => {
 .chart-container {
   width: 100% !important;
   height: 500px !important;
+}
+
+/* AI策略分析模块样式 */
+.ai-analysis-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  transition: box-shadow 0.3s ease;
+}
+
+.ai-analysis-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.ai-analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.analyze-button {
+  border-radius: 6px;
+}
+
+.analysis-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  color: #6c757d;
+}
+
+.analysis-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #c0c4cc;
+}
+
+.analysis-empty p {
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+.analysis-section {
+  margin-bottom: 32px;
+}
+
+.analysis-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #343a40;
+  margin: 0 0 16px 0;
+}
+
+.recommendations-list,
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recommendation-item,
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.recommendation-item:hover,
+.tip-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.recommendation-item:last-child,
+.tip-item:last-child {
+  margin-bottom: 0;
+}
+
+.recommendation-item span,
+.tip-item span {
+  flex: 1;
+  color: #495057;
+  line-height: 1.6;
 }
 </style>
