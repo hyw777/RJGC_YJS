@@ -109,13 +109,27 @@ public class BusinessController {
 
 
     /**
-     * 附近商家（登陆状态才进行展示）
+     * 附近商家（基于用户位置）
+     * @param lat 用户纬度
+     * @param lng 用户经度
      * @return
      */
     @GetMapping("/nearby")
-    public ResponseResult nearBy(){
-        log.info("附近商家");
-        List<BusinessVO1> businessVO1s=businessService.nearBy();
+    public ResponseResult nearBy(@RequestParam(required = false) Double lat,
+                                 @RequestParam(required = false) Double lng) {
+        log.info("附近商家: lat={}, lng={}", lat, lng);
+
+        List<BusinessVO1> businessVO1s;
+
+        // 判断是否提供了经纬度参数
+        if (lat != null && lng != null) {
+            // 使用经纬度查询附近50公里内的商户，按星级和评论数排序
+            businessVO1s = businessService.nearBy(lat, lng);
+        } else {
+            // 如果没有提供位置信息，使用原有逻辑（按城市查询）
+            businessVO1s = businessService.nearBy();
+        }
+
         return ResponseResult.success(businessVO1s);
     }
 

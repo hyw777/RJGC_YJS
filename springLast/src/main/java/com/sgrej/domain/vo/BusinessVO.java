@@ -16,4 +16,5 @@ public class BusinessVO {
     private int isOpen;
     private String categories;
     private String bid;
+    private double distance;
 }

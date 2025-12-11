@@ -1140,52 +1140,66 @@ const createMap = () => {
 // ================================
 // 方法三：浏览器定位 + 高德兜底 + 可调试模拟
 // ================================
-const DEBUG_USE_MOCK_LOCATION = true; // 开发想固定贵州时改成 true
+const DEBUG_USE_MOCK_LOCATION = false; // 开发想固定贵州时改成 true
 
-// ================================
-// 固定坐标 + 调用高德反地理编码
-// ================================
-const FIXED_LOCATION = {
-  lat: 26.442885,
-  lng: 106.672978,
-};
+
 
 const getUserLocation = () => {
-  // 使用固定坐标
-  userLocation.value = {
-    lat: FIXED_LOCATION.lat,
-    lng: FIXED_LOCATION.lng,
-    address: "正在获取地址...",
-  };
-
-  console.log("📍 使用固定坐标：", FIXED_LOCATION);
-
-  // 调用高德反地理编码获取真实地址
-  AMap.plugin("AMap.Geocoder", () => {
-    const geocoder = new AMap.Geocoder();
-
-    geocoder.getAddress(
-      [FIXED_LOCATION.lng, FIXED_LOCATION.lat],
-      (status, result) => {
-        if (status === "complete" && result.regeocode) {
-          const addr = result.regeocode.formattedAddress;
-
-          userLocation.value.address = addr;
-
-          console.log("✅ 反地理编码成功：", addr);
-        } else {
-          userLocation.value.address = "无法获取详细地址";
-          console.error("❌ 反地理编码失败：", result);
-        }
-
-        // 移动地图
-        map.value.setCenter([FIXED_LOCATION.lng, FIXED_LOCATION.lat]);
-
-        // 计算距离
-        calculateDistance();
+  // 优先使用浏览器定位
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // 浏览器定位成功
+        const { latitude, longitude } = position.coords;
+        userLocation.value = {
+          lat: latitude,
+          lng: longitude,
+          address: "正在获取地址..."
+        };
+        
+        console.log("📍 浏览器定位成功：", { latitude, longitude });
+        
+        // 调用高德反地理编码获取真实地址
+        AMap.plugin("AMap.Geocoder", () => {
+          const geocoder = new AMap.Geocoder();
+          
+          geocoder.getAddress([longitude, latitude], (status, result) => {
+            if (status === "complete" && result.regeocode) {
+              const addr = result.regeocode.formattedAddress;
+              userLocation.value.address = addr;
+              console.log("✅ 反地理编码成功：", addr);
+            } else {
+              userLocation.value.address = "无法获取详细地址";
+              console.error("❌ 反地理编码失败：", result);
+            }
+            
+            // 移动地图
+            map.value.setCenter([longitude, latitude]);
+            
+            // 计算距离
+            calculateDistance();
+          });
+        });
+      },
+      (error) => {
+        // 浏览器定位失败，使用高德定位
+        console.error("❌ 浏览器定位失败：", error.message);
+        ElMessage.warning("浏览器定位失败，尝试使用高德定位");
+        useAMapLocation();
+      },
+      {
+        enableHighAccuracy: true,     // 启用高精度
+        timeout: 10000,               // 10秒超时
+        maximumAge: 60000             // 缓存1分钟
       }
     );
-  });
+  } else {
+    // 浏览器不支持定位
+    ElMessage.error("浏览器不支持定位功能");
+    console.warn("浏览器不支持 navigator.geolocation");
+    // 使用高德定位作为备选方案
+    useAMapLocation();
+  }
 };
 
 // ================================

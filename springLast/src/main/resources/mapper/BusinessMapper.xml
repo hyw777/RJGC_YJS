@@ -9,10 +9,10 @@
         from business
         <where>
             <if test="businessName != null and businessName != ''">
-               and name like concat('%',#{businessName},'%')
+                and name like concat('%',#{businessName},'%')
             </if>
             <if test="type != null and type != ''">
-               and categories like concat('%',#{type},'%')
+                and categories like concat('%',#{type},'%')
             </if>
             <if test=" 1 == 1">
                 and is_open != -1
@@ -63,20 +63,29 @@
 
     <insert id="register" keyProperty="businessId" useGeneratedKeys="true">
         INSERT INTO business
-        (`name`, `address`, `city`, `state`,`postal_code`, `latitude`, `longitude`, `stars`, `review_count`, `is_open`, `categories`,`attributes`,`hours`, `created_at`, `updated_at`,`bid`)
-        VALUES
-        (#{name}, #{address}, #{city}, #{state}, #{postalCode}, #{latitude}, #{longitude}, #{stars}, #{reviewCount}, #{isOpen}, #{categories}, #{attributes}, #{hours}, NOW(), NOW(), #{bid})
+        (`name`, `address`, `city`, `state`, `postal_code`, `latitude`, `longitude`, `stars`, `review_count`, `is_open`,
+         `categories`, `attributes`, `hours`, `created_at`, `updated_at`, `bid`)
+        VALUES (#{name}, #{address}, #{city}, #{state}, #{postalCode}, #{latitude}, #{longitude}, #{stars},
+                #{reviewCount}, #{isOpen}, #{categories}, #{attributes}, #{hours}, NOW(), NOW(), #{bid})
     </insert>
 
     <select id="selectAllBusinesses" resultType="com.sgrej.domain.vo.BusinessVO">
-        SELECT business_id,name,address,stars,review_count,is_open,categories,bid
+        SELECT business_id,
+               name,
+               address,
+               stars,
+               review_count,
+               is_open,
+               categories,
+               bid
         FROM business
         ORDER BY business_id DESC
             LIMIT #{start}, #{pageSize}
     </select>
 
     <select id="countAllBusinesses" resultType="int">
-        SELECT COUNT(*) FROM business
+        SELECT COUNT(*)
+        FROM business
     </select>
 
     <update id="updateBusinessStatus">
@@ -92,4 +101,46 @@
             #{businessId}
         </foreach>
     </select>
+
+    <select id="getNearbyBusinessesWithin50Km" resultType="com.sgrej.domain.vo.BusinessVO">
+        SELECT business_id,
+               name,
+               address,
+               stars,
+               review_count,
+               is_open,
+               categories,
+               bid,
+               -- 球面距离计算公式（保留2位小数）
+               ROUND(
+                           6371 * ACOS(
+                                       COS(RADIANS(#{userLat})) * COS(RADIANS(latitude)) *
+                                       COS(RADIANS(longitude) - RADIANS(#{userLng})) +
+                                       SIN(RADIANS(#{userLat})) * SIN(RADIANS(latitude))
+                           ),
+                           2
+                   ) AS distance
+        FROM business
+        WHERE
+        -- 基础过滤：排除已关闭/无效商户
+            is_open = 1
+        -- 经纬度非空（避免计算异常）
+        AND latitude IS NOT NULL
+        AND longitude IS NOT NULL
+        -- 动态经纬度范围过滤（覆盖50km）
+        AND latitude BETWEEN #{userLat} - (50/111)
+          AND #{userLat} + (50/111)
+          AND longitude BETWEEN #{userLng} - (50/(111*COS(RADIANS(#{userLat}))))
+          AND #{userLng} + (50/(111*COS(RADIANS(#{userLat}))))
+        -- 直接过滤距离≤50km（替代HAVING，语义更优）
+          AND 6371 * ACOS(
+            COS(RADIANS(#{userLat})) * COS(RADIANS(latitude)) *
+            COS(RADIANS(longitude) - RADIANS(#{userLng})) +
+            SIN(RADIANS(#{userLat})) * SIN(RADIANS(latitude))
+            )  &lt;= 50
+    -- 排序：距离升序，评分降序
+        ORDER BY distance ASC, stars DESC
+            LIMIT 20
+    </select>
+
 </mapper>

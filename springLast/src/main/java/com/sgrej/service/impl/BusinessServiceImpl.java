@@ -237,6 +237,44 @@ public class BusinessServiceImpl implements BusinessService {
 
 
     /**
+     * 获取附近50公里内前20家商户（按星级和评论数排序）
+     * @param userLat 用户纬度
+     * @param userLng 用户经度
+     * @return
+     */
+    @Override
+    public List<BusinessVO1> nearBy(double userLat, double userLng) {
+        // 从数据库中查找附近50公里内商户信息，按星级和评论数排序
+        List<BusinessVO> businessVOs = businessMapper.getNearbyBusinessesWithin50Km(userLat, userLng);
+
+        System.out.println(businessVOs.toString());
+        // 找到每个商家对应的图片信息
+        List<BusinessVO1> businessVO1s = new ArrayList<>();
+
+        for (BusinessVO businessVO : businessVOs) {
+            // 得到每个商家的bid
+            String bid = businessVO.getBid();
+
+            // 得到商家对应的第一张图片
+            String imageUrl = photoMapper.selectImage(bid);
+
+//            if("".equals(imageUrl) || imageUrl == null){
+//                continue;
+//            }
+
+            // 创建一个新的BusinessVO1对象
+            BusinessVO1 businessVO1 = new BusinessVO1();
+            BeanUtils.copyProperties(businessVO, businessVO1);
+            businessVO1.setImage(imageUrl);
+
+            // 将包含图片的BusinessVO1对象添加到列表中
+            businessVO1s.add(businessVO1);
+        }
+        return businessVO1s;
+    }
+
+
+    /**
      * 工作台
      * @param workBenchDTO
      * @return

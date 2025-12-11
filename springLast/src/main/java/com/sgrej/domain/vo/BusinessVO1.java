@@ -42,6 +42,8 @@ public class BusinessVO1 implements Serializable {
 
     private String bid;//图片信息和评论信息
 
+    private double distance;
+
     private String image;//图片信息
 
 }

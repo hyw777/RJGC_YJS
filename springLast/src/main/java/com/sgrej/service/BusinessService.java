@@ -76,4 +76,13 @@ public interface BusinessService {
      * @param business
      */
     void register(Business business);
+
+    /**
+     * 获取附近商家信息（基于经纬度）
+     * @param userLat 用户纬度
+     * @param userLng 用户经度
+     * @return
+     */
+    List<BusinessVO1> nearBy(double userLat, double userLng);
+
 }

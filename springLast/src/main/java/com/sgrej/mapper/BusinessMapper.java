@@ -99,4 +99,14 @@ public interface BusinessMapper {
 
     Map<String, String> getBusinessNamesByIds(List<String> businessIds);
 
+    /**
+     * 根据用户经纬度获取附近50公里内的商户，按星级和评论数排序
+     * @param userLat 用户纬度
+     * @param userLng 用户经度
+     * @return
+     */
+    List<BusinessVO> getNearbyBusinessesWithin50Km(@Param("userLat") double userLat,
+                                                   @Param("userLng") double userLng);
+
+
 }
