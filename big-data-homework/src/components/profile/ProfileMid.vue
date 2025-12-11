@@ -18,7 +18,7 @@
                     <Edit />
                   </el-icon>
                 </div>
-                <div>Edit Profile</div>
+                <div>编辑资料</div>
               </div>
               <div class="add-box">
                 <router-link to="/findFriends" class="icon-box">
@@ -26,7 +26,7 @@
                     <Plus />
                   </el-icon>
                 </router-link>
-                <div>Add Friends</div>
+                <div>添加好友</div>
               </div>
             </div>
           </div>
@@ -83,10 +83,10 @@ const avatar = ref(
 
 // 导航项数据
 const navItems = [
-  { path: "/profile/overview", icon: User, label: "Profile overview" },
-  { path: "/profile/reviews", icon: PriceTag, label: "Reviews" },
-  { path: "/profile/collections", icon: CollectionTag, label: "Collections" },
-  { path: "/profile/friends", icon: Coordinate, label: "Friends" },
+  { path: "/profile/overview", icon: User, label: "个人资料概览" },
+  { path: "/profile/reviews", icon: PriceTag, label: "我的评价" },
+  { path: "/profile/collections", icon: CollectionTag, label: "收藏夹" },
+  { path: "/profile/friends", icon: Coordinate, label: "好友列表" },
 ];
 
 // 按钮状态管理

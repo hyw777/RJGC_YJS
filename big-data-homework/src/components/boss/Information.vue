@@ -15,12 +15,12 @@
         <div class="image-container">
           <div class="main-images">
             <img
-              v-for="(image, index) in baseInfo.imageList.slice(0, 3)"
+              v-for="(image, index) in baseInfo?.imageList?.slice(0, 3)"
               :key="index"
               class="main-image"
               :src="getImagePath(image)"
-              :alt="`${baseInfo.name} - 图片${index + 1}`"
-              v-if="image !== undefined && image !== null && image !== ''"
+              :alt="`${baseInfo?.name} - 图片${index + 1}`"
+              v-if="image !== undefined && image !== null && image !== '' && baseInfo?.imageList"
             />
           </div>
         </div>
@@ -30,8 +30,9 @@
           class="view-all-btn"
           type="primary"
           plain
+          v-if="baseInfo?.imageList && baseInfo?.imageList.length > 0"
         >
-          查看全部 {{ baseInfo.imageList.length }} 张图片
+          查看全部 {{ baseInfo?.imageList.length }} 张图片
         </el-button>
       </div>
 
@@ -40,22 +41,22 @@
         <div class="info-header">
           <div class="header-content">
             <div class="business-header">
-              <h1 class="business-name">{{ baseInfo.name }}</h1>
+              <h1 class="business-name">{{ baseInfo?.name || '未知商户' }}</h1>
             </div>
             <div class="business-address">
               <el-icon><Location /></el-icon>
-              <span>{{ baseInfo.city }}, {{ baseInfo.state }}</span>
+              <span>{{ baseInfo?.city || '' }}, {{ baseInfo?.state || '' }}</span>
             </div>
           </div>
         </div>
 
         <!-- 评分信息 -->
-        <div class="rating-section">
+        <div class="rating-section" v-if="baseInfo?.stars">
           <div class="rating-item">
             <span class="rating-label">用户评分</span>
             <el-rate v-model="baseInfo.stars" disabled size="small" />
             <span class="rating-value">{{ baseInfo.stars }}</span>
-            <span class="review-count">({{ baseInfo.reviewCount }} 条评论)</span>
+            <span class="review-count" v-if="baseInfo?.reviewCount">({{ baseInfo.reviewCount }} 条评论)</span>
           </div>
         </div>
 
@@ -74,7 +75,7 @@
               <el-icon><Clock /></el-icon>
               <div class="info-content">
                 <span class="label">营业时间</span>
-                <span class="value">{{ baseInfo.hours }}</span>
+                <span class="value">{{ baseInfo?.hours || '未知' }}</span>
               </div>
             </div>
 
@@ -82,7 +83,7 @@
               <el-icon><Collection /></el-icon>
               <div class="info-content">
                 <span class="label">分类</span>
-                <span class="value">{{ baseInfo.categories }}</span>
+                <span class="value">{{ baseInfo?.categories || '未分类' }}</span>
               </div>
             </div>
           </div>
@@ -100,11 +101,11 @@
               <span>是否适合儿童</span>
             </div>
             <div class="answer">
-              <el-icon :color="baseInfo.goodForKids === 'true' ? '#67c23a' : '#f56c6c'" size="16">
-                <CircleCheck v-if="baseInfo.goodForKids === 'true'" />
+              <el-icon :color="baseInfo?.goodForKids === 'true' ? '#67c23a' : '#f56c6c'" size="16">
+                <CircleCheck v-if="baseInfo?.goodForKids === 'true'" />
                 <CircleClose v-else />
               </el-icon>
-              <span class="answer-text">{{ baseInfo.goodForKids === 'true' ? '是' : '否' }}</span>
+              <span class="answer-text">{{ baseInfo?.goodForKids === 'true' ? '是' : '否' }}</span>
             </div>
           </div>
           
@@ -114,11 +115,11 @@
               <span>是否接受信用卡</span>
             </div>
             <div class="answer">
-              <el-icon :color="baseInfo.businessAcceptsCreditcards === 'true' ? '#67c23a' : '#f56c6c'" size="16">
-                <CircleCheck v-if="baseInfo.businessAcceptsCreditcards === 'true'" />
+              <el-icon :color="baseInfo?.businessAcceptsCreditcards === 'true' ? '#67c23a' : '#f56c6c'" size="16">
+                <CircleCheck v-if="baseInfo?.businessAcceptsCreditcards === 'true'" />
                 <CircleClose v-else />
               </el-icon>
-              <span class="answer-text">{{ baseInfo.businessAcceptsCreditcards === 'true' ? '是' : '否' }}</span>
+              <span class="answer-text">{{ baseInfo?.businessAcceptsCreditcards === 'true' ? '是' : '否' }}</span>
             </div>
           </div>
         </div>
@@ -129,38 +130,42 @@
         <!-- 评论部分 -->
         <div class="reviews-section">
           <div class="reviews-header">
-            <h2 class="section-title">用户评价 ({{ baseInfo.reviewVOList.length }})</h2>
+            <h2 class="section-title">用户评价 ({{ baseInfo?.reviewVOList?.length || 0 }})</h2>
           </div>
 
           <!-- 评论列表 -->
-          <div class="reviews-list">
+          <div class="reviews-list" v-if="baseInfo?.reviewVOList && baseInfo?.reviewVOList.length > 0">
             <div
               class="review-item"
-              v-for="(review, index) in baseInfo.reviewVOList"
+              v-for="(review, index) in baseInfo?.reviewVOList"
               :key="index"
             >
               <div class="review-header">
                 <div class="user-info">
                   <el-avatar :size="32">{{
-                    review.userName?.charAt(0) || "U"
+                    review?.userName?.charAt(0) || "U"
                   }}</el-avatar>
                   <div class="user-details">
-                    <span class="username">{{ review.userName }}</span>
-                    <span class="review-date">{{ review.date }}</span>
+                    <span class="username">{{ review?.userName || '匿名用户' }}</span>
+                    <span class="review-date">{{ review?.date || '未知日期' }}</span>
                   </div>
                 </div>
                 <el-rate
-                  v-model="review.stars"
+                  :model-value="review?.stars"
                   disabled
                   size="small"
                   class="review-rating"
+                  v-if="review?.stars"
                 />
               </div>
 
               <div class="review-content">
-                {{ review.text }}
+                {{ review?.text || '无评论内容' }}
               </div>
             </div>
+          </div>
+          <div v-else class="no-reviews">
+            暂无用户评价
           </div>
         </div>
       </div>
@@ -197,12 +202,16 @@ let imageListStore = UseImageListStore();
 const loading = ref(true);
 
 function jump() {
-  imageListStore.setImageList(baseInfo.value.imageList);
-  router.push("/imageDisplay");
+  // 确保imageList存在再执行跳转
+  if (baseInfo.value?.imageList) {
+    imageListStore.setImageList(baseInfo.value.imageList);
+    router.push("/imageDisplay");
+  }
 }
 
 const getImagePath = (file: string) => {
-  if (!file) {
+  // 添加检查确保file存在且不为空
+  if (!file || file === '') {
     console.log("图片文件名为空");
     return "";
   }
@@ -213,18 +222,28 @@ const getImagePath = (file: string) => {
     return file;
   } else {
     const fullPath = `http://localhost:3000/images/${file}.jpg`;
-     console.log("图片文件名:", fullPath);
+    console.log("图片文件名:", fullPath);
     return fullPath;
   }
 };
 
 onMounted(() => {
   buttonStore.setBossButton(0);
-  getBaseInfo.value().finally(() => {
-    // 数据加载完成后隐藏加载状态
-    console.log("商户信息：", baseInfo.value.imageList);
-    loading.value = false;
-  });
+  getBaseInfo.value()
+    .then(() => {
+      // 数据加载成功后的处理
+      console.log("商户信息加载成功：", baseInfo.value);
+    })
+    .catch((error) => {
+      // 数据加载失败的处理
+      console.error("商户信息加载失败：", error);
+    })
+    .finally(() => {
+      // 无论成功还是失败都要隐藏加载状态
+      setTimeout(() => {
+        loading.value = false;
+      }, 100); // 延迟100毫秒确保DOM更新
+    });
 });
 </script>
 
@@ -266,6 +285,14 @@ onMounted(() => {
   margin-top: 16px;
   color: #606266;
   font-size: 16px;
+}
+
+/* 添加无评论样式 */
+.no-reviews {
+  text-align: center;
+  padding: 40px 20px;
+  color: #909399;
+  font-size: 14px;
 }
 
 .merchant-detail {

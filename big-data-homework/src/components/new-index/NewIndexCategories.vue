@@ -1,54 +1,54 @@
 <template>
   <div class="categories">
     <div class="category-box">
-      <div class="title"><h2>categories</h2></div>
+      <div class="title"><h2>分类</h2></div>
       <div class="category-card-box">
         <div class="category-card" @click="reload('restaurant')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><KnifeFork /></el-icon>
-            <div class="word-box">Restaurants</div>
+            <div class="word-box">餐厅</div>
           </div>
         </div>
         <div class="category-card" @click="reload('shop')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><ShoppingCart /></el-icon>
-            <div class="word-box">Shopping</div>
+            <div class="word-box">购物</div>
           </div>
         </div>
         <div class="category-card" @click="reload('nightlife')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><Moon /></el-icon>
-            <div class="word-box">Nightlife</div>
+            <div class="word-box">夜生活</div>
           </div>
         </div>
         <div class="category-card" @click="reload('active')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><Aim /></el-icon>
-            <div class="word-box">Active Life</div>
+            <div class="word-box">活力生活</div>
           </div>
         </div>
         <div class="category-card" @click="reload('beauty')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><Scissor /></el-icon>
-            <div class="word-box">Beauty & Spas</div>
+            <div class="word-box">美容养生</div>
           </div>
         </div>
         <div class="category-card" @click="reload('automotive')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><Van /></el-icon>
-            <div class="word-box">Automotive</div>
+            <div class="word-box">汽车服务</div>
           </div>
         </div>
         <div class="category-card" @click="reload('home')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><House /></el-icon>
-            <div class="word-box">Home Services</div>
+            <div class="word-box">家居服务</div>
           </div>
         </div>
         <div class="category-card" @click="reload('more')">
           <div class="content-box">
             <el-icon size="40px" color="#3b82f6"><MoreFilled /></el-icon>
-            <div class="word-box">More</div>
+            <div class="word-box">更多</div>
           </div>
         </div>
       </div>

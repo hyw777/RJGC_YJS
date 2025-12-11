@@ -535,9 +535,20 @@
     </div>
 
     <!-- Upload Dialog -->
-    <el-dialog v-model="uploadVisible" title="上传图片" width="640">
+    <el-dialog v-model="uploadVisible" title="上传待识别的图片" width="640">
       <div class="upload-body">
-        <input type="file" accept="image/*" @change="onFileChange" />
+        <div class="upload-area" @click="$refs.fileInput.click()">
+          <el-icon size="40" color="#1890ff"><Upload /></el-icon>
+          <p class="upload-text">点击选择图片文件</p>
+          <p class="upload-hint">支持 JPG、PNG、JPEG 格式</p>
+        </div>
+        <input 
+          ref="fileInput" 
+          type="file" 
+          accept="image/*" 
+          @change="onFileChange" 
+          style="display: none;"
+        />
         <div class="preview" v-if="previewUrl">
           <img :src="previewUrl" alt="preview" />
         </div>
@@ -545,9 +556,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="uploadVisible = false">取消</el-button>
-          <el-button type="primary" color="#E00707" @click="submitUpload"
-            >上传</el-button
-          >
+          <el-button type="primary" @click="submitUpload">上传</el-button>
         </div>
       </template>
     </el-dialog>
@@ -694,7 +703,7 @@ function handleMerchantSubmit() {
 }
 
 // ******************导入购物车图标
-import { ShoppingCart } from "@element-plus/icons-vue";
+import { ShoppingCart, Upload } from "@element-plus/icons-vue";
 
 // build full image URL safely; accepts remote URLs or stored filenames
 const filePath = (file: any) => {
@@ -960,10 +969,18 @@ async function submitUpload() {
     const resp = await axios.post("http://localhost:3000/photos", formData);
 
     ElMessage({ message: "上传成功", type: "success" });
+   
     uploadVisible.value = false;
     // 清理
     uploadFile.value = null;
     previewUrl.value = "";
+    
+    // 修复语法错误：确保路由跳转和搜索执行都在try块中正确执行
+    router.push({
+      name: "Search",
+      query: { info: info.value },
+    });
+    getResult.value(1, info.value);
   } catch (err) {
     console.error(err);
     ElMessage({ message: "上传失败", type: "error" });
@@ -1749,5 +1766,201 @@ async function autoFillCoordinates() {
   cursor: pointer;
   color: #6e7072;
   font-size: 13px;
+}
+
+/* 美化表单样式 */
+:deep(.el-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+:deep(.el-dialog__header) {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+:deep(.el-dialog__title) {
+  color: #333;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #999;
+}
+
+:deep(.el-dialog__body) {
+  padding: 30px 40px;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #262626;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 2px 12px rgba(24, 144, 255, 0.2);
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+:deep(.el-button) {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.pwd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.find {
+  color: #1890ff;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.find:hover {
+  color: #40a9ff;
+  text-decoration: underline;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+}
+
+.dialog-footer .el-button {
+  padding: 10px 24px;
+  font-weight: 500;
+}
+
+:deep(.el-button--primary) {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+:deep(.el-button--primary:hover) {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+:deep(.el-button--primary:active) {
+  background: #096dd9;
+  border-color: #096dd9;
+}
+
+/* 特殊表单项样式 */
+.mail-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.mail-line .el-form-item {
+  flex: 1;
+}
+
+/* 单选按钮组样式 */
+:deep(.el-radio-group) {
+  display: flex;
+  gap: 20px;
+}
+
+:deep(.el-radio) {
+  margin-right: 0;
+}
+
+:deep(.el-radio__inner) {
+  border-color: #d9d9d9;
+}
+
+:deep(.el-radio__inner::after) {
+  background-color: #1890ff;
+}
+
+:deep(.el-radio__label) {
+  color: #595959;
+}
+
+/* 复选框样式 */
+:deep(.el-checkbox__inner) {
+  border-radius: 4px;
+}
+
+:deep(.el-checkbox__inner::after) {
+  border-color: #1890ff;
+}
+
+/* 上传弹窗样式 */
+.upload-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.upload-area {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 30px;
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.upload-area:hover {
+  border-color: #1890ff;
+  background-color: #f0f8ff;
+}
+
+.upload-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #262626;
+  margin: 0;
+}
+
+.upload-hint {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.upload-body .preview {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+}
+
+.upload-body .preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.upload-body .preview:empty {
+  display: none;
 }
 </style>
