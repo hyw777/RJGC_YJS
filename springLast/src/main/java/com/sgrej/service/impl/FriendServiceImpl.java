@@ -90,12 +90,13 @@ public class FriendServiceImpl implements FriendService {
                 //首先找到评论对应的商家名和用户名
                 String businessName = businessMapper.selectBusinessName(review.getBusinessId());
 
+                int businessId=businessMapper.selectBusinessByBid(review.getBusinessId());
                 //创建ReviewVO对象用于接收
                 ReviewVO reviewVO=new ReviewVO();
                 BeanUtils.copyProperties(review,reviewVO);
                 reviewVO.setUserName(userName);
                 reviewVO.setBusinessName(businessName);
-
+                reviewVO.setBusinessId(businessId);
                 //将其添加到reviewVoList中
                 reviewVOList.add(reviewVO);
             }

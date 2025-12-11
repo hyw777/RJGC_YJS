@@ -89,7 +89,7 @@ import { User, Shop, Warning, Search } from '@element-plus/icons-vue';
 
 const size = ref<'default' | 'large' | 'small'>('default')
 const display = ref(true);
-const value2 = ref('')
+const value2 = ref<[string, string] | []>([]);
 const findReviewDTO = ref({
   pageSize: 5,
   pageNum: 1,
@@ -102,8 +102,16 @@ let data = ref({
 });
 
 const search = () => {
-  findReviewDTO.value.begin = value2.value[0];
-  findReviewDTO.value.end = value2.value[1];
+  // 处理未选择日期的情况
+  if (value2.value && Array.isArray(value2.value) && value2.value.length === 2) {
+    findReviewDTO.value.begin = value2.value[0];
+    findReviewDTO.value.end = value2.value[1];
+  } else {
+    // 如果没有选择日期，清空开始和结束时间
+    findReviewDTO.value.begin = '';
+    findReviewDTO.value.end = '';
+  }
+  
   axios.post('/api/reviewManage/getAll', findReviewDTO.value)
     .then((response) => {
       data.value = response.data.data;

@@ -1405,6 +1405,7 @@ watch(showMapDialog, (newVal) => {
 
 .merchant-detail {
   max-width: 1200px;
+  width: 1200px;
   margin: 0 auto;
   padding: 20px;
   background-color: #f5f7fa;

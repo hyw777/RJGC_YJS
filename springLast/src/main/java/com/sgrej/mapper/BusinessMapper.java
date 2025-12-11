@@ -33,6 +33,14 @@ public interface BusinessMapper {
     @Select("select name from business where bid =  #{businessId} and is_open != -1")
     String selectBusinessName(String businessId);
 
+    /**
+     * 根据bid查询商户id
+     * @param businessId
+     * @return
+     */
+    @Select("select business_id from business where bid =  #{businessId}")
+    int selectBusinessByBid(String businessId);
+
 
     //分页查询，用于首页展示结果和搜索展示结果
     Page<BusinessVO> pageQuery(BusinessPageQueryDTO businessPageQueryDTO);

@@ -1,75 +1,89 @@
 <template>
   <div class="nearby-container">
-    <!-- 添加无商户提示 -->
-    <div v-if="businesses && businesses.length === 0" class="empty-state">
-      <div class="empty-icon">🏪</div>
-      <h3>您的附近暂时没有商户注册</h3>
-      <p>敬请谅解，您可以稍后再试或联系客服了解更多</p>
+    <!-- 加载状态 -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>正在加载附近的商户...</p>
     </div>
+    <!-- 添加无商户提示 -->
+    <div v-if="!loading">
+      <div v-if="businesses && businesses.length === 0" class="empty-state">
+        <div class="empty-icon">🏪</div>
+        <h3>您的附近暂时没有商户注册</h3>
+        <p>敬请谅解，您可以稍后再试或联系客服了解更多</p>
+      </div>
 
-    <div class="business-grid" v-else>
-      <div
-        class="show-box"
-        v-for="(business, index) in businesses"
-        :key="index"
-      >
-        <router-link
-          class="img"
-          :to="{ path: '/merchantDetail', query: { id: business.businessId } }"
+      <div class="business-grid" v-else>
+        <div
+          class="show-box"
+          v-for="(business, index) in businesses"
+          :key="index"
         >
-          <img
-            v-if="business.image"
-            :src="filePath(business.image)"
-            :alt="business.name"
-          />
-          <div v-else class="initials-placeholder">
-            {{ getInitials(business.name) }}
-          </div>
-        </router-link>
-        <div class="info-box">
-          <div class="info-content">
-            <div class="info-header">
-              <h3 class="business-name">{{ business.name }}</h3>
-              <div class="distance-tag" v-if="locationError">
-                <span>获取不到您的定位</span>
-              </div>
-              <div
-                class="distance-tag"
-                v-else-if="business.distance !== undefined"
-              >
-                <span>{{ formatDistance(business.distance) }}</span>
-              </div>
+          <router-link
+            class="img"
+            :to="{
+              path: '/merchantDetail',
+              query: { id: business.businessId },
+            }"
+          >
+            <img
+              v-if="business.image"
+              :src="filePath(business.image)"
+              :alt="business.name"
+            />
+            <div v-else class="initials-placeholder">
+              {{ getInitials(business.name) }}
             </div>
-
-            <div class="info-rating">
-              <el-rate v-model="business.stars" size="large" disabled></el-rate>
-              <div class="rate-info">
-                <span class="stars-value">{{ business.stars }}</span>
-                <span class="review-count"
-                  >({{ business.reviewCount }} reviews)</span
+          </router-link>
+          <div class="info-box">
+            <div class="info-content">
+              <div class="info-header">
+                <h3 class="business-name">{{ business.name }}</h3>
+                <div class="distance-tag" v-if="locationError">
+                  <span>获取不到您的定位</span>
+                </div>
+                <div
+                  class="distance-tag"
+                  v-else-if="business.distance !== undefined"
                 >
+                  <span>{{ formatDistance(business.distance) }}</span>
+                </div>
+              </div>
+
+              <div class="info-rating">
+                <el-rate
+                  v-model="business.stars"
+                  size="large"
+                  disabled
+                ></el-rate>
+                <div class="rate-info">
+                  <span class="stars-value">{{ business.stars }}</span>
+                  <span class="review-count"
+                    >({{ business.reviewCount }} reviews)</span
+                  >
+                </div>
+              </div>
+
+              <div class="info-categories">
+                <span class="category">{{ business.categories }}</span>
               </div>
             </div>
 
-            <div class="info-categories">
-              <span class="category">{{ business.categories }}</span>
+            <div class="info-actions">
+              <el-button
+                type="primary"
+                size="small"
+                round
+                @click.prevent="
+                  $router.push({
+                    path: '/merchantDetail',
+                    query: { id: business.businessId },
+                  })
+                "
+              >
+                查看详情
+              </el-button>
             </div>
-          </div>
-
-          <div class="info-actions">
-            <el-button
-              type="primary"
-              size="small"
-              round
-              @click.prevent="
-                $router.push({
-                  path: '/merchantDetail',
-                  query: { id: business.businessId },
-                })
-              "
-            >
-              查看详情
-            </el-button>
           </div>
         </div>
       </div>
@@ -161,7 +175,6 @@ const getUserLocation = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-        // 获取位置后调用附近商户接口，传递位置信息
         getNearByBusinessesWithLocation();
       },
       (error) => {
@@ -169,32 +182,46 @@ const getUserLocation = () => {
         locationError.value = `获取位置失败: ${error.message}`;
         // 降级到原有逻辑（不传递位置信息）
         if (authStore.token) {
-          getNearByBusinesses.value();
+          loading.value = true;
+          getNearByBusinesses.value().finally(() => {
+            loading.value = false;
+          });
+        } else {
+          loading.value = false;
         }
       }
     );
   } else {
     console.log("浏览器不支持地理位置");
     locationError.value = "浏览器不支持地理位置";
-    // 降级到原有逻辑（不传递位置信息）
     if (authStore.token) {
-      getNearByBusinesses.value();
+      loading.value = true;
+      getNearByBusinesses.value().finally(() => {
+        loading.value = false;
+      });
+    } else {
+      loading.value = false;
     }
   }
 };
 
 // 带位置信息的获取附近商户方法
 const getNearByBusinessesWithLocation = () => {
+  loading.value = true;
   if (userLocation.value && authStore.token) {
-    // 传递用户位置给后端
     getNearByBusinesses
       .value(userLocation.value.latitude, userLocation.value.longitude)
       .then(() => {
-        // 打印获取到的商户信息
         console.log("从后端获取的商户信息:", businesses.value);
+      })
+      .finally(() => {
+        loading.value = false;
       });
+  } else {
+    loading.value = false;
   }
 };
+const loading = ref(true);
 
 onMounted(() => {
   buttonStore.setIndexButton(0);
@@ -210,6 +237,45 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 修改已有的 .loading-state 样式 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  /* 添加以下属性确保居中 */
+  min-height: 300px;
+  width: 100%;
+  margin-left: 320px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #409eff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
 .nearby-container {
   padding: 20px;
 }
@@ -238,7 +304,15 @@ onMounted(() => {
   padding: 60px 20px;
   background: #f8f9fa;
   border-radius: 12px;
-  margin: 20px;
+  margin: 20px auto; /* 改为auto使其水平居中 */
+  width: 80%; /* 可选：设置固定宽度 */
+  max-width: 500px; /* 可选：限制最大宽度 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  margin-left: 320px;
 }
 
 .empty-icon {
@@ -267,7 +341,7 @@ onMounted(() => {
   border: 1px solid #eee;
   min-height: 380px; /* 设置最小高度确保一致性 */
   width: 390px;
-} 
+}
 
 .show-box:hover {
   transform: translateY(-4px);

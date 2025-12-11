@@ -47,4 +47,6 @@ public class ReviewVO implements Serializable {
      */
     private String businessName;
 
+    private int businessId;
+
 }
