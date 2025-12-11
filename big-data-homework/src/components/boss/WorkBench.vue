@@ -146,9 +146,14 @@ const loading = ref(true) // 添加加载状态
 const handleClick = async (days: number) => {
   loading.value = true // 开始加载
   activePeriod.value = days
-  await getData.value(days);
-  updateChart();
-  loading.value = false // 加载完成
+  try {
+    await getData.value(days);
+    updateChart();
+  } catch (error) {
+    console.error("数据加载失败:", error);
+  } finally {
+    loading.value = false // 无论成功或失败都结束加载状态
+  }
 };
 
 // 处理AI分析
@@ -249,7 +254,12 @@ onMounted(async () => {
   const chartElement = document.getElementById('main');
   if (chartElement) {
     myChart = echarts.init(chartElement);
-    await handleClick(7); // 等待初始数据加载完成
+    try {
+      await handleClick(7); // 等待初始数据加载完成
+    } catch (error) {
+      console.error("初始数据加载失败:", error);
+      loading.value = false; // 确保加载状态被清除
+    }
   }
 });
 </script>

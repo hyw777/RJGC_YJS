@@ -11,12 +11,12 @@
             <h2 class="name">{{ friendInfo.userVO.name }}</h2>
             <p class="text">{{ friendInfo.userVO.city }}</p>
             <div class="item-box">
-              <div class="message-box">
+              <!-- <div class="message-box">
                 <div class="icon-box">
                   <el-icon size="24"><Message /></el-icon>
                 </div>
-                <div style="color: #6E7072">Send Messages</div>
-              </div>
+                <div style="color: #6E7072">发送消息</div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -25,25 +25,25 @@
             <el-icon size="24">
               <User/>
             </el-icon>
-            <div class="nav-bottom-content-style">Profile overview</div>
+            <div class="nav-bottom-content-style">个人资料概览</div>
           </router-link>
           <router-link :to="{path:'/friendInfo/reviews',query:{userId : userId}}" replace class="nav-bottom-content" :class="{'isActive':showButton == 1}">
             <el-icon size="24">
               <PriceTag/>
             </el-icon>
-            <div class="nav-bottom-content-style">Reviews</div>
+            <div class="nav-bottom-content-style">评价</div>
           </router-link>
           <router-link :to="{path:'/friendInfo/collections',query:{userId : userId}}" replace class="nav-bottom-content" :class="{'isActive':showButton == 2}">
             <el-icon size="24">
               <CollectionTag/>
             </el-icon>
-            <div class="nav-bottom-content-style">Collections</div>
+            <div class="nav-bottom-content-style">收藏</div>
           </router-link>
           <router-link :to="{path:'/friendInfo/friends',query:{userId : userId}}" replace class="nav-bottom-content" :class="{'isActive':showButton == 3}">
             <el-icon size="24">
               <Coordinate/>
             </el-icon>
-            <div class="nav-bottom-content-style">Friends</div>
+            <div class="nav-bottom-content-style">好友</div>
           </router-link>
         </div>
       </div>

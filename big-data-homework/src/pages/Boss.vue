@@ -100,13 +100,14 @@ let bossButton = computed(()=>buttonStore.bossButton)
   border-right: 1px solid #dee2e6;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
   z-index: 10;
+  overflow: hidden; /* 防止子元素悬停时超出容器边界 */
 }
 
 .button {
   display: flex;
   align-items: center;
   height: 60px;
-  width: 100%;
+  width: calc(100% - 1px); /* 略微减少宽度以确保不会超出边界 */
   cursor: pointer;
   color: #6c757d;
   font-size: 16px;
@@ -114,6 +115,7 @@ let bossButton = computed(()=>buttonStore.bossButton)
   padding: 0 24px;
   transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
 .button:not(:last-child) {
@@ -123,6 +125,8 @@ let bossButton = computed(()=>buttonStore.bossButton)
 .button:hover {
   background-color: #f1f3f5;
   color: #495057;
+  transform: none;
+  overflow: hidden; /* 确保悬停时内容不会超出边界 */
 }
 
 .button-title {

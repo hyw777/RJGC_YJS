@@ -4,9 +4,9 @@ import {useBaseInfo} from "@/hooks/UseBaseInfo";
 
 export function useWorkbench() {
     let data =ref({
-        "totalVisitCount": 10,
-        "lastDayVisitCount": 1,
-        "newVisits": -1,
+        "totalVisitCount": 0,
+        "lastDayVisitCount": 0,
+        "newVisits": 0,
         "yindex": "0,2,5,0,0,0,2,1",
         "xindex": "2024-06-05,2024-06-06,2024-06-07,2024-06-08,2024-06-09,2024-06-10,2024-06-11,2024-06-12"
     })
@@ -89,7 +89,7 @@ export function useWorkbench() {
                     lastDayVisitCount: data.value.lastDayVisitCount,
                     trend: data.value.newVisits
                 },
-                reviews: baseInfo.value.reviewVOList.slice(0, 5), // 取前5条评论用于分析
+                reviews: baseInfo.value.reviewVOList.slice(0, 10), // 取前10条评论用于分析
                 period: activePeriod.value // 当前选择的时间段
             };
 
@@ -132,7 +132,7 @@ export function useWorkbench() {
 `;
         
         // 限制评论长度以避免超出token限制
-        const maxReviewLength = 200; // 进一步减少每条评论长度
+        const maxReviewLength = 150; // 减少每条评论长度以适应更多评论
         data.reviews.forEach((review: any, index: number) => {
             let reviewText = review.text || '无内容';
             // 如果评论太长则截断
@@ -143,7 +143,7 @@ export function useWorkbench() {
         });
 
         // 限制总prompt长度
-        const maxPromptLength = 8000;
+        const maxPromptLength = 10000; // 增加总长度限制以适应更多评论
         if (prompt.length > maxPromptLength) {
             prompt = prompt.substring(0, maxPromptLength);
         }
@@ -174,7 +174,7 @@ export function useWorkbench() {
                         content: prompt
                     }
                 ],
-                max_tokens: 2048,
+                max_tokens: 4096, // 增加max_tokens以适应更多的评论内容
                 temperature: 0.1,  // 降低随机性，保证结果稳定
                 top_p: 0.7,
                 frequency_penalty: 0.5,
