@@ -1,6 +1,7 @@
 import {ref} from "vue";
 import axios from "axios";
 import {useBaseInfo} from "@/hooks/UseBaseInfo";
+import {ElMessage} from "element-plus";
 
 export function useEditMerchant() {
     let info = ref({
@@ -32,8 +33,8 @@ export function useEditMerchant() {
         })
     }
 
-    async function writeBcak() {
-        await getBaseInfo()
+    async function writeBcak(businessId?: string) {
+        await getBaseInfo(businessId)
         info.value.businessId = baseInfo.value.businessId
         info.value.name = baseInfo.value.name;
         info.value.address = baseInfo.value.address;

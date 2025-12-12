@@ -1,6 +1,6 @@
 import {ref} from "vue";
 import axios from "axios";
-import {useBaseInfo} from "@/hooks/UseBaseInfo";
+import { useStores } from "./UseStores";
 
 export function useWorkbench() {
     let data =ref({
@@ -24,8 +24,6 @@ export function useWorkbench() {
         tips: [] as string[]
     })
 
-    let {baseInfo,getBaseInfo} = useBaseInfo()
-
     function getDate(d) {
         // 获取当前日期
         const currentDate = new Date();
@@ -44,13 +42,17 @@ export function useWorkbench() {
         return formattedDate;
     }
 
-    async function getData(day) {
+    async function getData(day, businessId?: string) {
         // 获取当前一天日期
         requestData.value.end = getDate(1)
         // 获取前x天日期
         requestData.value.begin = getDate(day)
-        await getBaseInfo()
-        requestData.value.businessId = baseInfo.value.businessId
+        
+        // 使用从组件传入的businessId
+        if (businessId) {
+            requestData.value.businessId = businessId;
+        }
+        
         await axios.post('/api/business/workBench',requestData.value).then(res => {
             data.value = res.data.data;
             data.value.xindex = res.data.data.xindex.split(',')
@@ -68,28 +70,38 @@ export function useWorkbench() {
     }
 
     // 获取AI分析建议
-    async function getAIAnalysis() {
+    async function getAIAnalysis(businessId?: string) {
         aiAnalysis.value.loading = true;
         try {
-            await getBaseInfo(); // 确保获取最新的商户信息
+            // 使用从组件传入的businessId
+            if (businessId) {
+                requestData.value.businessId = businessId;
+            }
+            
+            // 获取商户详细信息
+            let businessInfo = null;
+            if (businessId) {
+                const storeHook = useStores();
+                businessInfo = await storeHook.getBusinessInfo(businessId);
+            }
             
             // 准备分析数据
             const analysisData = {
                 businessInfo: {
-                    name: baseInfo.value.name,
-                    categories: baseInfo.value.categories,
-                    stars: baseInfo.value.stars,
-                    reviewCount: baseInfo.value.reviewCount,
-                    hours: baseInfo.value.hours,
-                    goodForKids: baseInfo.value.goodForKids,
-                    businessAcceptsCreditcards: baseInfo.value.businessAcceptsCreditcards
+                    name: businessInfo?.name || '未知',
+                    categories: businessInfo?.categories || '',
+                    stars: businessInfo?.stars || 0,
+                    reviewCount: businessInfo?.reviewCount || 0,
+                    hours: businessInfo?.hours || '',
+                    goodForKids: businessInfo?.goodForKids !== undefined ? businessInfo.goodForKids.toString() : '',
+                    businessAcceptsCreditcards: businessInfo?.businessAcceptsCreditcards !== undefined ? businessInfo.businessAcceptsCreditcards.toString() : ''
                 },
                 visitData: {
                     totalVisitCount: data.value.totalVisitCount,
                     lastDayVisitCount: data.value.lastDayVisitCount,
                     trend: data.value.newVisits
                 },
-                reviews: baseInfo.value.reviewVOList.slice(0, 10), // 取前10条评论用于分析
+                reviews: businessInfo?.reviewVOList?.slice(0, 10) || [], // 获取前10条评论
                 period: activePeriod.value // 当前选择的时间段
             };
 

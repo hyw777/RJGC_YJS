@@ -38,6 +38,13 @@ public interface BusinessService {
     BusinessVO2 getBusinessDetailByUid();
 
     /**
+     * 根据商户ID获取商户名称
+     * @param businessId 商户ID
+     * @return 商户名称
+     */
+
+    String getBusinessNameById(Integer businessId);
+    /**
      * 更新基本信息
      * @param business
      */
@@ -76,6 +83,8 @@ public interface BusinessService {
      * @param business
      */
     void register(Business business);
+
+    List<Integer> bIdsByUid(int userId);
 
     /**
      * 获取附近商家信息（基于经纬度）

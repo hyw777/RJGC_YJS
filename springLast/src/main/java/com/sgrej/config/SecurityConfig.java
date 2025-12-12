@@ -71,7 +71,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/user/login","/user/register"
                                 ,"/user/sendCode/**","swagger-ui/index.html/**"
-                        ,"/user/register","/business/search","/business/searchByName","/business/AIRecommend","/business/category","/user/findUser","/images/**").permitAll()
+                        ,"/user/register","/business/search","/business/searchByName","/business/businessInfo","/business/stores","/business/AIRecommend","/business/category","/user/findUser","/images/**").permitAll()
 //                                .requestMatchers("**").permitAll()
                         .anyRequest().authenticated()
                 );

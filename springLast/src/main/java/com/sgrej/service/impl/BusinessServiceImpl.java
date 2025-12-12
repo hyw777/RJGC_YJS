@@ -375,6 +375,16 @@ public class BusinessServiceImpl implements BusinessService {
         businessMapper.bindBusiness(userId,businessId);
     }
 
+    @Override
+    public List<Integer> bIdsByUid(int userId) {
+        return businessMapper.bIdsByUid(userId);
+    }
+
+    @Override
+    public String getBusinessNameById(Integer businessId) {
+        return businessMapper.selectBusinessNameByBId(businessId);
+    }
+
     /**
      * 获取前5个星级为5的商家
      * @return

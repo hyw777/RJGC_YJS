@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref, toRefs, nextTick} from 'vue';
+import {onMounted, ref, toRefs, nextTick, watch} from 'vue';
 import { UseButtonStore } from '@/stores/UseButtonStore';
 import { useWorkbench } from '@/hooks/UseWorkbench';
 import * as echarts from 'echarts';
@@ -135,32 +135,82 @@ import {
   Star, 
   Help 
 } from '@element-plus/icons-vue';
+import { useRoute } from 'vue-router';
+
+// 定义 props
+const props = defineProps<{
+  businessId?: string
+}>()
 
 const buttonStore = UseButtonStore();
 const workbench = useWorkbench();
 const { data, getData, aiAnalysis, getAIAnalysis, activePeriod } = toRefs(workbench);
+const route = useRoute();
 
-let myChart: echarts.ECharts | null = null // 添加类型声明
-const loading = ref(true) // 添加加载状态
+let myChart: echarts.ECharts | null = null
+const loading = ref(true)
 
-const handleClick = async (days: number) => {
-  loading.value = true // 开始加载
-  activePeriod.value = days
+// 抽取加载数据的函数，方便复用
+const loadData = async (businessId: string) => {
+  loading.value = true;
   try {
-    await getData.value(days);
+    await getData.value(activePeriod.value, businessId);
     updateChart();
   } catch (error) {
     console.error("数据加载失败:", error);
   } finally {
-    loading.value = false // 无论成功或失败都结束加载状态
+    loading.value = false;
+  }
+};
+
+const handleClick = async (days: number) => {
+  loading.value = true;
+  activePeriod.value = days;
+  try {
+    // 从props或路由参数中获取businessId
+    const businessId = props.businessId || (route.query.businessId as string);
+    // 必须提供businessId参数
+    if (!businessId) {
+      console.warn("未提供businessId参数");
+      loading.value = false;
+      return;
+    }
+    await getData.value(days, businessId);
+    updateChart();
+  } catch (error) {
+    console.error("数据加载失败:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
 // 处理AI分析
 const handleAIAnalysis = async () => {
-  workbench.activePeriod = activePeriod.value; // 传递当前时间段给hook
-  await getAIAnalysis.value();
+  try {
+    workbench.activePeriod.value = activePeriod.value;
+    // 从props或路由参数中获取businessId
+    const businessId = props.businessId || (route.query.businessId as string);
+    // 必须提供businessId参数
+    if (!businessId) {
+      console.warn("未提供businessId参数");
+      return;
+    }
+    await getAIAnalysis.value(businessId);
+  } catch (error) {
+    console.error("AI分析失败:", error);
+  }
 };
+
+// 监听路由变化，在切换标签时重新加载数据
+watch(
+  () => props.businessId || route.query.businessId,
+  (newBusinessId) => {
+    if (newBusinessId) {
+      loadData(newBusinessId as string);
+    }
+  },
+  { immediate: true }
+);
 
 const updateChart = () => {
   if (!myChart) return;
@@ -249,6 +299,7 @@ const updateChart = () => {
 
 onMounted(async () => {
   buttonStore.setBossButton(2);
+  
   // 确保DOM已渲染后再初始化图表
   await nextTick();
   const chartElement = document.getElementById('main');
