@@ -27,7 +27,7 @@
           <el-input v-model="merchantForm.city" />
         </el-form-item>
 
-        <el-form-item label="州" prop="state">
+        <el-form-item label="省份" prop="state">
           <el-input v-model="merchantForm.state" />
         </el-form-item>
 

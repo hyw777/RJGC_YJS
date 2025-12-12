@@ -3,7 +3,7 @@
     <NewIndexView></NewIndexView>
     <!-- <NewIndexTop></NewIndexTop> -->
     <new-index-activity v-if="authStore.token"></new-index-activity>
-    <new-index-categories></new-index-categories>
+    <!-- <new-index-categories></new-index-categories> -->
   </div>
 </template>
 

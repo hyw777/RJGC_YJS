@@ -42,7 +42,7 @@ export const useAuth = function() {
                 ElMessage.success('登录成功');
             } else {
                 ElMessage({
-                    message: '登录失败',
+                    message: response.data.msg,
                     type: 'error',
                 });
             }

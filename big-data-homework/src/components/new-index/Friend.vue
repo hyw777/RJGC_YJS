@@ -27,7 +27,7 @@
           :to="{ path: '/merchantDetail', query: { id: review.businessId } }"
           class="business-link"
         >
-        {{ console.log(review) }}
+          {{ console.log(review) }}
           {{ review.businessName }}
         </router-link>
       </div>
@@ -49,28 +49,6 @@
         {{ isExpanded[index] ? "Show less" : "Read more" }}
       </div>
     </div>
-    <!-- <div class="down">
-      <div class="down-box">
-        <div class="icon-box">
-          <el-icon class="icon">
-            <Pointer />
-          </el-icon>
-          <span>{{ review.useful }}</span>
-        </div>
-        <div class="icon-box">
-          <el-icon class="icon">
-            <Sunrise />
-          </el-icon>
-          <span>{{ review.funny }}</span>
-        </div>
-        <div class="icon-box">
-          <el-icon class="icon">
-            <Headset />
-          </el-icon>
-          <span>{{ review.cool }}</span>
-        </div>
-      </div>
-    </div> -->
   </div>
   <div
     class="content-card"
@@ -98,7 +76,18 @@
           query: { id: collection.businessVO1.businessId },
         }"
       >
-        <img :src="filePath(collection.businessVO1.image)" />
+        <img
+          v-if="collection.businessVO1.image"
+          :src="filePath(collection.businessVO1.image)"
+          :alt="collection.businessVO1.name"
+        />
+        <div
+          v-else
+          class="default-avatar"
+          :style="getBusinessAvatarStyle(collection.businessVO1.name)"
+        >
+          {{ getInitials(collection.businessVO1.name) }}
+        </div>
       </router-link>
       <div class="info-box">
         <div class="info1">
@@ -214,9 +203,58 @@ const getAvatarStyle = (name: string) => {
     fontWeight: "bold",
   };
 };
+
+// 添加获取商户名称首字母的方法
+const getBusinessInitials = (name: string) => {
+  if (!name) return "B"; // 默认字母
+  return name.charAt(0).toUpperCase();
+};
+
+// 添加生成商户头像样式的方法
+const getBusinessAvatarStyle = (name: string) => {
+  if (!name) return { backgroundColor: "#409EFF" };
+
+  // 根据商户名称生成颜色
+  const colors = [
+    "#409EFF",
+    "#67C23A",
+    "#E6A23C",
+    "#F56C6C",
+    "#909399",
+    "#00C1D4",
+  ];
+  const charCode = name.charCodeAt(0);
+  const colorIndex = charCode % colors.length;
+
+  return {
+    backgroundColor: colors[colorIndex],
+    color: "white",
+    fontWeight: "bold",
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    borderRadius: "8px",
+  };
+};
+
 </script>
 
 <style scoped>
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+}
+
 /* 卡片容器美化 */
 .content-card {
   display: flex;

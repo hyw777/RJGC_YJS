@@ -12,73 +12,82 @@
     <div v-else>
       <!-- 商户图片展示区域 - 轮播图 -->
       <div class="image-gallery">
-        <div class="carousel-container">
-          <!-- 主图轮播区域 -->
-          <div class="main-carousel">
-            <div
-              class="carousel-wrapper"
-              :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
-            >
+        <!-- 当有图片时显示轮播图 -->
+        <div v-if="result.imageList && result.imageList.length > 0">
+          <div class="carousel-container">
+            <!-- 主图轮播区域 -->
+            <div class="main-carousel">
               <div
-                v-for="(image, index) in result.imageList"
-                :key="index"
-                class="carousel-slide"
+                class="carousel-wrapper"
+                :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
               >
-                <div class="main-image-container">
-                  <img
-                    class="main-image"
-                    :src="getImagePath(image)"
-                    :alt="`${result.name} - 图片${index + 1}`"
-                    v-if="image"
-                  />
-                  <div class="image-placeholder" v-else>
-                    <el-icon size="48"><Picture /></el-icon>
-                    <span>暂无图片</span>
+                <div
+                  v-for="(image, index) in result.imageList"
+                  :key="index"
+                  class="carousel-slide"
+                >
+                  <div class="main-image-container">
+                    <img
+                      class="main-image"
+                      :src="getImagePath(image)"
+                      :alt="`${result.name} - 图片${index + 1}`"
+                      v-if="image"
+                    />
+                    <div class="image-placeholder" v-else>
+                      <el-icon size="48"><Picture /></el-icon>
+                      <span>暂无图片</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- 左右切换按钮 -->
-          <button
-            class="carousel-btn prev-btn"
-            @click="prevSlide"
-            v-if="result.imageList && result.imageList.length > 1"
-          >
-            <el-icon size="24"><ArrowLeft /></el-icon>
-          </button>
-          <button
-            class="carousel-btn next-btn"
-            @click="nextSlide"
-            v-if="result.imageList && result.imageList.length > 1"
-          >
-            <el-icon size="24"><ArrowRight /></el-icon>
-          </button>
+            <!-- 左右切换按钮 -->
+            <button
+              class="carousel-btn prev-btn"
+              @click="prevSlide"
+              v-if="result.imageList && result.imageList.length > 1"
+            >
+              <el-icon size="24"><ArrowLeft /></el-icon>
+            </button>
+            <button
+              class="carousel-btn next-btn"
+              @click="nextSlide"
+              v-if="result.imageList && result.imageList.length > 1"
+            >
+              <el-icon size="24"><ArrowRight /></el-icon>
+            </button>
 
-          <!-- 指示器 -->
-          <div
-            class="carousel-indicators"
-            v-if="result.imageList && result.imageList.length > 1"
-          >
-            <span
-              v-for="(image, index) in result.imageList"
-              :key="index"
-              :class="['indicator-dot', { active: currentSlide === index }]"
-              @click="goToSlide(index)"
-            ></span>
+            <!-- 指示器 -->
+            <div
+              class="carousel-indicators"
+              v-if="result.imageList && result.imageList.length > 1"
+            >
+              <span
+                v-for="(image, index) in result.imageList"
+                :key="index"
+                :class="['indicator-dot', { active: currentSlide === index }]"
+                @click="goToSlide(index)"
+              ></span>
+            </div>
+
+            <el-button
+              @click="jump"
+              class="view-all-btn"
+              type="primary"
+              plain
+              v-if="result.imageList && result.imageList.length > 0"
+            >
+              查看全部 {{ result.imageList.length }} 张图片
+            </el-button>
           </div>
         </div>
 
-        <el-button
-          @click="jump"
-          class="view-all-btn"
-          type="primary"
-          plain
-          v-if="result.imageList && result.imageList.length > 0"
-        >
-          查看全部 {{ result.imageList.length }} 张图片
-        </el-button>
+        <!-- 当无图片时显示提示 -->
+        <div v-else class="no-images-tip">
+          <el-icon size="48" color="#909399"><Picture /></el-icon>
+          <p>抱歉，该商户暂时未上传图片</p>
+        </div>
       </div>
 
       <!-- 商户信息区域 -->
@@ -1079,7 +1088,6 @@ const fullAddress = computed(() => {
 
 // 初始化地图
 const initMap = () => {
-
   // 设置安全密钥
   (window as any)._AMapSecurityConfig = {
     securityJsCode: "fece524185e1f50a1f12de4faa7a15cc",
@@ -1142,8 +1150,6 @@ const createMap = () => {
 // ================================
 const DEBUG_USE_MOCK_LOCATION = false; // 开发想固定贵州时改成 true
 
-
-
 const getUserLocation = () => {
   // 优先使用浏览器定位
   if (navigator.geolocation) {
@@ -1154,15 +1160,15 @@ const getUserLocation = () => {
         userLocation.value = {
           lat: latitude,
           lng: longitude,
-          address: "正在获取地址..."
+          address: "正在获取地址...",
         };
-        
+
         console.log("📍 浏览器定位成功：", { latitude, longitude });
-        
+
         // 调用高德反地理编码获取真实地址
         AMap.plugin("AMap.Geocoder", () => {
           const geocoder = new AMap.Geocoder();
-          
+
           geocoder.getAddress([longitude, latitude], (status, result) => {
             if (status === "complete" && result.regeocode) {
               const addr = result.regeocode.formattedAddress;
@@ -1172,10 +1178,10 @@ const getUserLocation = () => {
               userLocation.value.address = "无法获取详细地址";
               console.error("❌ 反地理编码失败：", result);
             }
-            
+
             // 移动地图
             map.value.setCenter([longitude, latitude]);
-            
+
             // 计算距离
             calculateDistance();
           });
@@ -1188,9 +1194,9 @@ const getUserLocation = () => {
         useAMapLocation();
       },
       {
-        enableHighAccuracy: true,     // 启用高精度
-        timeout: 10000,               // 10秒超时
-        maximumAge: 60000             // 缓存1分钟
+        enableHighAccuracy: true, // 启用高精度
+        timeout: 10000, // 10秒超时
+        maximumAge: 60000, // 缓存1分钟
       }
     );
   } else {
@@ -1211,8 +1217,8 @@ const useAMapLocation = () => {
       enableHighAccuracy: true,
       timeout: 10000,
       convert: true,
-      useNative: true,      // 强制原生
-      panToLocation: true,  // 自动移动
+      useNative: true, // 强制原生
+      panToLocation: true, // 自动移动
       showButton: false,
       showMarker: false,
       showCircle: false,
@@ -1227,8 +1233,7 @@ const useAMapLocation = () => {
           lat: position.lat,
           lng: position.lng,
           address:
-            result.regeocode?.formattedAddress ||
-            "高德定位（无详细地址）",
+            result.regeocode?.formattedAddress || "高德定位（无详细地址）",
         };
 
         console.log("✅ 高德兜底定位成功：", {
@@ -1322,6 +1327,21 @@ watch(showMapDialog, (newVal) => {
 </script>
 
 <style scoped>
+.no-images-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #909399;
+}
+
+.no-images-tip p {
+  margin-top: 16px;
+  font-size: 16px;
+}
+
 /* 地图弹窗样式 */
 .map-container {
   display: flex;
