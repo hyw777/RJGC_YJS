@@ -88,17 +88,23 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, toRefs } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { UseButtonStore } from '@/stores/UseButtonStore';
 import { DeleteFilled, CircleClose, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useBaseInfo } from '@/hooks/UseBaseInfo';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/UseAuthStore';
+import { useRoute } from 'vue-router'; // 添加导入
+
+// 定义 props
+const props = defineProps<{
+  businessId?: string
+}>()
 
 const imageUrl = ref('');
 const authStore = useAuthStore();
-const { baseInfo, getBaseInfo } = toRefs(useBaseInfo());
+const { baseInfo, getBaseInfo } = useBaseInfo(); // 修复：不再使用 toRefs 包装自定义 hook 返回的对象
 const fileList = ref<string[]>([]); // 明确指定类型
 const fileInput = ref<HTMLInputElement | null>(null);
 const previewUrls = ref<string[]>([]);
@@ -106,6 +112,31 @@ const uploadFiles = ref<File[]>([]);
 const uploadProgressVisible = ref(false);
 const uploadProgress = ref(0);
 const progressText = ref('准备上传...');
+
+// 获取路由参数
+const route = useRoute();
+
+// 抽取加载数据的函数，方便复用
+const loadData = async (businessId: string) => {
+  try {
+    await getBaseInfo(businessId); // 修复：直接调用函数而不是 .value()
+    fileList.value = [...baseInfo.value.imageList]; // 修复类型问题
+    console.log(fileList.value)
+  } catch (error) {
+    console.error("图片列表加载失败:", error);
+  }
+};
+
+// 监听路由变化，在切换标签时重新加载数据
+watch(
+  () => props.businessId || route.query.businessId,
+  (newBusinessId) => {
+    if (newBusinessId) {
+      loadData(newBusinessId as string);
+    }
+  },
+  { immediate: true }
+);
 
 // 处理上传成功的回调
 const handleSuccess = (response: any) => {
@@ -253,7 +284,7 @@ async function submitUpload() {
     ElMessage({ message: '上传成功', type: 'success' });
     
     // 重新加载图片列表
-    await getBaseInfo.value();
+    await getBaseInfo(baseInfo.value.bid); // 修复：直接调用函数而不是 .value()
     fileList.value = [...baseInfo.value.imageList]; // 修复类型问题
 
     // 清空文件列表和预览
@@ -329,9 +360,11 @@ async function deleteImg(fileName: string, businessId: string) {
 
 onMounted(async () => {
   buttonStore.setBossButton(4);
-  await getBaseInfo.value();
-  fileList.value = [...baseInfo.value.imageList]; // 修复类型问题
-  console.log(fileList.value)
+  // 从props或路由参数中获取businessId
+  const businessId = props.businessId || route.query.businessId as string;
+  if (businessId) {
+    await loadData(businessId);
+  }
 });
 
 // 添加辅助函数：移除文件扩展名

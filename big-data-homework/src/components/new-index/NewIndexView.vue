@@ -375,16 +375,48 @@
                 <span class="link-text">管理后台</span>
               </router-link>
 
-              <router-link
-                to="/boss"
-                v-if="userType == 'boss'"
-                class="boss-link"
-              >
-                <el-icon color="#1890ff" size="24">
-                  <Shop />
-                </el-icon>
-                <span class="link-text">商家中心</span>
-              </router-link>
+              <div v-if="userType == 'boss'" class="boss-section">
+                <div 
+                  v-if="businessList.size <= 1" 
+                  class="boss-link"
+                  @click="goToBusiness(Array.from(businessList.keys())[0])"
+                >
+                  <el-icon color="#1890ff" size="24">
+                    <Shop />
+                  </el-icon>
+                  <span class="link-text">商家中心</span>
+                </div>
+                
+                <div 
+                  v-else 
+                  class="multi-business-selector"
+                  @click="toggleBusinessSelector"
+                >
+                  <el-icon color="#1890ff" size="24">
+                    <Shop />
+                  </el-icon>
+                  <span class="link-text">商家中心</span>
+                  <el-icon color="#1890ff" size="16" class="arrow-down">
+                    <ArrowDown />
+                  </el-icon>
+                  
+                 
+                  <div 
+                    v-if="showBusinessSelector" 
+                    class="business-selector-dropdown"
+                    @click.stop
+                  >
+                    <div 
+                      v-for="[businessId, businessName] in Array.from(businessList.entries())" 
+                      :key="businessId"
+                      class="business-item"
+                      @click.stop="goToBusiness(businessId)"
+                    >
+                      {{ businessName }}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- 商家申请 -->
               <div
@@ -592,7 +624,7 @@ const props = defineProps({
   },
 });
 
-import { computed, onMounted, onUnmounted, ref, toRefs } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, toRefs } from "vue";
 // ElMessage 是 Element Plus 提供的全局消息方法，声明用于 TypeScript 校验
 declare const ElMessage: any;
 import { useAuth } from "@/hooks/UseAuth";
@@ -606,6 +638,7 @@ import { useSearch } from "@/hooks/UseSearch";
 import { router } from "@/router";
 import { UseSearchStore } from "@/stores/UseSearchStore";
 import { useAddFriends } from "@/hooks/UseAddFriends";
+import { useStores } from "@/hooks/UseStores";
 
 // ****************申请成为商家
 // 定义一周的天数
@@ -703,7 +736,7 @@ function handleMerchantSubmit() {
 }
 
 // ******************导入购物车图标
-import { ShoppingCart, Upload } from "@element-plus/icons-vue";
+import { ShoppingCart, Upload, ArrowDown } from "@element-plus/icons-vue";
 
 // build full image URL safely; accepts remote URLs or stored filenames
 const filePath = (file: any) => {
@@ -768,6 +801,9 @@ function goToBusinessDetails() {
 // 使用找回hook
 let { findData, findPassword } = UseFind();
 let findVisible = ref(false);
+
+// 商家列表相关
+let { businessList, loadStores } = useStores();
 
 // 发送验证码
 let { sendEmail } = UseCode();
@@ -857,17 +893,63 @@ let intervalId;
 
 let selectRef = ref(null);
 let isSelected = ref(false);
+let showBusinessSelector = ref(false);
 
 function select() {
   isSelected.value = !isSelected.value;
 }
 
+function toggleBusinessSelector(event) {
+  event.stopPropagation();
+  showBusinessSelector.value = !showBusinessSelector.value;
+  console.log("切换商家选择器显示状态:", showBusinessSelector.value);
+  console.log("当前商家列表:", Array.from(businessList.value.entries()));
+  console.log("商家数量:", businessList.value.size);
+  console.log("应该显示下拉菜单:", businessList.value.size > 1);
+  
+  // 强制触发重新渲染
+  nextTick(() => {
+    console.log("下拉菜单状态更新完成");
+    const dropdown = document.querySelector('.business-selector-dropdown');
+    if (dropdown) {
+      console.log("下拉菜单元素存在:", dropdown.style.display);
+    } else {
+      console.log("下拉菜单元素不存在");
+    }
+  });
+}
+
+function goToBusiness(businessId: string) {
+  if (businessId) {
+    console.log("businessId:", businessId);
+    // 跳转到商家中心并传递businessId参数
+    router.push({
+      path: '/boss',
+      query: { businessId: businessId }
+    });
+  }
+}
+
+// 点击其他地方关闭商家选择器
 function handleClickOutside(event) {
   // 判断点击是否发生在下拉框外部
   if (isSelected.value && !selectRef.value.contains(event.target)) {
     isSelected.value = false;
   }
+  
+  // 关闭商家选择器
+  if (showBusinessSelector.value && !event.target.closest('.business-selector-dropdown') && !event.target.closest('.multi-business-selector')) {
+    showBusinessSelector.value = false;
+    console.log("关闭商家选择器");
+  }
 }
+
+// function handleClickOutside(event) {
+//   // 判断点击是否发生在下拉框外部
+//   if (isSelected.value && !selectRef.value.contains(event.target)) {
+//     isSelected.value = false;
+//   }
+// }
 
 // 点击about me跳转到overview
 function jumpFirst() {
@@ -884,6 +966,13 @@ onMounted(async () => {
   if (authStore.token) {
     await getNotifications.value();
     await getApplyInfo.value();
+    
+    // 如果是商家用户，加载商家列表
+    if (userType.value === 'boss') {
+      await loadStores();
+      console.log("商家列表加载完成，数量:", businessList.value.size);
+      console.log("商家列表内容:", Array.from(businessList.value.entries()));
+    }
   }
 
   // 初始加载top5商家数据并将背景指向第一条（如果存在）
@@ -1509,6 +1598,91 @@ async function autoFillCoordinates() {
 
 .signup-button:hover {
   background-color: #40a9ff;
+  transform: translateY(-2px);
+}
+
+/* 商家选择器 */
+.boss-section {
+  position: relative;
+}
+
+.multi-business-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1890ff;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #e6f7ff;
+  border: 1px solid #bae7ff;
+  position: relative;
+  z-index: 1001; /* 确保在其他元素之上 */
+}
+
+.multi-business-selector:hover {
+  background-color: #bae7ff;
+  transform: translateY(-2px);
+}
+
+.arrow-down {
+  transition: transform 0.3s ease;
+}
+
+.multi-business-selector:hover .arrow-down {
+  transform: translateY(2px);
+}
+
+.business-selector-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 200px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 8px;
+  overflow: hidden;
+  border: 1px solid #e8e8e8;
+  background: white;
+}
+
+.business-item {
+  padding: 12px 20px;
+  color: #262626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.business-item:last-child {
+  border-bottom: none;
+}
+
+.business-item:hover {
+  background-color: #f0f8ff;
+}
+
+.boss-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1890ff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #e6f7ff;
+  border: 1px solid #bae7ff;
+}
+
+.boss-link:hover {
+  background-color: #bae7ff;
   transform: translateY(-2px);
 }
 

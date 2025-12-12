@@ -7,6 +7,9 @@
           </el-icon>
       </router-link>
       <span class="title">商户管理平台</span>
+      <div v-if="businessName" class="current-business">
+        当前商户: {{ businessName }}
+      </div>
     </div>
     <div class="mid">
       <div class="nav-left">
@@ -27,16 +30,62 @@
           <span class="button-title">上传图片</span>
         </router-link>
       </div>
-      <router-view style="flex: 1; height: 100%; overflow: auto;"></router-view>
+      <router-view 
+        class="content-area"
+        :business-id="businessId"
+        :key="businessId"
+      ></router-view>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { UseButtonStore } from '@/stores/UseButtonStore';
-import {computed} from "vue";
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+
 let buttonStore = UseButtonStore()
 let bossButton = computed(()=>buttonStore.bossButton)
+
+// 获取路由参数
+const route = useRoute();
+const router = useRouter();
+const businessId = ref<string | null>(null);
+const businessName = ref<string>('');
+
+// 监听路由变化
+watch(
+  () => route.query.businessId,
+  async (newBusinessId) => {
+    if (newBusinessId) {
+      businessId.value = newBusinessId as string;
+      // 获取商户名称
+      try {
+        const response = await axios.get('/api/business/businessInfo', {
+          params: {
+            bId: businessId.value
+          }
+        });
+        if (response.data.code === 200) {
+          businessName.value = response.data.data.name;
+        }
+      } catch (error) {
+        console.error("获取商户信息失败:", error);
+      }
+    }
+  },
+  { immediate: true }
+);
+
+// 在路由变化时确保子组件能接收到 businessId
+watch(
+  () => route,
+  (newRoute) => {
+    // 什么都不做，只是确保路由变化被监听
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -55,6 +104,7 @@ let bossButton = computed(()=>buttonStore.bossButton)
   background: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   padding: 0 40px;
+  flex-shrink: 0; /* 防止在空间不足时缩小 */
 }
 
 .title {
@@ -63,6 +113,15 @@ let bossButton = computed(()=>buttonStore.bossButton)
   font-weight: 700;
   color: #343a40;
   letter-spacing: 0.5px;
+}
+
+.current-business {
+  margin-left: auto;
+  font-size: 16px;
+  color: #6c757d;
+  background-color: #e9ecef;
+  padding: 6px 12px;
+  border-radius: 20px;
 }
 
 .button:hover {
@@ -101,6 +160,7 @@ let bossButton = computed(()=>buttonStore.bossButton)
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
   z-index: 10;
   overflow: hidden; /* 防止子元素悬停时超出容器边界 */
+  flex-shrink: 0; /* 防止在空间不足时缩小 */
 }
 
 .button {
@@ -138,5 +198,13 @@ let bossButton = computed(()=>buttonStore.bossButton)
   font-size: 18px;
   width: 24px;
   text-align: center;
+}
+
+.content-area {
+  flex: 1;
+  height: calc(100vh - 80px); /* 减去顶部导航栏高度 */
+  overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
 }
 </style>

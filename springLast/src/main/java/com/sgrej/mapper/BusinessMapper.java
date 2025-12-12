@@ -116,5 +116,10 @@ public interface BusinessMapper {
     List<BusinessVO> getNearbyBusinessesWithin50Km(@Param("userLat") double userLat,
                                                    @Param("userLng") double userLng);
 
+    @Select("select business_id from user_business where user_id = #{userId}")
+    List<Integer> bIdsByUid(int userId);
+    
+    @Select("select name from business where business_id =  #{businessId} and is_open != -1")
+    String selectBusinessNameByBId(int bId);
 
 }

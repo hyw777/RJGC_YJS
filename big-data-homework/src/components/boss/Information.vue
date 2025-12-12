@@ -15,12 +15,12 @@
         <div class="image-container">
           <div class="main-images">
             <img
-              v-for="(image, index) in baseInfo?.imageList?.slice(0, 3)"
+              v-for="(image, index) in (baseInfo?.imageList || []).slice(0, 3)"
               :key="index"
               class="main-image"
               :src="getImagePath(image)"
-              :alt="`${baseInfo?.name} - 图片${index + 1}`"
-              v-if="image !== undefined && image !== null && image !== '' && baseInfo?.imageList"
+              :alt="`${baseInfo?.name || '未知商户'} - 图片${index + 1}`"
+              v-if="image !== undefined && image !== null && image !== '' && (baseInfo?.imageList || []).length > 0"
             />
           </div>
         </div>
@@ -30,9 +30,9 @@
           class="view-all-btn"
           type="primary"
           plain
-          v-if="baseInfo?.imageList && baseInfo?.imageList.length > 0"
+          v-if="(baseInfo?.imageList || []).length > 0"
         >
-          查看全部 {{ baseInfo?.imageList.length }} 张图片
+          查看全部 {{ (baseInfo?.imageList || []).length }} 张图片
         </el-button>
       </div>
 
@@ -101,11 +101,11 @@
               <span>是否适合儿童</span>
             </div>
             <div class="answer">
-              <el-icon :color="baseInfo?.goodForKids === 'true' ? '#67c23a' : '#f56c6c'" size="16">
+              <el-icon :color="(baseInfo?.goodForKids === 'true') ? '#67c23a' : '#f56c6c'" size="16">
                 <CircleCheck v-if="baseInfo?.goodForKids === 'true'" />
                 <CircleClose v-else />
               </el-icon>
-              <span class="answer-text">{{ baseInfo?.goodForKids === 'true' ? '是' : '否' }}</span>
+              <span class="answer-text">{{ (baseInfo?.goodForKids === 'true') ? '是' : '否' }}</span>
             </div>
           </div>
           
@@ -115,11 +115,11 @@
               <span>是否接受信用卡</span>
             </div>
             <div class="answer">
-              <el-icon :color="baseInfo?.businessAcceptsCreditcards === 'true' ? '#67c23a' : '#f56c6c'" size="16">
+              <el-icon :color="(baseInfo?.businessAcceptsCreditcards === 'true') ? '#67c23a' : '#f56c6c'" size="16">
                 <CircleCheck v-if="baseInfo?.businessAcceptsCreditcards === 'true'" />
                 <CircleClose v-else />
               </el-icon>
-              <span class="answer-text">{{ baseInfo?.businessAcceptsCreditcards === 'true' ? '是' : '否' }}</span>
+              <span class="answer-text">{{ (baseInfo?.businessAcceptsCreditcards === 'true') ? '是' : '否' }}</span>
             </div>
           </div>
         </div>
@@ -130,20 +130,20 @@
         <!-- 评论部分 -->
         <div class="reviews-section">
           <div class="reviews-header">
-            <h2 class="section-title">用户评价 ({{ baseInfo?.reviewVOList?.length || 0 }})</h2>
+            <h2 class="section-title">用户评价 ({{ (baseInfo?.reviewVOList || []).length }})</h2>
           </div>
 
           <!-- 评论列表 -->
-          <div class="reviews-list" v-if="baseInfo?.reviewVOList && baseInfo?.reviewVOList.length > 0">
+          <div class="reviews-list" v-if="(baseInfo?.reviewVOList || []).length > 0">
             <div
               class="review-item"
-              v-for="(review, index) in baseInfo?.reviewVOList"
+              v-for="(review, index) in (baseInfo?.reviewVOList || [])"
               :key="index"
             >
               <div class="review-header">
                 <div class="user-info">
                   <el-avatar :size="32">{{
-                    review?.userName?.charAt(0) || "U"
+                    (review?.userName || '').charAt(0) || "U"
                   }}</el-avatar>
                   <div class="user-details">
                     <span class="username">{{ review?.userName || '匿名用户' }}</span>
@@ -174,11 +174,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, toRefs } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useBaseInfo } from "@/hooks/UseBaseInfo";
 import { UseButtonStore } from "@/stores/UseButtonStore";
 import { router } from "@/router";
 import { UseImageListStore } from "@/stores/UseImageListStore";
+import { useRoute } from 'vue-router';
 import {
   Location,
   Clock,
@@ -190,60 +191,76 @@ import {
   Loading
 } from "@element-plus/icons-vue";
 
+// 定义 props
+const props = defineProps<{
+  businessId?: string
+}>()
+
 // 使用按钮store
 let buttonStore = UseButtonStore();
 
 // 使用baseInfohook
-let { baseInfo, getBaseInfo } = toRefs(useBaseInfo());
+let { baseInfo, getBaseInfo } = useBaseInfo(); // 修复：不再使用 toRefs 包装自定义 hook 返回的对象
 
 let imageListStore = UseImageListStore();
 
 // 添加 loading 状态
 const loading = ref(true);
 
-function jump() {
-  // 确保imageList存在再执行跳转
-  if (baseInfo.value?.imageList) {
-    imageListStore.setImageList(baseInfo.value.imageList);
-    router.push("/imageDisplay");
-  }
-}
+// 获取路由参数
+const route = useRoute();
 
-const getImagePath = (file: string) => {
-  // 添加检查确保file存在且不为空
-  if (!file || file === '') {
-    console.log("图片文件名为空");
-    return "";
-  }
- 
-  const isHttpUrl = file.includes("http");
-
-  if (isHttpUrl) {
-    return file;
-  } else {
-    const fullPath = `http://localhost:3000/images/${file}.jpg`;
-    console.log("图片文件名:", fullPath);
-    return fullPath;
+// 抽取加载数据的函数，方便复用
+const loadData = async (businessId: string) => {
+  loading.value = true;
+  try {
+    // 使用businessId获取商户信息
+    await getBaseInfo(businessId); // 修复：直接调用函数而不是 .value()
+    
+    // 数据加载成功后的处理
+    console.log("商户信息加载成功：", baseInfo.value);
+    
+    // 确保必要的字段存在
+    if (baseInfo.value) {
+      if (!baseInfo.value.reviewVOList || !Array.isArray(baseInfo.value.reviewVOList)) {
+        baseInfo.value.reviewVOList = [];
+      }
+      if (!baseInfo.value.imageList || !Array.isArray(baseInfo.value.imageList)) {
+        baseInfo.value.imageList = [];
+      }
+    }
+  } catch (error) {
+    // 数据加载失败的处理
+    console.error("商户信息加载失败：", error);
+  } finally {
+    // 无论成功还是失败都要隐藏加载状态
+    setTimeout(() => {
+      loading.value = false;
+    }, 100); // 延迟100毫秒确保DOM更新
   }
 };
 
+// 监听路由变化，在切换标签时重新加载数据
+watch(
+  () => props.businessId || route.query.businessId,
+  (newBusinessId) => {
+    if (newBusinessId) {
+      loadData(newBusinessId as string);
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   buttonStore.setBossButton(0);
-  getBaseInfo.value()
-    .then(() => {
-      // 数据加载成功后的处理
-      console.log("商户信息加载成功：", baseInfo.value);
-    })
-    .catch((error) => {
-      // 数据加载失败的处理
-      console.error("商户信息加载失败：", error);
-    })
-    .finally(() => {
-      // 无论成功还是失败都要隐藏加载状态
-      setTimeout(() => {
-        loading.value = false;
-      }, 100); // 延迟100毫秒确保DOM更新
-    });
+  
+  // 从props或路由参数中获取businessId
+  const businessId = props.businessId || route.query.businessId as string;
+  
+  // 使用businessId获取商户信息
+  if (businessId) {
+    loadData(businessId);
+  }
 });
 </script>
 
