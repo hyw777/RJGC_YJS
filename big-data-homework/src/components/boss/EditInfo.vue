@@ -64,33 +64,6 @@
               <el-input v-model="info.categories" />
             </el-form-item>
 
-            <el-form-item label="营业时间" prop="hours">
-              <div
-                v-for="(time, day) in businessHours"
-                :key="day"
-                class="hours-item"
-              >
-                <span class="day-label">{{ day }}:</span>
-                <el-time-picker
-                  v-model="businessHours[day].start"
-                  placeholder="开始时间"
-                  format="HH:mm"
-                  value-format="HH:mm"
-                  width="80px"
-                />
-                <span class="separator">-</span>
-                <el-time-picker
-                  v-model="businessHours[day].end"
-                  placeholder="结束时间"
-                  format="HH:mm"
-                  value-format="HH:mm"
-                  width="80px"
-                />
-              </div>
-            </el-form-item>
-          </div>
-
-          <div class="form-column">
             <el-form-item label="商户属性" prop="attributes">
               <div class="attributes-container">
                 <!-- WiFi选项 -->
@@ -167,6 +140,34 @@
                 </div>
               </div>
             </el-form-item>
+          </div>
+
+          <div class="form-column">
+            <el-form-item label="营业时间" prop="hours">
+              <div
+                v-for="(time, day) in businessHours"
+                :key="day"
+                class="hours-item"
+              >
+                <span class="day-label">{{ day }}:</span>
+                <el-time-picker
+                  v-model="businessHours[day].start"
+                  placeholder="开始时间"
+                  format="HH:mm"
+                  value-format="HH:mm"
+                  width="80px"
+                />
+                <span class="separator">-</span>
+                <el-time-picker
+                  v-model="businessHours[day].end"
+                  placeholder="结束时间"
+                  format="HH:mm"
+                  value-format="HH:mm"
+                  width="80px"
+                />
+              </div>
+            </el-form-item>
+            
           </div>
         </div>
         

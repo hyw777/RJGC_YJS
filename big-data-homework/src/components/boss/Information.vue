@@ -10,30 +10,84 @@
     </div>
 
     <div v-else>
-      <!-- 商户图片展示区域 -->
+      <!-- 商户图片展示区域 - 轮播图 -->
       <div class="image-gallery">
-        <div class="image-container">
-          <div class="main-images">
-            <img
-              v-for="(image, index) in (baseInfo?.imageList || []).slice(0, 3)"
-              :key="index"
-              class="main-image"
-              :src="getImagePath(image)"
-              :alt="`${baseInfo?.name || '未知商户'} - 图片${index + 1}`"
-              v-if="image !== undefined && image !== null && image !== '' && (baseInfo?.imageList || []).length > 0"
-            />
+        <!-- 当有图片时显示轮播图 -->
+        <div v-if="baseInfo?.imageList && baseInfo.imageList.length > 0">
+          <div class="carousel-container">
+            <!-- 主图轮播区域 -->
+            <div class="main-carousel">
+              <div
+                class="carousel-wrapper"
+                :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+              >
+                <div
+                  v-for="(image, index) in baseInfo.imageList"
+                  :key="index"
+                  class="carousel-slide"
+                >
+                  <div class="main-image-container">
+                    <img
+                      class="main-image"
+                      :src="getImagePath(image)"
+                      :alt="`${baseInfo?.name} - 图片${index + 1}`"
+                      v-if="image"
+                    />
+                    <div class="image-placeholder" v-else>
+                      <el-icon size="48"><Picture /></el-icon>
+                      <span>暂无图片</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 左右切换按钮 -->
+            <button
+              class="carousel-btn prev-btn"
+              @click="prevSlide"
+              v-if="baseInfo.imageList && baseInfo.imageList.length > 1"
+            >
+              <el-icon size="24"><ArrowLeft /></el-icon>
+            </button>
+            <button
+              class="carousel-btn next-btn"
+              @click="nextSlide"
+              v-if="baseInfo.imageList && baseInfo.imageList.length > 1"
+            >
+              <el-icon size="24"><ArrowRight /></el-icon>
+            </button>
+
+            <!-- 指示器 -->
+            <div
+              class="carousel-indicators"
+              v-if="baseInfo.imageList && baseInfo.imageList.length > 1"
+            >
+              <span
+                v-for="(image, index) in baseInfo.imageList"
+                :key="index"
+                :class="['indicator-dot', { active: currentSlide === index }]"
+                @click="goToSlide(index)"
+              ></span>
+            </div>
+
+            <el-button
+              @click="jump"
+              class="view-all-btn"
+              type="primary"
+              plain
+              v-if="baseInfo.imageList && baseInfo.imageList.length > 0"
+            >
+              查看全部 {{ baseInfo.imageList.length }} 张图片
+            </el-button>
           </div>
         </div>
 
-        <el-button
-          @click="jump"
-          class="view-all-btn"
-          type="primary"
-          plain
-          v-if="(baseInfo?.imageList || []).length > 0"
-        >
-          查看全部 {{ (baseInfo?.imageList || []).length }} 张图片
-        </el-button>
+        <!-- 当无图片时显示提示 -->
+        <div v-else class="no-images-tip">
+          <el-icon size="48" color="#909399"><Picture /></el-icon>
+          <p>抱歉，该商户暂时未上传图片</p>
+        </div>
       </div>
 
       <!-- 商户信息区域 -->
@@ -75,7 +129,26 @@
               <el-icon><Clock /></el-icon>
               <div class="info-content">
                 <span class="label">营业时间</span>
-                <span class="value">{{ baseInfo?.hours || '未知' }}</span>
+                <span
+                  class="value clickable"
+                  @click="showBusinessHours = !showBusinessHours"
+                >
+                  {{ showBusinessHours ? "收起详细时间" : "点击查看详细时间" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 在 info-grid 后添加详细营业时间展示 -->
+            <div v-if="showBusinessHours" class="business-hours-detail">
+              <div
+                v-for="(time, day) in formatBusinessHours(baseInfo?.hours)"
+                :key="day"
+                class="hours-item"
+              >
+                <span class="day">{{ formatDay(day) }}:</span>
+                <span class="time" :class="{ closed: time === '0:0-0:0' }">
+                  {{ time === "0:0-0:0" ? "全天" : formatTimeRange(time) }}
+                </span>
               </div>
             </div>
 
@@ -95,31 +168,24 @@
         <!-- Q&A 部分 -->
         <div class="qa-section">
           <h2 class="section-title">Q&A</h2>
-          <div class="qa-item">
+          <div
+            class="qa-item"
+            v-for="(attr, index) in getImportantAttributes()"
+            :key="index"
+          >
             <div class="question">
               <el-icon color="#409eff"><QuestionFilled /></el-icon>
-              <span>是否适合儿童</span>
+              <span>{{ formatAttributeName(attr.key) }}</span>
             </div>
             <div class="answer">
-              <el-icon :color="(baseInfo?.goodForKids === 'true') ? '#67c23a' : '#f56c6c'" size="16">
-                <CircleCheck v-if="baseInfo?.goodForKids === 'true'" />
-                <CircleClose v-else />
+              <el-icon :color="getIconColor(attr.value)" size="16">
+                <CircleCheck v-if="attr.value === 'true'" />
+                <CircleClose v-else-if="attr.value === 'false'" />
+                <InfoFilled v-else />
               </el-icon>
-              <span class="answer-text">{{ (baseInfo?.goodForKids === 'true') ? '是' : '否' }}</span>
-            </div>
-          </div>
-          
-          <div class="qa-item">
-            <div class="question">
-              <el-icon color="#409eff"><QuestionFilled /></el-icon>
-              <span>是否接受信用卡</span>
-            </div>
-            <div class="answer">
-              <el-icon :color="(baseInfo?.businessAcceptsCreditcards === 'true') ? '#67c23a' : '#f56c6c'" size="16">
-                <CircleCheck v-if="baseInfo?.businessAcceptsCreditcards === 'true'" />
-                <CircleClose v-else />
-              </el-icon>
-              <span class="answer-text">{{ (baseInfo?.businessAcceptsCreditcards === 'true') ? '是' : '否' }}</span>
+              <span class="answer-text">{{
+                formatAttributeValue(attr.value)
+              }}</span>
             </div>
           </div>
         </div>
@@ -188,7 +254,11 @@ import {
   CircleCheck,
   CircleClose,
   OfficeBuilding,
-  Loading
+  Loading,
+  Picture,
+  ArrowLeft,
+  ArrowRight,
+  InfoFilled
 } from "@element-plus/icons-vue";
 
 // 定义 props
@@ -206,6 +276,206 @@ let imageListStore = UseImageListStore();
 
 // 添加 loading 状态
 const loading = ref(true);
+
+// 轮播图当前页码
+const currentSlide = ref(0);
+
+// 添加响应式变量
+const showBusinessHours = ref(false);
+
+// 添加格式化营业时间的函数
+// 定义星期顺序映射
+const dayOrder = {
+  Monday: 0,
+  Tuesday: 1,
+  Wednesday: 2,
+  Thursday: 3,
+  Friday: 4,
+  Saturday: 5,
+  Sunday: 6,
+};
+
+const formatBusinessHours = (hoursString) => {
+  if (!hoursString) return {};
+
+  try {
+    const hoursObj = JSON.parse(hoursString);
+
+    // 将对象转换为数组并按星期顺序排序
+    const sortedHours = Object.entries(hoursObj)
+      .sort(([dayA], [dayB]) => dayOrder[dayA] - dayOrder[dayB])
+      .reduce((obj, [key, value]) => {
+        obj[key] = value;
+        return obj;
+      }, {});
+
+    return sortedHours;
+  } catch (e) {
+    return {};
+  }
+};
+
+// 格式化星期显示
+const formatDay = (day) => {
+  const dayMap = {
+    Monday: "周一",
+    Tuesday: "周二",
+    Wednesday: "周三",
+    Thursday: "周四",
+    Friday: "周五",
+    Saturday: "周六",
+    Sunday: "周日",
+  };
+  return dayMap[day] || day;
+};
+
+// 格式化时间范围显示
+const formatTimeRange = (timeRange) => {
+  if (!timeRange) return "";
+  return timeRange.replace(/(\d+):0/g, "$1:00").replace("-", " - ");
+};
+
+// 定义重要属性列表
+const importantAttributes = [
+  "WiFi",
+  "Alcohol",
+  "OutdoorSeating",
+  "RestaurantsDelivery",
+  "RestaurantsTakeOut",
+  "BusinessAcceptsCreditCards",
+  "DogsAllowed",
+  "GoodForKids",
+];
+
+// 获取重要属性的函数
+const getImportantAttributes = () => {
+  if (!baseInfo.value?.attributes) return [];
+
+  try {
+    const attrs = JSON.parse(baseInfo.value.attributes);
+    const resultAttrs = [];
+
+    // 遍历重要属性列表
+    importantAttributes.forEach((key) => {
+      if (attrs.hasOwnProperty(key)) {
+        resultAttrs.push({
+          key,
+          value: attrs[key],
+        });
+      } else {
+        // 如果属性不存在，添加一个默认值为未知的项
+        resultAttrs.push({
+          key,
+          value: "unknown",
+        });
+      }
+    });
+
+    return resultAttrs;
+  } catch (e) {
+    return [];
+  }
+};
+
+// 添加颜色映射函数
+const getIconColor = (value) => {
+  if (value === "true") return "#67c23a";
+  if (value === "false") return "#f56c6c";
+  return "#409eff";
+};
+
+const formatAttributeName = (name) => {
+  const nameMap = {
+    WiFi: "是否有WiFi",
+    Alcohol: "是否提供酒精饮品",
+    OutdoorSeating: "是否有户外座位",
+    RestaurantsDelivery: "是否提供外卖",
+    RestaurantsTakeOut: "是否提供外带",
+    BusinessAcceptsCreditCards: "是否接受信用卡",
+    GoodForKids: "是否适合儿童",
+    HasTV: "是否有电视",
+    NoiseLevel: "噪音等级",
+    RestaurantsReservations: "是否需要预约",
+    WheelchairAccessible: "是否无障碍通道",
+    DogsAllowed: "是否允许宠物入内",
+    HappyHour: "是否有欢乐时光",
+    CoatCheck: "是否提供衣帽间",
+    Smoking: "是否允许吸烟",
+  };
+  return nameMap[name] || name;
+};
+
+// 更新格式化函数以处理未知值
+const formatAttributeValue = (value) => {
+  if (value === "true") return "是";
+  if (value === "false") return "否";
+  if (value === "none") return "无";
+  if (value === "unknown") return "未知";
+
+  if (value === "average") return "一般";
+  if (value === "quiet") return "安静";
+  if (value === "loud") return "吵闹";
+  if (value === "very_loud") return "非常吵闹";
+
+  // 处理数组类型值
+  if (typeof value === "object" && value !== null) {
+    const obj = JSON.parse(value);
+    const keys = Object.keys(obj);
+    const values = Object.values(obj);
+
+    // 过滤出为 true 的项
+    const trueKeys = keys.filter((key, index) => values[index] === true);
+
+    if (trueKeys.length > 0) {
+      return trueKeys.join("、");
+    }
+
+    return "无";
+  }
+
+  // 处理价格范围
+  if (value.startsWith("PriceRange")) {
+    const rangeMap = {
+      "1": "¥",
+      "2": "¥¥",
+      "3": "¥¥¥",
+      "4": "¥¥¥¥",
+    };
+    return rangeMap[value] || value;
+  }
+
+  return value;
+};
+
+// 监听图片列表变化，重置轮播图
+watch(
+  () => baseInfo.value?.imageList,
+  () => {
+    currentSlide.value = 0;
+  }
+);
+
+// 上一张图片
+const prevSlide = () => {
+  if (baseInfo.value?.imageList && baseInfo.value.imageList.length > 0) {
+    currentSlide.value =
+      (currentSlide.value - 1 + baseInfo.value.imageList.length) %
+      baseInfo.value.imageList.length;
+  }
+};
+
+// 下一张图片
+const nextSlide = () => {
+  if (baseInfo.value?.imageList && baseInfo.value.imageList.length > 0) {
+    currentSlide.value =
+      (currentSlide.value + 1) % baseInfo.value.imageList.length;
+  }
+};
+
+// 跳转到指定图片
+const goToSlide = (index: number) => {
+  currentSlide.value = index;
+};
 
 // 获取路由参数
 const route = useRoute();
@@ -262,6 +532,29 @@ onMounted(() => {
     loadData(businessId);
   }
 });
+
+// 图片路径处理函数
+const getImagePath = (file: string) => {
+  if (!file) {
+    console.log("图片文件名为空");
+    return "";
+  }
+
+  const isHttpUrl = file.includes("http");
+
+  if (isHttpUrl) {
+    return file;
+  } else {
+    const fullPath = `http://localhost:3000/images/${file}.jpg`;
+    return fullPath;
+  }
+};
+
+// 跳转到图片展示页面
+function jump() {
+  imageListStore.setImageList(baseInfo.value.imageList);
+  router.push("/imageDisplay");
+}
 </script>
 
 <style scoped>
@@ -320,37 +613,121 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-/* 图片展示区域样式 */
+/* 图片展示区域 - 轮播图样式 */
 .image-gallery {
   background: white;
   border-radius: 12px;
-  padding: 16px;
+  padding: 16px; /* 减小内边距 */
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* 减小外边距 */
   position: relative;
 }
 
-.image-container {
-  width: 100%;
-  margin-bottom: 16px;
+.carousel-container {
+  position: relative;
+  margin-bottom: 16px; /* 减小外边距 */
 }
 
-.main-images {
+.main-carousel {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  position: relative;
+}
+
+.carousel-wrapper {
   display: flex;
-  gap: 10px;
+  transition: transform 0.3s ease;
+  width: 100%;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  transition: transform 0.3s ease;
+}
+
+.main-image-container {
+  width: 70%; /* 或者使用固定宽度如 600px */
+  height: 600px; /* 建议设置为具体数值而非百分比 */
+  background-color: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto; /* 添加这行使容器本身在父元素中水平居中 */
 }
 
 .main-image {
-  flex: 1;
-  height: 200px;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
   object-fit: cover;
-  border-radius: 8px;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #909399;
+  gap: 8px;
+}
+
+/* 轮播图控制按钮 */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 32px; /* 减小按钮尺寸 */
+  height: 32px; /* 减小按钮尺寸 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+  z-index: 10;
+}
+
+.carousel-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.prev-btn {
+  left: 12px; /* 调整位置 */
+}
+
+.next-btn {
+  right: 12px; /* 调整位置 */
+}
+
+/* 指示器 */
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 6px; /* 减小间隙 */
+  margin-top: 12px; /* 减小外边距 */
+}
+
+.indicator-dot {
+  width: 8px; /* 减小指示器尺寸 */
+  height: 8px; /* 减小指示器尺寸 */
+  border-radius: 50%;
+  background: #dcdfe6;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.indicator-dot.active {
+  background: #409eff;
 }
 
 .view-all-btn {
   width: 100%;
-  height: 36px;
-  font-size: 14px;
+  height: 36px; /* 减小按钮高度 */
+  font-size: 14px; /* 调整字体大小 */
 }
 
 /* 信息区域 */
@@ -602,6 +979,58 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+/* 添加样式 */
+.clickable {
+  cursor: pointer;
+  color: #409eff;
+}
+
+.business-hours-detail {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+.hours-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.day {
+  font-weight: 500;
+  color: #303133;
+}
+
+.time {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+.time.closed {
+  color: #f56c6c;
+}
+
+/* 针对不同类型的值添加特殊样式 */
+.answer-text.is-yes {
+  color: #67c23a;
+}
+
+.answer-text.is-no {
+  color: #f56c6c;
+}
+
+.answer-text.is-price {
+  font-weight: 500;
+  color: #409eff;
+}
+
+.answer-text.is-unknown {
+  color: #909399;
+  font-style: italic;
+}
+
 /* 响应式设计 */
 @media (max-width: 992px) {
   .content-section {
@@ -647,5 +1076,32 @@ onMounted(() => {
   .business-name {
     font-size: 20px;
   }
+
+  .qa-item {
+    margin-bottom: 12px;
+  }
+
+  .question {
+    font-size: 14px;
+  }
+
+  .answer-text {
+    font-size: 13px;
+  }
+}
+
+.no-images-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #909399;
+}
+
+.no-images-tip p {
+  margin-top: 16px;
+  font-size: 16px;
 }
 </style>
