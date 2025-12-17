@@ -229,12 +229,42 @@ function parseTopRecommendations(text: string) {
 async function fetchAIRecommendationsWrapper() {
   const query = (route.query.info as string) || '';
   // prepare first up to 10 records for AI context
-  const recordsForAI = records.value.slice(0, 10).map((r: any, idx: number) => {
+  const recordsForAI = records.value.slice(0, 12).map((r: any, idx: number) => {
     const name = r?.name ?? '未知商家';
     const stars = (r?.stars !== undefined && r?.stars !== null) ? r.stars : '无评分';
     const categories = r?.categories ?? '未分类';
     return `${idx + 1}. ${name} — 评分: ${stars} — 分类: ${categories}`;
   }).join('\n');
+
+  // 根据记录数量调整推荐策略
+  if (records.value.length === 0) {
+    // 当没有记录时，显示提示信息
+    if (aiRecommendations && typeof aiRecommendations === 'object') {
+      aiRecommendations.value = ['当前没有找到相关商家，请尝试更换搜索关键词。'];
+    }
+    aiTop.value = [];
+    return;
+  } else if (records.value.length <= 3) {
+    // 当记录数小于等于3时，直接推荐当前所有商家
+    if (aiRecommendations && typeof aiRecommendations === 'object') {
+      aiRecommendations.value = ['根据您的搜索，我们找到了以下相关商家，为您直接推荐：'];
+    }
+    
+    // 清空之前的推荐
+    aiTop.value = [];
+    
+    // 将当前所有商家作为推荐项
+    for (let i = 0; i < records.value.length; i++) {
+      const record = records.value[i];
+      aiTop.value.push({
+        name: record.name,
+        reason: `匹配您的搜索关键词"${query}"`,
+        businessId: record.businessId ?? null,
+        record: record
+      });
+    }
+    return;
+  }
 
   const APIkey = 'sk-jsppmnzualuadnsjwnneaqsupkcpjfoungipzaahqygoqhqw'
   try {
@@ -244,7 +274,7 @@ async function fetchAIRecommendationsWrapper() {
     const body = {
       model: 'deepseek-ai/DeepSeek-V2.5',
       messages: [
-        { role: 'user', content: `我当前的搜索关键词："${query}"。下面是搜索结果中前 ${Math.min(5, records.length)} 条商家数据（格式：序号. 名称 — 评分 — 分类）：\n${recordsForAI}\n\n请基于上述商家列表，从“店名、评分、分类”三方面综合分析，给出对用户的智能推荐（推荐相似商家或体验），并对每条推荐写出简短的推荐理由。最后给出 3 条优先推荐（按重要性排序）。` }
+        { role: 'user', content: `我当前的搜索关键词："${query}"。下面是搜索结果中前 ${Math.min(12, records.length)} 条商家数据（格式：序号. 名称 — 评分 — 分类）：\n${recordsForAI}\n\n请基于上述商家列表，从“店名、评分、分类”三方面综合分析，筛选出最好的5家商家，若商家总数少于等于5则不用筛选，给出对用户的智能推荐（推荐相似商家或体验），并对每条推荐写出简短的推荐理由。最后从筛选的商家中给出 3 条优先推荐（按重要性排序）。描述内容中不用出现是否超过了5家，也不用列出筛选出的最好的5家商家，直接描述推荐结果。` }
       ],
       // request streaming if the API supports it (service-dependent)
       stream: true
