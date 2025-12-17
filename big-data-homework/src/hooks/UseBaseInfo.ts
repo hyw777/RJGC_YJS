@@ -31,65 +31,46 @@ export function useBaseInfo() {
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-    async function getBaseInfo(businessId?: string) {
-        try {
-            // 总是使用带参数的接口
-            const url = '/api/business/businessInfo';
+async function getBaseInfo(id?: any) {
+    try {
+        let res = await axios.get(`/api/business/detail/${id}`)
+        
+        // 添加数据验证
+        if (res.data && res.data.data) {
+            baseInfo.value = res.data.data
             
-            // 必须提供businessId参数
-            if (!businessId) {
-                console.warn("未提供businessId参数");
-                return;
+            // 确保 reviewVOList 存在且为数组
+            if (baseInfo.value.reviewVOList && Array.isArray(baseInfo.value.reviewVOList)) {
+                baseInfo.value.reviewVOList.forEach((review) => {
+                    if (review && review.date) {
+                        review.date = formatDateTime(review.date);
+                    }
+                });
             }
             
-            const response = await axios.get(url, {
-                params: { bId: businessId }
-            });
-            
-            // 确保数据存在且不是null
-            if (response.data && response.data.data) {
-                baseInfo.value = response.data.data;
-                
-                // 设置bid字段（与businessId相同）
-                baseInfo.value.bid = businessId;
-                
-                // 确保reviewVOList存在且是数组
-                if (baseInfo.value.reviewVOList && Array.isArray(baseInfo.value.reviewVOList)) {
-                    baseInfo.value.reviewVOList.forEach((review: any) => {
-                        review.date = formatDateTime(review.date);
-                    });
-                } else {
-                    // 如果reviewVOList不存在或不是数组，则初始化为空数组
-                    baseInfo.value.reviewVOList = [];
-                }
-                
-                // 确保imageList存在且是数组
-                if (!baseInfo.value.imageList || !Array.isArray(baseInfo.value.imageList)) {
-                    baseInfo.value.imageList = [];
-                }
-                
-                //路径处理
-                console.log("baseInfo:"+baseInfo.value.bid)
+            // 确保 imageList 存在且为数组
+            if (baseInfo.value.imageList && Array.isArray(baseInfo.value.imageList)) {
                 let imageList = baseInfo.value.imageList
                 for(let i = 0; i < imageList.length; i++) {
-                    // 检查 records 和 image 是否存在
                     if (imageList[i]) {
                         let file = imageList[i];
                         if (typeof file === 'string' && file.includes('http')) {
                             // 如果已经包含 http，则无需更改
                         } else {
-                            // 否则，拼接 URL
                             baseInfo.value.imageList[i] = `${file}`;
                         }
                     }
                 }
-            } else {
-                console.warn("获取到的商户信息为空");
             }
-        } catch (e) {
-            console.error("获取商户信息失败:", e);
+        } else {
+            console.warn("API returned empty or invalid data");
         }
+        
+        console.log(baseInfo.value)
+    } catch (e) {
+        console.error(e)
     }
+}
 
     return {baseInfo,getBaseInfo}
 }

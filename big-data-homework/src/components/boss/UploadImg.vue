@@ -117,11 +117,11 @@ const progressText = ref('准备上传...');
 const route = useRoute();
 
 // 抽取加载数据的函数，方便复用
-const loadData = async (businessId: string) => {
+const loadData = async (businessId: any) => {
   try {
     await getBaseInfo(businessId); // 修复：直接调用函数而不是 .value()
     fileList.value = [...baseInfo.value.imageList]; // 修复类型问题
-    console.log(fileList.value)
+    console.log("bid:", businessId)
   } catch (error) {
     console.error("图片列表加载失败:", error);
   }
@@ -156,7 +156,7 @@ const filePath = (file: string | null) => {
     return file;
   } else {
     const fullPath = `http://localhost:3000/images/${file}.jpg`;
-     console.log("图片文件名:", fullPath);
+    //  console.log("图片文件名:", fullPath);
     return fullPath;
   }
 }

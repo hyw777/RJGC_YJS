@@ -167,6 +167,7 @@ import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Loading, Plus, CircleClose } from '@element-plus/icons-vue';
 import {UseButtonStore} from "@/stores/UseButtonStore";
+import { useBaseInfo } from '@/hooks/UseBaseInfo';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 // 定义菜品类型
@@ -186,6 +187,7 @@ const props = defineProps<{
 
 // 响应式数据
 const loading = ref(false);
+const { baseInfo, getBaseInfo } = useBaseInfo();
 const saving = ref(false);
 const dishes = ref<Dish[]>([]);
 const dialogVisible = ref(false);
@@ -404,7 +406,7 @@ const uploadImage = async (): Promise<string> => {
     // 将图片与商户关联
     const params = new FormData();
     params.append('filePath', photoId);
-    params.append('bId', String(currentDish.value.businessId));
+    params.append('bId', String(baseInfo.value.bid));
     await axios.post('/api/image/uploadImage2', params);
     
     return photoId;
@@ -567,7 +569,9 @@ let buttonStore = UseButtonStore();
 onMounted(() => {
     buttonStore.setBossButton(2);
   if (businessId.value) {
+    getBaseInfo(businessId.value);
     fetchDishes();
+    
   }
 });
 </script>
