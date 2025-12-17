@@ -2392,7 +2392,7 @@ async function submitFeedback() {
 }
 
 .view {
-  width: 100vw;
+  width: 99vw;
   min-height: 100vh; /* 保持这个设置 */
   background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
   padding-bottom: 40px;
