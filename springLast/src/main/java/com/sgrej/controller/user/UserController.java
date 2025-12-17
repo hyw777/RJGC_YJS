@@ -6,6 +6,7 @@ import com.sgrej.domain.pojo.News;
 import com.sgrej.domain.pojo.ResponseResult;
 import com.sgrej.domain.pojo.User;
 import com.sgrej.domain.vo.UserVO;
+import com.sgrej.service.FeedbackService;
 import com.sgrej.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +24,18 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private FeedbackService feedbackService;
+
     /**
      * 用户登录
+     *
      * @param user
      * @return
      */
     @Operation(summary = "登录")
     @PostMapping("/login")
-    public ResponseResult login(@RequestBody LoginUserDTO user){
+    public ResponseResult login(@RequestBody LoginUserDTO user) {
         log.info("用户登录");
         //登录
         return userService.login(user);
@@ -38,11 +43,12 @@ public class UserController {
 
     /**
      * 用户登出
+     *
      * @return
      */
     @Operation(summary = "登出")
     @GetMapping("/logout")
-    public ResponseResult logout(){
+    public ResponseResult logout() {
 
         System.out.println();
         log.info("退出登录");
@@ -52,6 +58,7 @@ public class UserController {
 
     /**
      * 注册用户
+     *
      * @param user
      * @return
      */
@@ -66,7 +73,7 @@ public class UserController {
      * 发送验证码
      */
     @GetMapping("/sendCode/{email}")
-    public ResponseResult sendCode(@PathVariable("email") String email){
+    public ResponseResult sendCode(@PathVariable("email") String email) {
         log.info("发送验证码");
         userService.sendCode(email);
         return ResponseResult.success();
@@ -76,7 +83,7 @@ public class UserController {
      * 编辑个人信息
      */
     @PutMapping("/edit")
-    public ResponseResult edit(@RequestBody EditUserDTO editUser){
+    public ResponseResult edit(@RequestBody EditUserDTO editUser) {
         log.info("更改个人信息");
         userService.edit(editUser);
         return ResponseResult.success("编辑成功");
@@ -87,12 +94,11 @@ public class UserController {
      * 找回密码
      */
     @PostMapping("/findUser")
-    public ResponseResult findUser(@RequestBody FindUserDTO findUser){
+    public ResponseResult findUser(@RequestBody FindUserDTO findUser) {
         log.info("找回密码");
         userService.findUser(findUser);
         return ResponseResult.success("请使用新密码登录");
     }
-
 
 
     /**
@@ -105,11 +111,12 @@ public class UserController {
 
     /**
      * 更改密码
+     *
      * @param updatePwdDTO
      * @return
      */
     @PatchMapping("/updatePwd")
-    public ResponseResult updatePwd(@RequestBody UpdatePwdDTO updatePwdDTO){
+    public ResponseResult updatePwd(@RequestBody UpdatePwdDTO updatePwdDTO) {
         log.info("修改密码");
         userService.updatePwd(updatePwdDTO);
         return ResponseResult.success("修改成功，请重新登陆");
@@ -117,23 +124,35 @@ public class UserController {
 
     /**
      * 个人中心
+     *
      * @return
      */
     @GetMapping("/pCenter")
-    public ResponseResult pCenter(){
+    public ResponseResult pCenter() {
         log.info("个人中心");
-        UserVO userVO=userService.getUserVO();
+        UserVO userVO = userService.getUserVO();
         return ResponseResult.success(userVO);
     }
 
     /**
      * 新事件
+     *
      * @return
      */
     @GetMapping("/getNews")
-    public ResponseResult getNews(){
+    public ResponseResult getNews() {
         log.info("新事件");
-        List<News> newsList=userService.getNews();
+        List<News> newsList = userService.getNews();
         return ResponseResult.success(newsList);
+    }
+
+    /**
+     * 提交用户反馈
+     */
+    @PostMapping("/feedbacks")
+    public ResponseResult submitFeedback(@RequestBody FeedbackDTO feedbackDTO) {
+        log.info("提交用户反馈");
+        feedbackService.saveFeedback(feedbackDTO);
+        return ResponseResult.success("反馈提交成功");
     }
 }

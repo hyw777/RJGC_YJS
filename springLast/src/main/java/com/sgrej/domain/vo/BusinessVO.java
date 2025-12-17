@@ -12,6 +12,7 @@ public class BusinessVO {
     private String name;
     private String address;
     private double stars;
+    private double aiStars;
     private int reviewCount;
     private int isOpen;
     private String categories;

@@ -48,6 +48,8 @@ public class BusinessServiceImpl implements BusinessService {
     private AccessMapper accessMapper;
 
 
+    @Autowired DishMapper dishMapper;
+
     @Autowired
     private User_RoleMapper userRoleMapper;
 
@@ -56,7 +58,9 @@ public class BusinessServiceImpl implements BusinessService {
      * @param businessPageQueryDTO
      * @return
      */
+    @Override
     public PageResult pageQuery(BusinessPageQueryDTO businessPageQueryDTO) {
+
         // 如果页码或页面大小未设置，使用默认值
         if (businessPageQueryDTO.getPage() <= 0) {
             businessPageQueryDTO.setPage(1);
@@ -74,6 +78,8 @@ public class BusinessServiceImpl implements BusinessService {
 
         // 首先从business表中得到商家的基本信息
         Page<BusinessVO> page = businessMapper.pageQuery(businessPageQueryDTO);
+
+        log.info("分页查询结果：{}", page);
 
         // 如果需要，可以创建一个新的List来存储包含图片的BusinessVO对象
         List<BusinessVO1> businessVO1List = new ArrayList<>();
@@ -152,12 +158,16 @@ public class BusinessServiceImpl implements BusinessService {
             tipsVOList.add(tipsVO);
         }
 
+        // 添加菜品
+        List<Dish> dishList=dishMapper.selectDishesByBusinessId(business.getBusinessId());
+
         //将全部信息进行封装并且返回结果
         BusinessVO2 businessVO2=new BusinessVO2();
         businessVO2.setReviewVOList(reviewVOS);
         businessVO2.setTipList(tipsVOList);
         BeanUtils.copyProperties(business,businessVO2);
         businessVO2.setImageList(images);
+        businessVO2.setDishList(dishList);
 
         return businessVO2;
     }

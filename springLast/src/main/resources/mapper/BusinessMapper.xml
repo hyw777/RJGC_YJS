@@ -5,20 +5,68 @@
 <mapper namespace="com.sgrej.mapper.BusinessMapper">
 
     <select id="pageQuery" resultType="com.sgrej.domain.vo.BusinessVO">
-        select business_id,name,address,stars,review_count,is_open,categories,bid
-        from business
+        SELECT DISTINCT
+        b.business_id,
+        b.name,
+        b.address,
+        b.stars,
+        b.review_count,
+        b.is_open,
+        b.categories,
+        b.bid,
+        <!-- 复用球面距离公式，参数对齐userLat/userLng，保留2位小数 -->
+        <if test="latitude != null and longitude != null and distance != null">
+            ROUND(
+            6371 * ACOS(
+            COS(RADIANS(#{latitude})) * COS(RADIANS(b.latitude)) *
+            COS(RADIANS(b.longitude) - RADIANS(#{longitude})) +
+            SIN(RADIANS(#{latitude})) * SIN(RADIANS(b.latitude))
+            ),
+            2
+            ) AS distance
+        </if>
+        FROM business b
+        <!-- 仅搜索商户名时关联菜品表，经纬度过滤无需关联 -->
+        <if test="businessName != null and businessName != ''">
+            LEFT JOIN merchant_dishes md ON b.business_id = md.business_id
+        </if>
         <where>
+            <!-- 1. 原有：商户名/分类/菜品名模糊搜索 -->
             <if test="businessName != null and businessName != ''">
-                and name like concat('%',#{businessName},'%')
+                AND (b.name LIKE CONCAT('%', #{businessName}, '%')
+                OR b.categories LIKE CONCAT('%', #{businessName}, '%')
+                OR md.dish_name LIKE CONCAT('%', #{businessName}, '%'))
             </if>
-            <if test="type != null and type != ''">
-                and categories like concat('%',#{type},'%')
-            </if>
-            <if test=" 1 == 1">
-                and is_open != -1
+            <!-- 2. 原有：is_open !=1（注意和第二个查询的is_open=1逻辑不同，保留原业务规则） -->
+            AND b.is_open = 1
+
+            <!-- 3. 新增：经纬度过滤（复用第二个查询的逻辑） -->
+            <if test="latitude != null and longitude != null and distance != null">
+                <!-- 经纬度非空，避免计算异常 -->
+                AND b.latitude IS NOT NULL
+                AND b.longitude IS NOT NULL
+                <!-- 先通过经纬度范围粗过滤（减少球面公式计算量） -->
+                AND b.latitude BETWEEN #{latitude} - (#{distance} / 111)
+                AND #{latitude} + (#{distance} / 111)
+                AND b.longitude BETWEEN #{longitude} - (#{distance} / (111 * COS(RADIANS(#{latitude}))))
+                AND #{longitude} + (#{distance} / (111 * COS(RADIANS(#{latitude}))))
+                <!-- 精准过滤：距离≤指定范围（WHERE中不能用SELECT的distance别名，需重复公式） -->
+                AND 6371 * ACOS(
+                COS(RADIANS(#{latitude})) * COS(RADIANS(b.latitude)) *
+                COS(RADIANS(b.longitude) - RADIANS(#{longitude})) +
+                SIN(RADIANS(#{latitude})) * SIN(RADIANS(b.latitude))
+                ) &lt;= #{distance}
             </if>
         </where>
-        order by stars desc,review_count desc
+        <!-- 排序：优先按距离升序，再按评分/评论数降序 -->
+        ORDER BY
+        <if test="latitude != null and longitude != null and distance != null">
+            distance ASC,
+        </if>
+        b.stars DESC,
+        b.review_count DESC
+        <!-- 可选：分页/限制条数（和第二个查询的LIMIT 20对齐，根据业务需求加） -->
+        <!-- LIMIT #{offset}, #{pageSize} -->
     </select>
 
 
@@ -122,25 +170,24 @@
                    ) AS distance
         FROM business
         WHERE
-        -- 基础过滤：排除已关闭/无效商户
+          -- 基础过滤：排除已关闭/无效商户
             is_open = 1
-        -- 经纬度非空（避免计算异常）
-        AND latitude IS NOT NULL
-        AND longitude IS NOT NULL
-        -- 动态经纬度范围过滤（覆盖50km）
-        AND latitude BETWEEN #{userLat} - (50/111)
-          AND #{userLat} + (50/111)
-          AND longitude BETWEEN #{userLng} - (50/(111*COS(RADIANS(#{userLat}))))
-          AND #{userLng} + (50/(111*COS(RADIANS(#{userLat}))))
-        -- 直接过滤距离≤50km（替代HAVING，语义更优）
+          -- 经纬度非空（避免计算异常）
+          AND latitude IS NOT NULL
+          AND longitude IS NOT NULL
+          -- 动态经纬度范围过滤（覆盖50km）
+          AND latitude BETWEEN #{userLat} - (50 / 111)
+            AND #{userLat} + (50 / 111)
+          AND longitude BETWEEN #{userLng} - (50 / (111 * COS(RADIANS(#{userLat}))))
+            AND #{userLng} + (50 / (111 * COS(RADIANS(#{userLat}))))
+          -- 直接过滤距离≤50km（替代HAVING，语义更优）
           AND 6371 * ACOS(
-            COS(RADIANS(#{userLat})) * COS(RADIANS(latitude)) *
-            COS(RADIANS(longitude) - RADIANS(#{userLng})) +
-            SIN(RADIANS(#{userLat})) * SIN(RADIANS(latitude))
-            )  &lt;= 50
-    -- 排序：距离升序，评分降序
-        ORDER BY distance ASC, stars DESC
-            LIMIT 20
+                        COS(RADIANS(#{userLat})) * COS(RADIANS(latitude)) *
+                        COS(RADIANS(longitude) - RADIANS(#{userLng})) +
+                        SIN(RADIANS(#{userLat})) * SIN(RADIANS(latitude))
+            ) &lt;= 50
+          -- 排序：距离升序，评分降序
+        ORDER BY distance ASC, stars DESC LIMIT 20
     </select>
 
 </mapper>

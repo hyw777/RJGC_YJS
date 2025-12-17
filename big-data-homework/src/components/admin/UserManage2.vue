@@ -68,47 +68,59 @@
               class="user-card"
               :class="{ blocked: user.status === 1 }"
             >
-              <div class="user-header">
-                <div
-                  class="avatar-placeholder"
-                  :style="getAvatarStyle(user.name)"
-                >
-                  <span class="avatar-text">{{ getInitials(user.name) }}</span>
-                </div>
-                <div
-                  class="user-status-badge"
-                  :class="getStatusClass(user.status)"
-                >
-                  {{ getStatusText(user.status) }}
-                </div>
-              </div>
-
-              <div class="user-info">
-                <h3 class="user-name">{{ user.name }}</h3>
-                <p class="user-email">{{ user.email }}</p>
-                <p class="user-city" v-if="user.city">
-                  <el-icon><Location /></el-icon>
-                  {{ user.city }}
-                </p>
-              </div>
-
-              <div class="user-stats">
-                <div class="stat-item">
-                  <el-icon color="#409eff"><User /></el-icon>
-                  <div>
-                    <div class="stat-value">{{ user.friendNumbers || 0 }}</div>
-                    <div class="stat-label">Friends</div>
+              <router-link
+                :to="{
+                  path: '/friendInfo/overview',
+                  query: { userId: user.userId },
+                }"
+              >
+                <div class="user-header">
+                  <div
+                    class="avatar-placeholder"
+                    :style="getAvatarStyle(user.name)"
+                  >
+                    <span class="avatar-text">{{
+                      getInitials(user.name)
+                    }}</span>
+                  </div>
+                  <div
+                    class="user-status-badge"
+                    :class="getStatusClass(user.status)"
+                  >
+                    {{ getStatusText(user.status) }}
                   </div>
                 </div>
-                <div class="stat-item">
-                  <el-icon color="#f37325"><Star /></el-icon>
-                  <div>
-                    <div class="stat-value">{{ user.reviewNumbers || 0 }}</div>
-                    <div class="stat-label">Reviews</div>
+
+                <div class="user-info">
+                  <h3 class="user-name">{{ user.name }}</h3>
+                  <p class="user-email">{{ user.email }}</p>
+                  <p class="user-city" v-if="user.city">
+                    <el-icon><Location /></el-icon>
+                    {{ user.city }}
+                  </p>
+                </div>
+
+                <div class="user-stats">
+                  <div class="stat-item">
+                    <el-icon color="#409eff"><User /></el-icon>
+                    <div>
+                      <div class="stat-value">
+                        {{ user.friendNumbers || 0 }}
+                      </div>
+                      <div class="stat-label">Friends</div>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <el-icon color="#f37325"><Star /></el-icon>
+                    <div>
+                      <div class="stat-value">
+                        {{ user.reviewNumbers || 0 }}
+                      </div>
+                      <div class="stat-label">Reviews</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
+              </router-link>
               <div class="user-actions">
                 <el-button
                   size="small"
@@ -301,7 +313,7 @@ const userCache = new Map(); // 添加缓存
 // 修改 fetchUsers 函数，移除缓存逻辑
 const fetchUsers = async () => {
   loading.value = true;
-  
+
   try {
     const response = await axios.post(
       "/api/userManage/getInfo",

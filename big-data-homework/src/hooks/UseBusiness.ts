@@ -17,7 +17,8 @@ export function useBusiness() {
         businessAcceptsCreditcards: "",
         bid: "",
         imageList: [],
-        reviewVOList: []
+        reviewVOList: [],
+        dishList: []
     })
 
     function formatDateTime(dateTime) {

@@ -71,50 +71,57 @@
               class="business-card"
               :class="{ blocked: business.isOpen === -2 }"
             >
-              <div class="business-header">
-                <div
-                  class="avatar-placeholder"
-                  :style="getAvatarStyle(business.name)"
-                >
-                  <span class="avatar-text">{{
-                    getInitials(business.name)
-                  }}</span>
-                </div>
-                <div
-                  class="business-status-badge"
-                  :class="getStatusClass(business.isOpen)"
-                >
-                  {{ getStatusText(business.isOpen) }}
-                </div>
-              </div>
-
-              <div class="business-info">
-                <h3 class="business-name">{{ business.name }}</h3>
-                <p class="business-categories">{{ business.categories }}</p>
-                <p class="business-city" v-if="business.city">
-                  <el-icon><Location /></el-icon>
-                  {{ business.city }}, {{ business.state }}
-                </p>
-              </div>
-
-              <div class="business-stats">
-                <div class="stat-item">
-                  <el-icon color="#409eff"><Star /></el-icon>
-                  <div>
-                    <div class="stat-value">{{ business.stars || 0 }}</div>
-                    <div class="stat-label">Stars</div>
+              <router-link
+                :to="{
+                  path: '/merchantDetail',
+                  query: { id: business.businessId },
+                }"
+              >
+                <div class="business-header">
+                  <div
+                    class="avatar-placeholder"
+                    :style="getAvatarStyle(business.name)"
+                  >
+                    <span class="avatar-text">{{
+                      getInitials(business.name)
+                    }}</span>
+                  </div>
+                  <div
+                    class="business-status-badge"
+                    :class="getStatusClass(business.isOpen)"
+                  >
+                    {{ getStatusText(business.isOpen) }}
                   </div>
                 </div>
-                <div class="stat-item">
-                  <el-icon color="#f37325"><ChatLineSquare /></el-icon>
-                  <div>
-                    <div class="stat-value">
-                      {{ business.reviewCount || 0 }}
+
+                <div class="business-info">
+                  <h3 class="business-name">{{ business.name }}</h3>
+                  <p class="business-categories">{{ business.categories }}</p>
+                  <p class="business-city" v-if="business.city">
+                    <el-icon><Location /></el-icon>
+                    {{ business.city }}, {{ business.state }}
+                  </p>
+                </div>
+
+                <div class="business-stats">
+                  <div class="stat-item">
+                    <el-icon color="#409eff"><Star /></el-icon>
+                    <div>
+                      <div class="stat-value">{{ business.stars || 0 }}</div>
+                      <div class="stat-label">Stars</div>
                     </div>
-                    <div class="stat-label">Reviews</div>
+                  </div>
+                  <div class="stat-item">
+                    <el-icon color="#f37325"><ChatLineSquare /></el-icon>
+                    <div>
+                      <div class="stat-value">
+                        {{ business.reviewCount || 0 }}
+                      </div>
+                      <div class="stat-label">Reviews</div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </router-link>
 
               <div class="business-actions">
                 <el-button

@@ -21,7 +21,11 @@
           <el-icon class="icon"><Edit /></el-icon>
           <span class="button-title">编辑信息</span>
         </router-link>
-        <router-link to="/boss/workbench" replace class="workbench button" :class="{'isActive':bossButton == 2}">
+        <router-link to="/boss/menuManagement" replace class="info button" :class="{'isActive':bossButton == 2}">
+          <el-icon class="icon"><Tickets /></el-icon>
+          <span class="button-title">菜单管理</span>
+        </router-link>
+        <router-link to="/boss/workbench" replace class="workbench button" :class="{'isActive':bossButton == 3}">
           <el-icon class="icon"><Odometer /></el-icon>
           <span class="button-title">工作台</span>
         </router-link>

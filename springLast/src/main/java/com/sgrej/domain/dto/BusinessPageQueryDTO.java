@@ -24,7 +24,13 @@ public class BusinessPageQueryDTO implements Serializable {
         this.page = page;
         this.pageSize = pageSize;
     }
-    
+
+    private double latitude;
+
+    private double longitude;
+
+    private double distance;
+
     private int page;//页号
 
     private int pageSize;//页面大小

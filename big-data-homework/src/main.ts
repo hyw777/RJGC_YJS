@@ -14,6 +14,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 // 引入axios拦截器实例
 import axiosInterceptor from '@/interceptor/Axios'
+import 'element-plus/theme-chalk/index.css'
 
 
 // 创建一个应用

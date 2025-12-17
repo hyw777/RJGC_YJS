@@ -46,7 +46,7 @@ public interface BusinessMapper {
     Page<BusinessVO> pageQuery(BusinessPageQueryDTO businessPageQueryDTO);
 
     //查找商户详细信息
-    @Select("SELECT business_id, name, address, city, state, postal_code, latitude, longitude, stars, review_count, is_open, categories, attributes, hours, created_at, updated_at, bid FROM business WHERE business_id = #{businessId}")
+    @Select("SELECT business_id, name, address, city, state, postal_code, latitude, longitude, stars,ai_stars, review_count, is_open, categories, attributes, hours, created_at, updated_at, bid FROM business WHERE business_id = #{businessId}")
     Business selectDetailById(int bId);
 
 
@@ -70,7 +70,7 @@ public interface BusinessMapper {
      * 根据id查询商铺信息
      * @param bId
      */
-    @Select(" select business_id,name,address,stars,review_count,is_open,categories,bid from business " +
+    @Select(" select business_id,name,address,stars,ai_stars,review_count,is_open,categories,bid from business " +
             "where business_id = #{bId}  and is_open != -1" )
     BusinessVO getById(int bId);
 
@@ -121,5 +121,15 @@ public interface BusinessMapper {
     
     @Select("select name from business where business_id =  #{businessId} and is_open != -1")
     String selectBusinessNameByBId(int bId);
+
+    /**
+     * 更新商户评分（基于所有评论的平均值）
+     * @param businessId 商户ID
+     */
+    @Update("UPDATE business b SET " +
+            "b.stars = (SELECT AVG(r.stars) FROM reviews r WHERE r.business_id = #{businessId}), " +
+            "b.ai_stars = (SELECT AVG(r.ai_stars) FROM reviews r WHERE r.business_id = #{businessId}) " +
+            "WHERE b.business_id = #{businessId}")
+    void updateBusinessAverageRating(int businessId);
 
 }

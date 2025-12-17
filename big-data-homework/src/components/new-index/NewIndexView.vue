@@ -314,8 +314,9 @@
           <!-- Logo 区域 -->
           <router-link to="/" class="logo">
             <el-icon size="40" color="#1890ff">
-              <ShoppingCart />
+              <Bowl />
             </el-icon>
+            <span class="title">开吃！</span>
           </router-link>
 
           <!-- 搜索区域 -->
@@ -325,9 +326,10 @@
                 <el-input
                   v-model="info"
                   placeholder="搜索商户、服务或商品..."
+                  @keyup.enter="reload"
                   @click="
-                    display = !display;
-                    getHotSearchTop10();
+                    display = !display
+                    // getHotSearchTop10();
                   "
                   class="search-input"
                 ></el-input>
@@ -376,8 +378,8 @@
               </router-link>
 
               <div v-if="userType == 'boss'" class="boss-section">
-                <div 
-                  v-if="businessList.size <= 1" 
+                <div
+                  v-if="businessList.size <= 1"
                   class="boss-link"
                   @click="goToBusiness(Array.from(businessList.keys())[0])"
                 >
@@ -386,9 +388,9 @@
                   </el-icon>
                   <span class="link-text">商家中心</span>
                 </div>
-                
-                <div 
-                  v-else 
+
+                <div
+                  v-else
                   class="multi-business-selector"
                   @click="toggleBusinessSelector"
                 >
@@ -399,15 +401,16 @@
                   <el-icon color="#1890ff" size="16" class="arrow-down">
                     <ArrowDown />
                   </el-icon>
-                  
-                 
-                  <div 
-                    v-if="showBusinessSelector" 
+
+                  <div
+                    v-if="showBusinessSelector"
                     class="business-selector-dropdown"
                     @click.stop
                   >
-                    <div 
-                      v-for="[businessId, businessName] in Array.from(businessList.entries())" 
+                    <div
+                      v-for="[businessId, businessName] in Array.from(
+                        businessList.entries()
+                      )"
                       :key="businessId"
                       class="business-item"
                       @click.stop="goToBusiness(businessId)"
@@ -574,12 +577,12 @@
           <p class="upload-text">点击选择图片文件</p>
           <p class="upload-hint">支持 JPG、PNG、JPEG 格式</p>
         </div>
-        <input 
-          ref="fileInput" 
-          type="file" 
-          accept="image/*" 
-          @change="onFileChange" 
-          style="display: none;"
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          @change="onFileChange"
+          style="display: none"
         />
         <div class="preview" v-if="previewUrl">
           <img :src="previewUrl" alt="preview" />
@@ -592,6 +595,173 @@
         </div>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="predictionVisible"
+      title="识别结果"
+      width="500"
+      class="prediction-dialog"
+    >
+      <div class="prediction-content">
+        <p class="prediction-title">请选择您想要搜索的食物：</p>
+        <div class="prediction-list">
+          <el-button
+            v-for="(item, index) in predictions"
+            :key="index"
+            class="prediction-item"
+            type="primary"
+            @click="selectPrediction(item)"
+            link
+          >
+            <div class="prediction-item-content">
+              <span class="prediction-index">{{ index + 1 }}</span>
+              <span class="prediction-name">{{ item }}</span>
+            </div>
+          </el-button>
+        </div>
+        <!-- 添加满意度反馈 -->
+        <div
+          class="satisfaction-feedback"
+          v-if="predictionVisible && predictions.length > 0"
+        >
+          <p class="feedback-question">您对此次识别是否满意？</p>
+          <el-button
+            type="danger"
+            size="small"
+            @click="openFeedbackDialog"
+            style="margin-top: 10px"
+          >
+            不满意
+          </el-button>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelPrediction" class="cancel-button"
+            >取消</el-button
+          >
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 反馈对话框 -->
+    <el-dialog
+      v-model="feedbackVisible"
+      title="反馈信息"
+      width="600"
+      class="feedback-dialog"
+    >
+      <div class="feedback-content">
+        <p>请告诉我们您对识别结果的不满之处：</p>
+        <el-form
+          :model="feedbackForm"
+          label-width="auto"
+          style="max-width: 400px"
+        >
+          <el-form-item label="问题描述" prop="description">
+            <el-input
+              v-model="feedbackForm.description"
+              type="textarea"
+              :rows="4"
+              placeholder="请详细描述您的问题..."
+            />
+          </el-form-item>
+
+          <el-form-item label="建议改进" prop="suggestion">
+            <el-input
+              v-model="feedbackForm.suggestion"
+              type="textarea"
+              :rows="3"
+              placeholder="您希望如何改进..."
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="feedbackVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitFeedback" color="#E00707">
+            提交反馈
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="modeSelectionVisible"
+      title="选择检测模式"
+      width="500"
+      class="mode-selection-dialog"
+    >
+      <div class="mode-selection-content">
+        <div class="mode-selection-grid">
+          <div
+            class="mode-card"
+            :class="{ active: selectedDetectionType === 'single' }"
+            @click="selectedDetectionType = 'single'"
+          >
+            <el-icon size="32"><Document /></el-icon>
+            <h3>单个菜品识别</h3>
+            <p>识别图片中的主要菜品</p>
+          </div>
+
+          <div
+            class="mode-card"
+            :class="{ active: selectedDetectionType === 'multiple' }"
+            @click="selectedDetectionType = 'multiple'"
+          >
+            <el-icon size="32"><Files /></el-icon>
+            <h3>多个菜品识别</h3>
+            <p>识别图片中的所有菜品</p>
+          </div>
+        </div>
+
+        <div class="mode-toggle">
+          <el-tooltip content="208种菜品分类" placement="top">
+            <span
+              class="mode-option"
+              :class="{
+                active: selectedMode === 'normal',
+                disabled: !selectedDetectionType,
+              }"
+              @click="selectedDetectionType && (selectedMode = 'normal')"
+            >
+              普通菜品模式
+            </span>
+          </el-tooltip>
+          <el-tooltip
+            content="当前仅支持贵州特色菜，其他地区特色菜陆续更新"
+            placement="top"
+          >
+            <span
+              class="mode-option"
+              :class="{
+                active: selectedMode === 'special',
+                disabled: !selectedDetectionType,
+              }"
+              @click="selectedDetectionType && (selectedMode = 'special')"
+            >
+              特色菜品模式
+            </span>
+          </el-tooltip>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelModeSelection">取消</el-button>
+          <el-button
+            type="primary"
+            @click="confirmModeSelection"
+            :disabled="!selectedDetectionType || !selectedMode"
+          >
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- Background Image Description -->
     <div
       class="background-description"
@@ -780,12 +950,27 @@ let {
   disagree,
 } = toRefs(useAddFriends());
 
-function reload() {
+// 修改 reload 方法，在执行搜索前获取位置信息
+async function reload() {
+  // 先获取用户位置
+  await getCurrentLocation();
+
   router.push({
-    name: "Search", // 假设你的路由配置中有一个名为 'Search' 的命名路由
-    query: { info: info.value },
+    name: "Search",
+    query: {
+      info: info.value,
+      lat: userLocation.value.latitude,
+      lng: userLocation.value.longitude,
+    },
   });
-  getResult.value(1, info.value);
+
+  // 传递位置信息给 getResult 方法
+  getResult.value(
+    1,
+    info.value,
+    userLocation.value.latitude,
+    userLocation.value.longitude
+  );
 }
 
 function goToBusinessDetails() {
@@ -906,11 +1091,11 @@ function toggleBusinessSelector(event) {
   console.log("当前商家列表:", Array.from(businessList.value.entries()));
   console.log("商家数量:", businessList.value.size);
   console.log("应该显示下拉菜单:", businessList.value.size > 1);
-  
+
   // 强制触发重新渲染
   nextTick(() => {
     console.log("下拉菜单状态更新完成");
-    const dropdown = document.querySelector('.business-selector-dropdown');
+    const dropdown = document.querySelector(".business-selector-dropdown");
     if (dropdown) {
       console.log("下拉菜单元素存在:", dropdown.style.display);
     } else {
@@ -924,8 +1109,8 @@ function goToBusiness(businessId: string) {
     console.log("businessId:", businessId);
     // 跳转到商家中心并传递businessId参数
     router.push({
-      path: '/boss',
-      query: { businessId: businessId }
+      path: "/boss",
+      query: { businessId: businessId },
     });
   }
 }
@@ -936,9 +1121,13 @@ function handleClickOutside(event) {
   if (isSelected.value && !selectRef.value.contains(event.target)) {
     isSelected.value = false;
   }
-  
+
   // 关闭商家选择器
-  if (showBusinessSelector.value && !event.target.closest('.business-selector-dropdown') && !event.target.closest('.multi-business-selector')) {
+  if (
+    showBusinessSelector.value &&
+    !event.target.closest(".business-selector-dropdown") &&
+    !event.target.closest(".multi-business-selector")
+  ) {
     showBusinessSelector.value = false;
     console.log("关闭商家选择器");
   }
@@ -966,9 +1155,9 @@ onMounted(async () => {
   if (authStore.token) {
     await getNotifications.value();
     await getApplyInfo.value();
-    
+
     // 如果是商家用户，加载商家列表
-    if (userType.value === 'boss') {
+    if (userType.value === "boss") {
       await loadStores();
       console.log("商家列表加载完成，数量:", businessList.value.size);
       console.log("商家列表内容:", Array.from(businessList.value.entries()));
@@ -1003,12 +1192,12 @@ const display = ref(false);
 
 const hotSearchRank = ref([]);
 
-const getHotSearchTop10 = () => {
-  axios.get("/ppi/hot_search/top10").then((resp) => {
-    hotSearchRank.value = resp.data;
-    console.log("top10:" + resp);
-  });
-};
+// const getHotSearchTop10 = () => {
+//   axios.get("/ppi/hot_search/top10").then((resp) => {
+//     hotSearchRank.value = resp.data;
+//     console.log("top10:" + resp);
+//   });
+// };
 
 function searchTop10ToSearch(searchContent) {
   router.push({
@@ -1047,33 +1236,166 @@ function onFileChange(e: Event) {
   }
 }
 
+// 添加预测结果弹窗相关变量
+const predictionVisible = ref(false);
+const predictions = ref([]);
+// 模式选择相关变量
+const modeSelectionVisible = ref(false);
+const selectedDetectionType = ref(""); // 'single' 或 'multiple'
+const selectedMode = ref(""); // 'normal' 或 'special'
+
+const currentImageId = ref(""); // 用于保存当前上传图片的ID
+
 async function submitUpload() {
   if (!uploadFile.value) {
     ElMessage({ message: "请选择图片后再上传", type: "warning" });
     return;
   }
+// 生成唯一ID的函数
+  const generateUniqueId = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 22; i++) { // 22位字符，类似于你提供的例子
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  // 生成唯一ID并在组件级别保存
+  const imageId = generateUniqueId();
+  currentImageId.value = imageId; // 需要添加这个ref
+
   const formData = new FormData();
   formData.append("file", uploadFile.value);
+  formData.append("imageId", imageId);
+  
   try {
     const resp = await axios.post("http://localhost:3000/photos", formData);
-
     ElMessage({ message: "上传成功", type: "success" });
-   
-    uploadVisible.value = false;
-    // 清理
-    uploadFile.value = null;
-    previewUrl.value = "";
-    
-    // 修复语法错误：确保路由跳转和搜索执行都在try块中正确执行
-    router.push({
-      name: "Search",
-      query: { info: info.value },
-    });
-    getResult.value(1, info.value);
+
+    // 上传成功后显示模式选择对话框
+    modeSelectionVisible.value = true;
   } catch (err) {
     console.error(err);
     ElMessage({ message: "上传失败", type: "error" });
   }
+}
+
+// 确认模式选择
+function confirmModeSelection() {
+  // 验证是否已选择检测类型
+  if (!selectedDetectionType.value) {
+    ElMessage.warning("请先选择检测类型");
+    return;
+  }
+
+  // 验证是否已选择检测模式
+  if (!selectedMode.value) {
+    ElMessage.warning("请选择检测模式");
+    return;
+  }
+
+  modeSelectionVisible.value = false;
+
+  // 构建API调用参数
+  const modelType = selectedMode.value === "normal" ? "A" : "B";
+
+  if (selectedDetectionType.value === "single") {
+    // 调用普通预测API
+    callPredictAPI(modelType);
+  } else {
+    // 调用YOLO检测API
+    callYoloAPI(modelType);
+  }
+}
+
+// 取消模式选择
+function cancelModeSelection() {
+  modeSelectionVisible.value = false;
+  selectedDetectionType.value = "";
+  selectedMode.value = "";
+  // 清理上传文件
+  uploadVisible.value = false;
+  uploadFile.value = null;
+  previewUrl.value = "";
+}
+
+// 调用预测API
+async function callPredictAPI(modelType) {
+  try {
+    const predictFormData = new FormData();
+    predictFormData.append("image", uploadFile.value);
+    predictFormData.append("model_type", modelType);
+
+    const predictResp = await axios.post(
+      "/ppi/models/predict/",
+      predictFormData
+    );
+    console.log("预测结果:", predictResp.data.prediction);
+
+    predictions.value = predictResp.data.prediction;
+    predictionVisible.value = true;
+  } catch (predictErr) {
+    console.error("预测接口调用失败:", predictErr);
+    ElMessage({
+      message: predictErr.response?.data?.detail || "预测服务暂时不可用",
+      type: "error",
+    });
+
+    uploadVisible.value = false;
+    uploadFile.value = null;
+    previewUrl.value = "";
+  }
+}
+
+// 调用YOLO API
+async function callYoloAPI(modelType) {
+  try {
+    const yoloFormData = new FormData();
+    yoloFormData.append("image", uploadFile.value);
+    yoloFormData.append("model_type", modelType);
+
+    const yoloResp = await axios.post("/ppi/models/yolo/", yoloFormData);
+    console.log("YOLO检测结果:", yoloResp.data.prediction);
+
+    // 处理YOLO检测结果（可能需要调整格式以适应现有UI）
+    predictions.value = yoloResp.data.prediction;
+    predictionVisible.value = true;
+  } catch (yoloErr) {
+    console.error("YOLO接口调用失败:", yoloErr);
+    ElMessage({
+      message: yoloErr.response?.data?.detail || "YOLO检测服务暂时不可用",
+      type: "error",
+    });
+
+    uploadVisible.value = false;
+    uploadFile.value = null;
+    previewUrl.value = "";
+  }
+}
+
+// 选择预测结果并进行搜索
+function selectPrediction(foodName) {
+  predictionVisible.value = false;
+  uploadVisible.value = false;
+  uploadFile.value = null;
+  previewUrl.value = "";
+
+  // 执行搜索
+  router.push({
+    name: "Search",
+    query: { info: foodName },
+  });
+  getResult.value(1, foodName);
+}
+
+// 取消预测选择
+function cancelPrediction() {
+  predictionVisible.value = false;
+  uploadVisible.value = false;
+  // 清理
+  uploadFile.value = null;
+  previewUrl.value = "";
 }
 
 // **************************高德
@@ -1081,16 +1403,13 @@ async function submitUpload() {
 async function getAddressCoordinates(address: string) {
   try {
     // 使用高德地图API（需要申请Key）
-    const response = await axios.get(
-      "/gpi/v3/geocode/geo",
-      {
-        params: {
-          key: "96b27b572a0e16d551ac65dd0e02f65f", // 需要申请的API Key
-          address: address,
-          city: "城市名", // 可选，指定城市
-        },
-      }
-    );
+    const response = await axios.get("/gpi/v3/geocode/geo", {
+      params: {
+        key: "96b27b572a0e16d551ac65dd0e02f65f", // 需要申请的API Key
+        address: address,
+        city: "城市名", // 可选，指定城市
+      },
+    });
 
     if (response.data.status === "1" && response.data.geocodes.length > 0) {
       const geocode = response.data.geocodes[0];
@@ -1111,7 +1430,7 @@ async function autoFillCoordinates() {
   if (!merchantForm.value.address || merchantForm.value.address.length < 5) {
     return;
   }
-  
+
   // 短暂延迟，避免频繁请求
   setTimeout(async () => {
     const coordinates = await getAddressCoordinates(merchantForm.value.address);
@@ -1122,9 +1441,325 @@ async function autoFillCoordinates() {
   }, 500);
 }
 
+// 获取用户当前经纬度
+// 添加用户位置相关数据
+const userLocation = ref({
+  latitude: null as number | null,
+  longitude: null as number | null,
+});
+
+// 获取用户当前位置的方法
+const getCurrentLocation = () => {
+  return new Promise<void>((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          userLocation.value.latitude = position.coords.latitude;
+          userLocation.value.longitude = position.coords.longitude;
+          console.log("获取到用户位置:", userLocation.value);
+          resolve();
+        },
+        (error) => {
+          console.error("获取位置失败:", error);
+          ElMessage({
+            message: "获取位置信息失败，将使用默认搜索",
+            type: "warning",
+          });
+          resolve(); // 即使获取位置失败也继续搜索
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 600000, // 10分钟内缓存位置
+        }
+      );
+    } else {
+      console.warn("浏览器不支持地理定位");
+      ElMessage({
+        message: "您的浏览器不支持地理定位，将使用默认搜索",
+        type: "warning",
+      });
+      resolve();
+    }
+  });
+};
+
+
+
+// 添加反馈相关的数据
+const feedbackVisible = ref(false);
+const feedbackForm = ref({
+  description: '',
+  suggestion: ''
+});
+
+// 打开反馈对话框
+function openFeedbackDialog() {
+  feedbackVisible.value = true;
+}
+
+// 提交反馈
+async function submitFeedback() {
+  // 使用之前上传的图片ID而不是重新生成
+  const imageId = currentImageId.value;
+
+  if (!imageId) {
+    ElMessage({ message: "没有找到上传的图片ID", type: "warning" });
+    return;
+  }
+
+  // 首先上传图片到/feedbacks路由
+  try {
+    const imageFormData = new FormData();
+    imageFormData.append("file", uploadFile.value);
+    imageFormData.append("imageId", imageId);
+    
+    // 上传图片到feedbacks目录
+    await axios.post("http://localhost:3000/feedbacks", imageFormData);
+  } catch (uploadError) {
+    console.error("图片上传失败:", uploadError);
+    ElMessage({ message: "图片上传失败", type: "error" });
+    return;
+  }
+
+  // 准备要保存的数据
+  const feedbackData = {
+    imageId: imageId,
+    detectionType: selectedDetectionType.value,
+    modeType: selectedMode.value,
+    results: JSON.stringify(predictions.value),
+    description: feedbackForm.value.description,
+    suggestion: feedbackForm.value.suggestion
+  };
+  
+  try {
+    // 将反馈数据发送到正确的API端点（替换为你的实际端点）
+    await axios.post("/api/user/feedbacks", feedbackData);
+
+    // 清空表单
+    feedbackForm.value.description = '';
+    feedbackForm.value.suggestion = '';
+    
+    // 关闭对话框
+    feedbackVisible.value = false;
+    
+    // 显示成功消息
+    ElMessage({ message: "感谢您的反馈！我们将尽快改进服务", type: "success" });
+  } catch (error) {
+    console.error("提交反馈失败:", error);
+    ElMessage({ message: "提交反馈失败，请重试", type: "error" });
+  }
+}
 </script>
 
 <style scoped>
+/* 添加禁用状态样式 */
+.mode-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.mode-option.disabled:hover {
+  background-color: #f5f5f5;
+  color: #999;
+  transform: none;
+  border-color: #d9d9d9;
+}
+.mode-selection-dialog :deep(.el-dialog__body) {
+  padding: 20px 30px;
+}
+
+.mode-selection-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mode-selection-step {
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.step-title {
+  font-weight: 600;
+  color: #1890ff;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mode-selection-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.mode-card {
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+}
+
+.mode-card:hover {
+  border-color: #1890ff;
+  background-color: #f0f8ff;
+  transform: translateY(-2px);
+}
+
+.mode-card.active {
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+.mode-card h3 {
+  margin: 12px 0 6px;
+  color: #333;
+  font-size: 16px;
+}
+
+.mode-card p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.mode-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 10px;
+}
+
+.mode-option {
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #666;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+}
+
+.mode-option:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.mode-option.active {
+  color: #fff;
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+/* 预测 */
+.prediction-dialog :deep(.el-dialog__header) {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px;
+}
+
+.prediction-dialog :deep(.el-dialog__title) {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.prediction-dialog :deep(.el-dialog__body) {
+  padding: 25px 30px;
+}
+
+.prediction-content {
+  padding: 10px 0;
+}
+
+.prediction-title {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 25px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.prediction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.prediction-item {
+  justify-content: flex-start;
+  padding: 0;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.prediction-item:hover {
+  background-color: #f0f8ff;
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.prediction-item-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 18px 20px;
+}
+
+.prediction-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.prediction-name {
+  font-size: 17px;
+  color: #333;
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+.cancel-button {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: white;
+  font-weight: 500;
+  padding: 10px 24px;
+}
+
+.cancel-button:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 77, 79, 0.2);
+}
 /* 添加以下样式 */
 /* 在现有样式中添加以下内容 */
 .hours-item {
@@ -1304,6 +1939,14 @@ async function autoFillCoordinates() {
   text-decoration: none;
   gap: 10px;
   flex-shrink: 0; /* 防止logo被压缩 */
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1890ff;
+  letter-spacing: -0.5px;
+  white-space: nowrap; /* 防止文字换行 */
 }
 
 .logo-text {
@@ -2136,5 +2779,52 @@ async function autoFillCoordinates() {
 
 .upload-body .preview:empty {
   display: none;
+}
+
+/* 反馈样式 */
+.feedback-dialog :deep(.el-dialog__body) {
+  padding: 30px 40px;
+}
+
+.feedback-content {
+  margin-bottom: 20px;
+}
+
+.feedback-question {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.feedback-content .el-form-item {
+  margin-bottom: 15px;
+}
+
+.feedback-content .el-textarea {
+  border-radius: 8px;
+}
+
+.feedback-content .el-textarea__inner {
+  border-radius: 8px;
+  border-color: #dcdfe6;
+}
+
+.satisfaction-feedback {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.feedback-question {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.feedback-question span {
+  color: #e67e22;
+  font-weight: 500;
 }
 </style>

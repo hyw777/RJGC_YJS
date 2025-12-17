@@ -24,6 +24,7 @@ import {useEditStore} from "@/stores/UseEditStore"
 import Boss from "@/pages/Boss.vue";
 import WorkBench from "@/components/boss/WorkBench.vue";
 import EditInfo from "@/components/boss/EditInfo.vue";
+import MenuManagement from "@/components/boss/MenuManagement.vue";
 import MerchantDetail from "@/pages/MerchantDetail.vue";
 import MerchantView from "@/components/merchant-detail/MerchantView.vue";
 import Information from "@/components/boss/Information.vue";
@@ -129,6 +130,10 @@ export const router = createRouter({
                 {
                     path: '/boss/editInfo',
                     component: EditInfo
+                },
+                {
+                    path: '/boss/menuManagement',
+                    component: MenuManagement
                 },
                 {
                     path: '/boss/workbench',

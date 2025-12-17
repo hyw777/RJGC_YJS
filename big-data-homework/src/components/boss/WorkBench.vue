@@ -298,7 +298,7 @@ const updateChart = () => {
 };
 
 onMounted(async () => {
-  buttonStore.setBossButton(2);
+  buttonStore.setBossButton(3);
   
   // 确保DOM已渲染后再初始化图表
   await nextTick();

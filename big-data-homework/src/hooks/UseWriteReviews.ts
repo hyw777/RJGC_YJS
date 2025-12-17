@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
 export function useWriteReviews() {
   let isDisplayed = ref(false);
@@ -18,6 +19,24 @@ export function useWriteReviews() {
 
   function switchStatus() {
     isDisplayed.value = !isDisplayed.value;
+  }
+
+  // 添加情感分析函数
+  async function analyzeSentiment(content: string) {
+    try {
+      const response = await axios.post("ppi/models/sentiment/", 
+        `content=${encodeURIComponent(content)}`,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+      );
+      return response.data.sentiment_result;
+    } catch (error) {
+      console.error("情感分析失败:", error);
+      throw error;
+    }
   }
 
   async function writeReview(businessId: string, bid: string) {
@@ -44,7 +63,16 @@ export function useWriteReviews() {
     request.value.bid = bid;
 
     try {
-      const res = await axios.post("/api/review/writeReview", request.value);
+      // 在提交评论前进行情感分析
+      const sentimentResult = await analyzeSentiment(request.value.text);
+      
+      // 将情感分析结果添加到请求数据中
+      const reviewData = {
+        ...request.value,
+        aiStars: sentimentResult['score_5point']
+      };
+
+      const res = await axios.post("/api/review/writeReview", reviewData);
 
       if (res.data.code === 200) {
         ElMessage({

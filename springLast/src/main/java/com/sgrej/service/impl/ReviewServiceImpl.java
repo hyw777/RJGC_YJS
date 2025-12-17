@@ -45,6 +45,8 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void writeReview(ReviewDTO reviewDTO) {
+
+        System.out.println(reviewDTO);
         //得到当前用户id
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LoginUser loginUser=(LoginUser)authentication.getPrincipal();
@@ -85,6 +87,10 @@ public class ReviewServiceImpl implements ReviewService {
         business.setBusinessId(businessId);
         System.out.println(business.toString());
         businessMapper.changeInfo(business);
+
+        // 更新商户的评分(stars和aiStars) - 基于所有评论的平均值
+        businessMapper.updateBusinessAverageRating(reviewDTO.getBusinessId());
+
 
     }
 

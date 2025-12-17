@@ -1,5 +1,6 @@
 package com.sgrej.domain.vo;
 
+import com.sgrej.domain.pojo.Dish;
 import com.sgrej.domain.pojo.Tips;
 import lombok.*;
 import java.io.Serializable;
@@ -50,6 +51,7 @@ public class BusinessVO2 implements Serializable {
     private double latitude;
     private double longitude;
     private double stars;
+    private double aiStars;
 
     /**
      * 评价总数
@@ -96,4 +98,5 @@ public class BusinessVO2 implements Serializable {
      */
     private List<TipsVO> tipList;
 
+    private List<Dish> dishList;
 }

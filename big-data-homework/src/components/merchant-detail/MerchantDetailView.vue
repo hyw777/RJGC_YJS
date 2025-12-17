@@ -176,8 +176,11 @@
           <div class="rating-item ai-rating">
             <span class="rating-label ai-label">AI评分</span>
             <el-rate v-model="aiScore" disabled size="small" />
-            <span class="rating-value">{{ aiScore || 0 }}</span>
-            <el-button
+            <span class="rating-value">{{ aiScore }}</span>
+            <span class="review-count"
+              >情感分析70%+美观度分析30%（供您参考）</span
+            >
+            <!-- <el-button
               @click="toggleAIReason"
               type="primary"
               link
@@ -185,7 +188,7 @@
               class="toggle-reason-btn"
             >
               {{ showAIReason ? "收起" : "点击生成AI评分" }}
-            </el-button>
+            </el-button> -->
           </div>
 
           <!-- AI评分理由展示区域 -->
@@ -263,6 +266,47 @@
                   </el-tag>
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 菜品展示区域 -->
+      <div
+        class="dishes-section"
+        v-if="result.dishList && result.dishList.length > 0"
+      >
+        <h2 class="section-title">推荐菜品</h2>
+        <div class="dishes-grid">
+          <div class="dish-card" v-for="dish in result.dishList" :key="dish.id">
+            <div class="dish-image-container">
+              <img
+                v-if="dish.photoId"
+                :src="getDishImagePath(dish.photoId)"
+                :alt="dish.dishName"
+                class="dish-image"
+              />
+              <div v-else class="dish-image-placeholder">
+                <div
+                  class="dish-initials"
+                  v-if="getDishInitials(dish.dishName)"
+                >
+                  {{ getDishInitials(dish.dishName) }}
+                </div>
+                <el-icon v-else size="32"><Picture /></el-icon>
+                <span>暂无图片</span>
+              </div>
+            </div>
+            <div class="dish-info">
+              <h3 class="dish-name">{{ dish.dishName }}</h3>
+              <div class="dish-price">¥{{ dish.price }}</div>
+              <el-tag
+                :type="dish.isOnSale ? 'success' : 'info'"
+                size="small"
+                class="sale-status"
+              >
+                {{ dish.isOnSale ? "在售" : "已下架" }}
+              </el-tag>
             </div>
           </div>
         </div>
@@ -878,6 +922,8 @@ onMounted(() => {
   getResult.value(route.query.id).finally(() => {
     // 数据加载完成后隐藏加载状态
     loading.value = false;
+
+    toggleAIReason();
   });
   // 添加评论提交事件监听
   window.addEventListener("reviewSubmitted", handleReviewSubmitted);
@@ -911,6 +957,23 @@ const toggleAIReason = () => {
   if (showAIReason.value && !aiReason.value && !aiLoading.value) {
     getAIScore();
   }
+
+  // 每次切换时都重新计算综合评分
+  calculateCompositeScore();
+};
+
+// 修改计算综合评分的方法
+const calculateCompositeScore = () => {
+  // 综合评分 = 后端情感分析评分 * 70% + 大模型评分 * 30%
+  const compositeScore =
+    Math.round(
+      (result.value.aiStars * 0.7 +
+        (aiReason.value ? extractAIScore(aiReason.value) : 0) * 0.3) *
+        2
+    ) / 2; // 四舍五入到0.5
+
+  aiScore.value =
+    compositeScore > 5 ? 5 : compositeScore < 0 ? 0 : compositeScore;
 };
 
 // 从AI返回的文本中提取评分
@@ -1309,6 +1372,30 @@ const calculateRoute = () => {
       }
     });
   });
+};
+
+// 菜品
+// 菜品图片路径处理函数
+const getDishImagePath = (file: string) => {
+  if (!file) return "";
+
+  const isHttpUrl = file.includes("http");
+
+  if (isHttpUrl) {
+    return file;
+  } else {
+    // 复用已有图片路径处理逻辑
+    return `http://localhost:3000/images/${file}.jpg`;
+  }
+};
+
+// 获取菜品名称首字母
+const getDishInitials = (dishName: string) => {
+  if (!dishName) return '';
+  
+  // 获取第一个字符，如果是中文则返回中文字符，如果是英文则返回大写字母
+  const firstChar = dishName.charAt(0);
+  return firstChar.toUpperCase();
 };
 
 // 关闭弹窗时清理资源
@@ -2325,4 +2412,112 @@ watch(showMapDialog, (newVal) => {
 .toggle-reason-btn {
   margin-left: auto;
 }
+
+/* 菜品展示区域 */
+.dishes-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.dishes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.dish-card {
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.dish-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.dish-image-container {
+  width: 100%;
+  height: 180px;
+  background-color: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dish-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dish-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #909399;
+  gap: 8px;
+}
+
+.dish-info {
+  padding: 16px;
+}
+
+.dish-name {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.dish-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e64545;
+  margin-bottom: 8px;
+}
+
+.sale-status {
+  margin-top: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .dishes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .dish-image-container {
+    height: 120px;
+  }
+
+  .dish-name {
+    font-size: 16px;
+  }
+
+  .dish-price {
+    font-size: 18px;
+  }
+}
+
+/* 菜品首字母显示样式 */
+.dish-initials {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #409eff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
 </style>

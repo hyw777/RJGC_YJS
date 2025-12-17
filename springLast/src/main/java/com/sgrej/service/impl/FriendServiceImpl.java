@@ -56,81 +56,84 @@ public class FriendServiceImpl implements FriendService {
         //得到用户朋友信息
         User user=userMapper.selectById(userId);
         String friendsId=user.getFriends();
-
-        //将朋友id进行分割成数据,并查找对应的最近一个月内的评论信息和收藏信息
-        String[] friends=friendsId.split(", ");
-
         //用来接收朋友们的评论信息
         List<ReviewVO> reviewVOList=new ArrayList<>();
 
         //用来接收朋友们的收藏信息
         List<CollectionVO> collectionVOList=new ArrayList<>();
-
-        //创建时间周期
-
-        //结束时间
-        Timestamp endTime= Timestamp.valueOf(LocalDateTime.now());
-
-        //得到一个月前的时间点
-        Timestamp startTime=Timestamp.valueOf(LocalDateTime.now().plusDays(-30));
-
-         //并查找对应的最近一个月内的评论信息和收藏信息
-        for (int i = 0; i < friends.length; i++) {
-            //每个朋友的名字
-            String userName=userMapper.getUserName(friends[i]);
-
-            //每个朋友的主id
-            int friendId=userMapper.getUserIdByUid(friends[i]);
-
-            //每个朋友的评论信息
-            List<Review> reviews = reviewMapper.searchByUidAndTime(friends[i],startTime,endTime);
-
-            //对每个朋友的评论进行封装
-            for(Review review:reviews){
-                //首先找到评论对应的商家名和用户名
-                String businessName = businessMapper.selectBusinessName(review.getBusinessId());
-
-                int businessId=businessMapper.selectBusinessByBid(review.getBusinessId());
-                //创建ReviewVO对象用于接收
-                ReviewVO reviewVO=new ReviewVO();
-                BeanUtils.copyProperties(review,reviewVO);
-                reviewVO.setUserName(userName);
-                reviewVO.setBusinessName(businessName);
-                reviewVO.setBusinessId(businessId);
-                //将其添加到reviewVoList中
-                reviewVOList.add(reviewVO);
-            }
-
-            //得到每个朋友的收藏信息
-            //根据用户id从收藏表中拿到收藏记录
-            //应该是在这里对时间进行判断
-            List<Collection> collections=collectMapper.getCollectionsLimitTime(friendId,startTime,endTime);
+        if (friendsId!=null){
+            //将朋友id进行分割成数据,并查找对应的最近一个月内的评论信息和收藏信息
+            String[] friends=friendsId.split(", ");
 
 
-            //遍历businessIds得到对应的商户信息
-            for(Collection collection:collections){
-                int businessId=collection.getBusinessId();
-                BusinessVO businessVO= businessMapper.getById(businessId);
-                String bid=businessVO.getBid();
-                // 得到商家对应的第一张图片
-                String imageUrl = photoMapper.selectImage(bid);
-                //TODO
-                // 对得到的图片路径还需要进行拼接
+
+            //创建时间周期
+
+            //结束时间
+            Timestamp endTime= Timestamp.valueOf(LocalDateTime.now());
+
+            //得到一个月前的时间点
+            Timestamp startTime=Timestamp.valueOf(LocalDateTime.now().plusDays(-30));
+
+            //并查找对应的最近一个月内的评论信息和收藏信息
+            for (int i = 0; i < friends.length; i++) {
+                //每个朋友的名字
+                String userName=userMapper.getUserName(friends[i]);
+
+                //每个朋友的主id
+                int friendId=userMapper.getUserIdByUid(friends[i]);
+
+                //每个朋友的评论信息
+                List<Review> reviews = reviewMapper.searchByUidAndTime(friends[i],startTime,endTime);
+
+                //对每个朋友的评论进行封装
+                for(Review review:reviews){
+                    //首先找到评论对应的商家名和用户名
+                    String businessName = businessMapper.selectBusinessName(review.getBusinessId());
+
+                    int businessId=businessMapper.selectBusinessByBid(review.getBusinessId());
+                    //创建ReviewVO对象用于接收
+                    ReviewVO reviewVO=new ReviewVO();
+                    BeanUtils.copyProperties(review,reviewVO);
+                    reviewVO.setUserName(userName);
+                    reviewVO.setBusinessName(businessName);
+                    reviewVO.setBusinessId(businessId);
+                    //将其添加到reviewVoList中
+                    reviewVOList.add(reviewVO);
+                }
+
+                //得到每个朋友的收藏信息
+                //根据用户id从收藏表中拿到收藏记录
+                //应该是在这里对时间进行判断
+                List<Collection> collections=collectMapper.getCollectionsLimitTime(friendId,startTime,endTime);
 
 
-                // 创建一个新的BusinessVO1对象或直接在BusinessVO上设置图片（如果允许）
-                BusinessVO1 businessVO1 = new BusinessVO1();
-                BeanUtils.copyProperties(businessVO, businessVO1); // 复制属性到BusinessVO1
-                businessVO1.setImage(imageUrl); // 假设BusinessVO1有setImage()方法
+                //遍历businessIds得到对应的商户信息
+                for(Collection collection:collections){
+                    int businessId=collection.getBusinessId();
+                    BusinessVO businessVO= businessMapper.getById(businessId);
+                    String bid=businessVO.getBid();
+                    // 得到商家对应的第一张图片
+                    String imageUrl = photoMapper.selectImage(bid);
+                    //TODO
+                    // 对得到的图片路径还需要进行拼接
 
-                CollectionVO collectionVO=new CollectionVO();
 
-                collectionVO.setDate(collection.getDate());
-                collectionVO.setBusinessVO1(businessVO1);
-                collectionVO.setUserName(userName);
-                collectionVOList.add(collectionVO);
+                    // 创建一个新的BusinessVO1对象或直接在BusinessVO上设置图片（如果允许）
+                    BusinessVO1 businessVO1 = new BusinessVO1();
+                    BeanUtils.copyProperties(businessVO, businessVO1); // 复制属性到BusinessVO1
+                    businessVO1.setImage(imageUrl); // 假设BusinessVO1有setImage()方法
+
+                    CollectionVO collectionVO=new CollectionVO();
+
+                    collectionVO.setDate(collection.getDate());
+                    collectionVO.setBusinessVO1(businessVO1);
+                    collectionVO.setUserName(userName);
+                    collectionVOList.add(collectionVO);
+                }
             }
         }
+
 
 
         return new FriendRecentVO(reviewVOList,collectionVOList);
@@ -423,12 +426,12 @@ public class FriendServiceImpl implements FriendService {
         //设置findfriendVOS
         //查找每个好友信息
         String friendsId=user.getFriends();
-        String[] friends=friendsId.split(", ");
         if(friendsId == null || friendsId == "" || friendsId.isEmpty()){
-            return null;
+            return friendDetailVO;
         }
 
         else {
+            String[] friends=friendsId.split(", ");
             List<FindfriendVO> findFriendVOS = new ArrayList<>();
             for (int i = 0; i < friends.length; i++) {
                 User friend = userMapper.getUserByUid(friends[i]);

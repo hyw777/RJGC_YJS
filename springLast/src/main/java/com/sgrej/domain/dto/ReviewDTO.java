@@ -23,6 +23,8 @@ public class ReviewDTO {
 
     private double stars;//评分
 
+    private double aiStars;
+
     private String text;//评价内容
 
     private Timestamp date;//评价时间

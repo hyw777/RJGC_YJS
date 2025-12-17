@@ -31,10 +31,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/ppi': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ppi/, '')
-      },
+      target: 'http://127.0.0.1:8000', // ✨ 关键：强制 IPv4 连接 FastAPI
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/ppi/, '')
+    },
       // 新增：代理地图SDK（webapi.amap.com）
     '/wpi': {
       target: 'https://webapi.amap.com', 

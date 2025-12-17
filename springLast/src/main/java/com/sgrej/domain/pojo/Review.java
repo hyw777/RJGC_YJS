@@ -33,6 +33,8 @@ public class Review implements Serializable {
      * 评分
      */
     private double stars;
+
+    private String aiStars;
     /**
      * 有用的
      */

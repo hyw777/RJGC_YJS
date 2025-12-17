@@ -57,6 +57,7 @@ public class Business implements Serializable {
      */
     private double stars;
 
+    private double aiStars;
     /**
      * 评价总数
      */

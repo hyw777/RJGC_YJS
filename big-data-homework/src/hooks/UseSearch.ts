@@ -38,26 +38,33 @@ export function useSearch() {
         ]
     })
 
-    async function getResult(page,businessName) {
+    async function getResult(page: number, businessName: string, latitude?: number | null, longitude?: number | null, distance: number = 10) {
         search.value.page = page
         search.value.businessName = businessName
-        console.log(search.value)
         search.value.pageSize = 6
+        
+        // 创建传递给后端的参数对象
+        const requestData = {
+            ...search.value
+        }
+        
+        // 如果提供了地理位置信息，则添加到请求数据中
+        if (latitude !== null && latitude !== undefined) {
+            requestData.latitude = latitude
+        }
+        
+        if (longitude !== null && longitude !== undefined) {
+            requestData.longitude = longitude
+        }
+        
+        requestData.distance = distance
+
         try {
-            let res = await axios.post('/api/business/search',search.value)
-            let data = res.data.data; // 直接使用 res.data.data
-            // 检查 records 和 image 是否存在
-            // if (data.records && data.records.image) {
-            //     let file = data.records.image;
-            //     if (typeof file === 'string' && file.includes('http')) {
-            //         // 如果已经包含 http，则无需更改
-            //     } else {
-            //         // 否则，拼接 URL
-            //         data.records.image = `/api/images/${file}`;
-            //     }
-            // }
+            console.log(requestData)
+            let res = await axios.post('/api/business/search', requestData)
+            let data = res.data.data;
             searchStore.setResult(data)
-        }catch (err){
+        } catch (err) {
             console.error(err)
         }
     }

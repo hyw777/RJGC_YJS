@@ -57,6 +57,7 @@ declare module 'vue' {
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTimePicker: typeof import('element-plus/es')['ElTimePicker']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     FCollections: typeof import('./src/components/friendInfo/FCollections.vue')['default']
     FFriends: typeof import('./src/components/friendInfo/FFriends.vue')['default']
     FOverview: typeof import('./src/components/friendInfo/FOverview.vue')['default']
@@ -68,6 +69,7 @@ declare module 'vue' {
     Input: typeof import('./src/components/common/Input.vue')['default']
     LoginHead: typeof import('./src/components/login/LoginHead.vue')['default']
     LoginMid: typeof import('./src/components/login/LoginMid.vue')['default']
+    MenuManagement: typeof import('./src/components/boss/MenuManagement.vue')['default']
     MerchantDetailView: typeof import('./src/components/merchant-detail/MerchantDetailView.vue')['default']
     MerchantView: typeof import('./src/components/merchant-detail/MerchantView.vue')['default']
     NearBy: typeof import('./src/components/new-index/NearBy.vue')['default']
@@ -86,5 +88,8 @@ declare module 'vue' {
     UploadImg: typeof import('./src/components/boss/UploadImg.vue')['default']
     UserManage2: typeof import('./src/components/admin/UserManage2.vue')['default']
     WorkBench: typeof import('./src/components/boss/WorkBench.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }

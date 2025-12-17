@@ -6,8 +6,8 @@
 
     <insert id="addReview">
         INSERT INTO `reviews`
-            (`user_id`, `business_id`, `stars`, `useful`, `funny`, `cool`, `text`, `date`, `rid`) VALUES
-        (#{userId}, #{bid}, #{stars}, 0, 0, 0, #{text},#{date},#{rid})
+            (`user_id`, `business_id`, `stars`, `ai_stars`,`useful`, `funny`, `cool`, `text`, `date`, `rid`) VALUES
+        (#{userId}, #{bid}, #{stars},#{aiStars}, 0, 0, 0, #{text},#{date},#{rid})
     </insert>
 
     <update id="changeReview" parameterType="com.sgrej.domain.dto.ReviewSatisfactionDTO">
