@@ -44,6 +44,8 @@ public class UserManageServiceImpl implements UserManageService {
                 .map(user -> {
                     FindfriendVO vo = new FindfriendVO();
                     BeanUtils.copyProperties(user, vo);
+                    int status = userRoleMapper.getStatus(user.getUserId());
+                    vo.setStatus(status);
                     return vo;
                 })
                 .collect(Collectors.toList());

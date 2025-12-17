@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,8 +82,13 @@ public class BusinessManageServiceImpl implements BusinessManageService {
             Business business = businessMapper.selectDetailById(businessId);
             String businessName=business.getName();
             News news = new News();
-            news.setTime(Timestamp.valueOf(LocalDateTime.now()));
-            news.setContent("新店《"+businessName+"》在"+LocalDateTime.now()+"上线啦，快来看看吧");
+            // 建议统一时间格式处理
+            LocalDateTime now = LocalDateTime.now();
+            news.setTime(Timestamp.valueOf(now));
+            // 格式化时间显示
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            news.setContent("新店《"+businessName+"》在"+now.format(formatter)+"上线啦，快来看看吧");
+
             news.setUserId(-1);
             newMapper.add(news);
         }

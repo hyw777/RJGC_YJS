@@ -14,6 +14,7 @@ public class FindfriendVO {
     private int reviewCount;
     private int friendNumbers;
     private int userId;
+    private int status;
     private String uid;
 
 }
